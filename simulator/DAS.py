@@ -36,7 +36,7 @@ class Validator:
     proposer = 0
     failureRate = 0
 
-    def __init__(self, ID, chi, blockSize, proposer, failureRate):
+    def __init__(self, ID, chi, blockSize, proposer, failureRate, deterministic):
         self.ID = ID
         self.blockSize = blockSize
         self.proposer = proposer
@@ -49,7 +49,8 @@ class Validator:
             self.chi = chi
             self.rowIDs = []
             self.columnIDs = []
-            random.seed(self.ID)
+            if deterministic:
+                random.seed(self.ID)
             for i in range(self.chi):
                 self.rowIDs.append(random.randint(0,blockSize-1))
                 self.columnIDs.append(random.randint(0,blockSize-1))
@@ -111,8 +112,56 @@ class Validator:
                 self.getRow(r, broadcasted)
             for c in self.columnIDs:
                 self.getColumn(c, broadcasted)
-            print(self.rows)
-            print(self.columns)
+
+    def printRows(self):
+        print("Val %d - Rows: " % self.ID, end="")
+        print(self.rows)
+
+    def printColumns(self):
+        print("Val %d - Columns: " % self.ID, end="")
+        print(self.columns)
+
+    def checkRestoreRows(self, goldenData):
+        for rid in range(len(self.rows)):
+            row = self.rows[rid]
+            failures = 0
+            success = 0
+            for i in row:
+                if i == 0:
+                    failures += 1
+                elif i > 0 and i < 10:
+                    success += 1
+                else:
+                    print("ERROR: Data has been corrupted")
+
+            if failures > 0:
+                if success >= len(row)/2:
+                    for i in range(len(row)):
+                        self.rows[rid][i] = goldenData[(self.rowIDs[rid]*self.blockSize)+i]
+                    print("Val %d: Row %d data restored" % (self.ID, self.rowIDs[rid]))
+                else:
+                    print("WARNING Val %d: Row %d cannot be restored" %  (self.ID, self.rowIDs[rid]))
+
+    def checkRestoreColumns(self, goldenData):
+        for cid in range(len(self.columns)):
+            column = self.columns[cid]
+            failures = 0
+            success = 0
+            for i in column:
+                if i == 0:
+                    failures += 1
+                elif i > 0 and i < 10:
+                    success += 1
+                else:
+                    print("ERROR: Data has been corrupted")
+
+            if failures > 0:
+                if success >= len(column)/2:
+                    for i in range(len(column)):
+                        self.columns[cid][i] = goldenData[(i*self.blockSize)+self.columnIDs[cid]]
+                    print("Val %d: Column %d data restored" % (self.ID, self.columnIDs[cid]))
+                else:
+                    print("Val %d: Column %d cannot be restored" % (self.ID, self.columnIDs[cid]))
 
 
 class Observer:
@@ -121,6 +170,7 @@ class Observer:
     blockSize = 0
     rows = []
     columns = []
+    goldenData = []
 
     def __init__(self, blockSize):
         self.blockSize = blockSize
@@ -141,25 +191,32 @@ class Observer:
             if self.rows[i] == 0 or self.columns[i] == 0:
                 print("WARNING: There is a row/column that has not been assigned")
 
+    def setGoldenData(self, block):
+        self.goldenData = [0] * self.blockSize * self.blockSize
+        for i in range(self.blockSize*self.blockSize):
+            self.goldenData[i] = block.data[i]
 
 class Simulator:
 
-    chi = 2
-    blockSize = 8
-    numberValidators = 16
+    chi = 4
+    blockSize = 16
+    numberValidators = 32
+    failureRate = 10
     proposerID = 0
+    deterministic = 1
     validators = []
     glob = []
 
     def __init__(self):
-        random.seed(datetime.now())
+        if not self.deterministic:
+            random.seed(datetime.now())
         self.glob = Observer(self.blockSize)
         for i in range(self.numberValidators):
+            val = Validator(i, self.chi, self.blockSize, int(not i!=0), self.failureRate, self.deterministic)
             if i == self.proposerID:
-                val = Validator(i, self.chi, self.blockSize, 1, 10)
                 val.initBlock()
+                self.glob.setGoldenData(val.block)
             else:
-                val = Validator(i, self.chi, self.blockSize, 0, 10)
                 val.printIDs()
             self.validators.append(val)
 
@@ -169,6 +226,13 @@ class Simulator:
         self.validators[self.proposerID].broadcastBlock(broadcasted)
         for i in range(1,self.numberValidators):
             self.validators[i].receiveRowsColumns(broadcasted)
+            self.validators[i].printRows()
+            self.validators[i].printColumns()
+            self.validators[i].checkRestoreRows(self.glob.goldenData)
+            self.validators[i].checkRestoreColumns(self.glob.goldenData)
+            self.validators[i].printRows()
+            self.validators[i].printColumns()
+
 
 sim = Simulator()
 sim.run()
