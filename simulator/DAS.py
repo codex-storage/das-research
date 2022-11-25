@@ -82,9 +82,13 @@ class Validator:
             self.columnIDs = []
             if deterministic:
                 random.seed(self.ID)
-            for i in range(self.chi):
-                self.rowIDs.append(random.randint(0,blockSize-1))
-                self.columnIDs.append(random.randint(0,blockSize-1))
+            lr = [i for i in range(self.blockSize)]
+            lc = [i for i in range(self.blockSize)]
+            random.shuffle(lr)
+            random.shuffle(lc)
+            for i in range(self.chi): # TODO : Avoid doubles
+                self.rowIDs.append(lr.pop())
+                self.columnIDs.append(lc.pop())
 
     def logIDs(self):
         if self.proposer == 1:
@@ -137,11 +141,38 @@ class Validator:
             for c in self.columnIDs:
                 self.getColumn(c, broadcasted)
 
+    def sendColumn(self, c, columnID, broadcasted):
+        column = [0] * self.blockSize
+        for i in range(self.blockSize):
+            if broadcasted.data[(i*self.blockSize)+columnID] == 0:
+                broadcasted.data[(i*self.blockSize)+columnID] = self.columns[c][i]
+
+    def sendRow(self, r, rowID, broadcasted):
+        for i in range(self.blockSize):
+            if broadcasted.data[(rowID*self.blockSize)+i] == 0:
+                broadcasted.data[(rowID*self.blockSize)+i] = self.rows[r][i]
+
+    def sendRows(self, broadcasted):
+        if self.proposer == 1:
+            self.logger.error("I am a block proposer", extra=self.format)
+        else:
+            self.logger.debug("Sending restored rows...", extra=self.format)
+            for r in range(len(self.rowIDs)):
+                self.sendRow(r, self.rowIDs[r], broadcasted)
+
+    def sendColumns(self, broadcasted):
+        if self.proposer == 1:
+            self.logger.error("I am a block proposer", extra=self.format)
+        else:
+            self.logger.debug("Sending restored columns...", extra=self.format)
+            for c in range(len(self.columnIDs)):
+                self.sendColumn(c, self.columnIDs[c], broadcasted)
+
     def logRows(self):
-        self.logger.info("Rows: "+str(self.rows), extra=self.format)
+        self.logger.debug("Rows: "+str(self.rows), extra=self.format)
 
     def logColumns(self):
-        self.logger.info("Columns: "+str(self.columns), extra=self.format)
+        self.logger.debug("Columns: "+str(self.columns), extra=self.format)
 
     def checkRestoreRows(self, goldenData):
         for rid in range(len(self.rows)):
@@ -160,7 +191,7 @@ class Validator:
                 if success >= len(row)/2:
                     for i in range(len(row)):
                         self.rows[rid][i] = goldenData[(self.rowIDs[rid]*self.blockSize)+i]
-                    self.logger.info("Row %d data restored" % (self.rowIDs[rid]), extra=self.format )
+                    self.logger.info("%d samples restored in row %d" % (failures, self.rowIDs[rid]), extra=self.format )
                 else:
                     self.logger.warning("Row %d cannot be restored" %  (self.rowIDs[rid]), extra=self.format)
 
@@ -181,7 +212,7 @@ class Validator:
                 if success >= len(column)/2:
                     for i in range(len(column)):
                         self.columns[cid][i] = goldenData[(i*self.blockSize)+self.columnIDs[cid]]
-                    self.logger.info("Column %d data restored" % (self.columnIDs[cid]), extra=self.format)
+                    self.logger.info("%d samples restored in column %d" % (failures, self.columnIDs[cid]), extra=self.format)
                 else:
                     self.logger.info("Column %d cannot be restored" % (self.columnIDs[cid]), extra=self.format)
 
@@ -193,15 +224,18 @@ class Observer:
     rows = []
     columns = []
     goldenData = []
+    broadcasted = []
     logger = []
 
     def __init__(self, blockSize, logger):
         self.format = {"entity": "Observer"}
         self.blockSize = blockSize
         self.block = [0] * self.blockSize * self.blockSize
+        self.goldenData = [0] * self.blockSize * self.blockSize
         self.rows = [0] * self.blockSize
         self.columns = [0] * self.blockSize
         self.logger = logger
+        self.broadcasted = Block(self.blockSize)
 
     def checkRowsColumns(self, validators):
         for val in validators:
@@ -217,31 +251,44 @@ class Observer:
                 logging.warning("There is a row/column that has not been assigned", extra=self.format)
 
     def setGoldenData(self, block):
-        self.goldenData = [0] * self.blockSize * self.blockSize
         for i in range(self.blockSize*self.blockSize):
             self.goldenData[i] = block.data[i]
+
+    def checkBroadcasted(self):
+        zeros = 0
+        for i in range(self.blockSize * self.blockSize):
+            if self.broadcasted.data[i] == 0:
+                zeros += 1
+        if zeros > 0:
+            self.logger.warning("There are %d missing samples in the network" % zeros, extra=self.format)
+        return zeros
+
 
 class Simulator:
 
     chi = 4
     blockSize = 16
     numberValidators = 32
-    failureRate = 40
+    failureRate = 66
     proposerID = 0
-    logLevel = logging.DEBUG
+    logLevel = logging.INFO
     deterministic = 0
     validators = []
     glob = []
     logger = []
+    format = {}
+    steps = 0
 
     def __init__(self):
         logger = logging.getLogger("DAS")
         logger.setLevel(self.logLevel)
         ch = logging.StreamHandler()
         ch.setLevel(self.logLevel)
+        self.format = {"entity": "Simulator"}
         ch.setFormatter(CustomFormatter())
         logger.addHandler(ch)
         self.logger = logger
+        self.steps = 0
 
         if not self.deterministic:
             random.seed(datetime.now())
@@ -257,17 +304,38 @@ class Simulator:
 
 
     def run(self):
-        broadcasted = Block(self.blockSize)
         self.glob.checkRowsColumns(self.validators)
-        self.validators[self.proposerID].broadcastBlock(broadcasted)
-        for i in range(1,self.numberValidators):
-            self.validators[i].receiveRowsColumns(broadcasted)
-            self.validators[i].logRows()
-            self.validators[i].logColumns()
-            self.validators[i].checkRestoreRows(self.glob.goldenData)
-            self.validators[i].checkRestoreColumns(self.glob.goldenData)
-            self.validators[i].logRows()
-            self.validators[i].logColumns()
+        self.validators[self.proposerID].broadcastBlock(self.glob.broadcasted)
+        missingSamples = self.glob.checkBroadcasted()
+        while(missingSamples > 0):
+            oldMissingSamples = missingSamples
+            self.logger.info("Step %d:" % self.steps, extra=self.format)
+            for i in range(1,self.numberValidators):
+                self.validators[i].receiveRowsColumns(self.glob.broadcasted)
+                #Rows
+                self.validators[i].checkRestoreRows(self.glob.goldenData)
+                self.validators[i].sendRows(self.glob.broadcasted)
+                self.validators[i].logRows()
+                self.validators[i].logColumns()
+                # Columns
+                self.validators[i].checkRestoreColumns(self.glob.goldenData)
+                self.validators[i].sendColumns(self.glob.broadcasted)
+                self.validators[i].logRows()
+                self.validators[i].logColumns()
+
+            missingSamples = self.glob.checkBroadcasted()
+            if missingSamples == oldMissingSamples:
+                break
+            elif missingSamples == 0:
+                break
+            else:
+                self.steps += 1
+
+        if missingSamples == 0:
+            self.logger.info("The entire block is available at step %d!" % self.steps, extra=self.format)
+        else:
+            self.logger.warning("The block is CANNOT be recovered!", extra=self.format)
+        self.logger.info("End of simulation", extra=self.format)
 
 
 sim = Simulator()
