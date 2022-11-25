@@ -1,6 +1,6 @@
 #! /bin/python3
 
-import random
+import random, logging
 from datetime import datetime
 
 class Block:
@@ -17,16 +17,43 @@ class Block:
             self.data[i] = random.randint(1, 9)
 
     def print(self):
+        dash = "-" * (self.blockSize+2)
+        print(dash)
         for i in range(self.blockSize):
+            line = "|"
             for j in range(self.blockSize):
-                print("%i" % self.data[(i*self.blockSize)+j], end="")
-            print("")
+                line += "%i" % self.data[(i*self.blockSize)+j]
+            print(line+"|")
+        print(dash)
 
+class CustomFormatter(logging.Formatter):
+
+    blue = "\x1b[34;20m"
+    grey = "\x1b[38;20m"
+    yellow = "\x1b[33;20m"
+    red = "\x1b[31;20m"
+    bold_red = "\x1b[31;1m"
+    reset = "\x1b[0m"
+    format = "%(levelname)s : %(entity)s : %(message)s"
+
+    FORMATS = {
+        logging.DEBUG: grey + format + reset,
+        logging.INFO: blue + format + reset,
+        logging.WARNING: yellow + format + reset,
+        logging.ERROR: red + format + reset,
+        logging.CRITICAL: bold_red + format + reset
+    }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
 
 class Validator:
 
     ID = 0
     chi = 0
+    format = {}
     blocksize = 0
     block = []
     rowIDs = []
@@ -35,16 +62,20 @@ class Validator:
     columns = []
     proposer = 0
     failureRate = 0
+    logger = []
 
-    def __init__(self, ID, chi, blockSize, proposer, failureRate, deterministic):
+    def __init__(self, ID, chi, blockSize, proposer, failureRate, deterministic, logger):
+        FORMAT = "%(levelname)s : %(entity)s : %(message)s"
         self.ID = ID
+        self.format = {"entity": "Val "+str(self.ID)}
         self.blockSize = blockSize
         self.proposer = proposer
         self.failureRate = failureRate
+        self.logger = logger
         if chi < 1:
-            print("ERROR: chi has to be greater than 0")
+            self.logger.error("Chi has to be greater than 0", extra=self.format)
         elif chi > blockSize:
-            print("ERROR: chi has to be smaller than %d" % blockSize)
+            self.logger.error("Chi has to be smaller than %d" % blockSize, extra=self.format)
         else:
             self.chi = chi
             self.rowIDs = []
@@ -55,31 +86,24 @@ class Validator:
                 self.rowIDs.append(random.randint(0,blockSize-1))
                 self.columnIDs.append(random.randint(0,blockSize-1))
 
-    def printIDs(self):
+    def logIDs(self):
         if self.proposer == 1:
-            print("Hi! I am validator %d and I am a block proposer."% self.ID)
+            self.logger.warning("I am a block proposer."% self.ID)
         else:
-            print("Hi! I am validator %d and these are my rows and columns."% self.ID)
-            print("Selected rows: ", end="")
-            for i in range(self.chi):
-                print("%d " % self.rowIDs[i], end="")
-            print("")
-            print("Selected columns: ", end="")
-            for i in range(self.chi):
-                print("%d " % self.columnIDs[i], end="")
-            print("")
+            self.logger.info("Selected rows: "+str(self.rowIDs), extra=self.format)
+            self.logger.info("Selected columns: "+str(self.columnIDs), extra=self.format)
 
     def initBlock(self):
-        print("Hi! I am validator %d and I am a block proposer."% self.ID)
+        self.logger.info("I am a block proposer.", extra=self.format)
         self.block = Block(self.blockSize)
         self.block.fill()
         self.block.print()
 
     def broadcastBlock(self, broadcasted):
         if self.proposer == 0:
-            print("ERROR: I am validator %d and I am NOT a block proposer" % self.ID)
+            self.logger.error("I am NOT a block proposer", extra=self.format)
         else:
-            print("I am validator %d and I am broadcasting my block..." % self.ID)
+            self.logger.info("Broadcasting my block...", extra=self.format)
             tempBlock = self.block
             order = [i for i in range(self.blockSize * self.blockSize)]
             random.shuffle(order)
@@ -105,21 +129,19 @@ class Validator:
         self.rows = []
         self.columns = []
         if self.proposer == 1:
-            print("ERROR: I am validator %d and I am a block proposer" % self.ID)
+            self.logger.error("I am a block proposer", extra=self.format)
         else:
-            print("I am validator %d and I am receiving the data..." % self.ID)
+            self.logger.debug("Receiving the data...", extra=self.format)
             for r in self.rowIDs:
                 self.getRow(r, broadcasted)
             for c in self.columnIDs:
                 self.getColumn(c, broadcasted)
 
-    def printRows(self):
-        print("Val %d - Rows: " % self.ID, end="")
-        print(self.rows)
+    def logRows(self):
+        self.logger.info("Rows: "+str(self.rows), extra=self.format)
 
-    def printColumns(self):
-        print("Val %d - Columns: " % self.ID, end="")
-        print(self.columns)
+    def logColumns(self):
+        self.logger.info("Columns: "+str(self.columns), extra=self.format)
 
     def checkRestoreRows(self, goldenData):
         for rid in range(len(self.rows)):
@@ -132,15 +154,15 @@ class Validator:
                 elif i > 0 and i < 10:
                     success += 1
                 else:
-                    print("ERROR: Data has been corrupted")
+                    self.logger.error("Data has been corrupted")
 
             if failures > 0:
                 if success >= len(row)/2:
                     for i in range(len(row)):
                         self.rows[rid][i] = goldenData[(self.rowIDs[rid]*self.blockSize)+i]
-                    print("Val %d: Row %d data restored" % (self.ID, self.rowIDs[rid]))
+                    self.logger.info("Row %d data restored" % (self.rowIDs[rid]), extra=self.format )
                 else:
-                    print("WARNING Val %d: Row %d cannot be restored" %  (self.ID, self.rowIDs[rid]))
+                    self.logger.warning("Row %d cannot be restored" %  (self.rowIDs[rid]), extra=self.format)
 
     def checkRestoreColumns(self, goldenData):
         for cid in range(len(self.columns)):
@@ -153,15 +175,15 @@ class Validator:
                 elif i > 0 and i < 10:
                     success += 1
                 else:
-                    print("ERROR: Data has been corrupted")
+                    self.logger.error("Data has been corrupted", extra=self.format)
 
             if failures > 0:
                 if success >= len(column)/2:
                     for i in range(len(column)):
                         self.columns[cid][i] = goldenData[(i*self.blockSize)+self.columnIDs[cid]]
-                    print("Val %d: Column %d data restored" % (self.ID, self.columnIDs[cid]))
+                    self.logger.info("Column %d data restored" % (self.columnIDs[cid]), extra=self.format)
                 else:
-                    print("Val %d: Column %d cannot be restored" % (self.ID, self.columnIDs[cid]))
+                    self.logger.info("Column %d cannot be restored" % (self.columnIDs[cid]), extra=self.format)
 
 
 class Observer:
@@ -171,12 +193,15 @@ class Observer:
     rows = []
     columns = []
     goldenData = []
+    logger = []
 
-    def __init__(self, blockSize):
+    def __init__(self, blockSize, logger):
+        self.format = {"entity": "Observer"}
         self.blockSize = blockSize
         self.block = [0] * self.blockSize * self.blockSize
         self.rows = [0] * self.blockSize
         self.columns = [0] * self.blockSize
+        self.logger = logger
 
     def checkRowsColumns(self, validators):
         for val in validators:
@@ -187,9 +212,9 @@ class Observer:
                     self.columns[c] += 1
 
         for i in range(self.blockSize):
-            print("Row/Column %d have %d and %d validators assigned." % (i, self.rows[i], self.columns[i]))
+            self.logger.info("Row/Column %d have %d and %d validators assigned." % (i, self.rows[i], self.columns[i]), extra=self.format)
             if self.rows[i] == 0 or self.columns[i] == 0:
-                print("WARNING: There is a row/column that has not been assigned")
+                logging.warning("There is a row/column that has not been assigned", extra=self.format)
 
     def setGoldenData(self, block):
         self.goldenData = [0] * self.blockSize * self.blockSize
@@ -201,24 +226,35 @@ class Simulator:
     chi = 4
     blockSize = 16
     numberValidators = 32
-    failureRate = 10
+    failureRate = 40
     proposerID = 0
-    deterministic = 1
+    logLevel = logging.DEBUG
+    deterministic = 0
     validators = []
     glob = []
+    logger = []
 
     def __init__(self):
+        logger = logging.getLogger("DAS")
+        logger.setLevel(self.logLevel)
+        ch = logging.StreamHandler()
+        ch.setLevel(self.logLevel)
+        ch.setFormatter(CustomFormatter())
+        logger.addHandler(ch)
+        self.logger = logger
+
         if not self.deterministic:
             random.seed(datetime.now())
-        self.glob = Observer(self.blockSize)
+        self.glob = Observer(self.blockSize, self.logger)
         for i in range(self.numberValidators):
-            val = Validator(i, self.chi, self.blockSize, int(not i!=0), self.failureRate, self.deterministic)
+            val = Validator(i, self.chi, self.blockSize, int(not i!=0), self.failureRate, self.deterministic, self.logger)
             if i == self.proposerID:
                 val.initBlock()
                 self.glob.setGoldenData(val.block)
             else:
-                val.printIDs()
+                val.logIDs()
             self.validators.append(val)
+
 
     def run(self):
         broadcasted = Block(self.blockSize)
@@ -226,12 +262,12 @@ class Simulator:
         self.validators[self.proposerID].broadcastBlock(broadcasted)
         for i in range(1,self.numberValidators):
             self.validators[i].receiveRowsColumns(broadcasted)
-            self.validators[i].printRows()
-            self.validators[i].printColumns()
+            self.validators[i].logRows()
+            self.validators[i].logColumns()
             self.validators[i].checkRestoreRows(self.glob.goldenData)
             self.validators[i].checkRestoreColumns(self.glob.goldenData)
-            self.validators[i].printRows()
-            self.validators[i].printColumns()
+            self.validators[i].logRows()
+            self.validators[i].logColumns()
 
 
 sim = Simulator()
