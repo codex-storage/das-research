@@ -2,6 +2,8 @@
 
 import random
 from DAS.block import *
+from bitarray import bitarray
+from bitarray.util import zeros
 
 class Validator:
 
@@ -87,15 +89,10 @@ class Validator:
                 self.getColumn(c, broadcasted)
 
     def sendColumn(self, c, columnID, broadcasted):
-        column = [0] * self.blockSize
-        for i in range(self.blockSize):
-            if broadcasted.data[(i*self.blockSize)+columnID] == 0:
-                broadcasted.data[(i*self.blockSize)+columnID] = self.columns[c][i]
+        broadcasted.data[columnID::self.blockSize] |= self.columns[c]
 
     def sendRow(self, r, rowID, broadcasted):
-        for i in range(self.blockSize):
-            if broadcasted.data[(rowID*self.blockSize)+i] == 0:
-                broadcasted.data[(rowID*self.blockSize)+i] = self.rows[r][i]
+        broadcasted.data[rowID*self.blockSize:(rowID+1)*self.blockSize] |=  self.rows[r]
 
     def sendRows(self, broadcasted):
         if self.proposer == 1:
