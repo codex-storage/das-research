@@ -116,7 +116,7 @@ class Validator:
     def logColumns(self):
         self.logger.debug("Columns: "+str(self.columns), extra=self.format)
 
-    def checkRestoreRows(self, goldenData):
+    def restoreRows(self):
         for rid in range(len(self.rows)):
             row = self.rows[rid]
             success = row.count(1)
@@ -127,7 +127,7 @@ class Validator:
             else:
                 self.logger.debug("Row %d cannot be restored" %  (self.rowIDs[rid]), extra=self.format)
 
-    def checkRestoreColumns(self, goldenData):
+    def restoreColumns(self):
         for cid in range(len(self.columns)):
             column = self.columns[cid]
             success = column.count(1)
