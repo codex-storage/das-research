@@ -119,43 +119,22 @@ class Validator:
     def checkRestoreRows(self, goldenData):
         for rid in range(len(self.rows)):
             row = self.rows[rid]
-            failures = 0
-            success = 0
-            for i in row:
-                if i == 0:
-                    failures += 1
-                elif i > 0 and i < 10:
-                    success += 1
-                else:
-                    self.logger.error("Data has been corrupted")
+            success = row.count(1)
 
-            if failures > 0:
-                if success >= len(row)/2:
-                    for i in range(len(row)):
-                        self.rows[rid][i] = goldenData[(self.rowIDs[rid]*self.blockSize)+i]
-                    self.logger.debug("%d samples restored in row %d" % (failures, self.rowIDs[rid]), extra=self.format )
-                else:
-                    self.logger.debug("Row %d cannot be restored" %  (self.rowIDs[rid]), extra=self.format)
+            if success >= len(row)/2:
+                self.rows[rid].setall(1)
+                self.logger.debug("%d samples restored in row %d" % (len(row)-success, self.rowIDs[rid]), extra=self.format )
+            else:
+                self.logger.debug("Row %d cannot be restored" %  (self.rowIDs[rid]), extra=self.format)
 
     def checkRestoreColumns(self, goldenData):
         for cid in range(len(self.columns)):
             column = self.columns[cid]
-            failures = 0
-            success = 0
-            for i in column:
-                if i == 0:
-                    failures += 1
-                elif i > 0 and i < 10:
-                    success += 1
-                else:
-                    self.logger.error("Data has been corrupted", extra=self.format)
-
-            if failures > 0:
-                if success >= len(column)/2:
-                    for i in range(len(column)):
-                        self.columns[cid][i] = goldenData[(i*self.blockSize)+self.columnIDs[cid]]
-                    self.logger.debug("%d samples restored in column %d" % (failures, self.columnIDs[cid]), extra=self.format)
-                else:
-                    self.logger.debug("Column %d cannot be restored" % (self.columnIDs[cid]), extra=self.format)
+            success = column.count(1)
+            if success >= len(column)/2:
+                self.columns[cid].setall(1)
+                self.logger.debug("%d samples restored in column %d" % (len(column)-success, self.columnIDs[cid]), extra=self.format)
+            else:
+                self.logger.debug("Column %d cannot be restored" % (self.columnIDs[cid]), extra=self.format)
 
 
