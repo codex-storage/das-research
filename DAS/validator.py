@@ -36,13 +36,8 @@ class Validator:
             self.columnIDs = []
             if deterministic:
                 random.seed(self.ID)
-            lr = [i for i in range(self.blockSize)]
-            lc = [i for i in range(self.blockSize)]
-            random.shuffle(lr)
-            random.shuffle(lc)
-            for i in range(self.chi): # TODO : Avoid doubles
-                self.rowIDs.append(lr.pop())
-                self.columnIDs.append(lc.pop())
+            self.rowIDs = random.sample(range(self.blockSize), self.chi)
+            self.columnIDs = random.sample(range(self.blockSize), self.chi)
 
     def logIDs(self):
         if self.proposer == 1:
