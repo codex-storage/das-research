@@ -14,8 +14,7 @@ class Block:
         self.data = zeros(self.blockSize*self.blockSize)
 
     def fill(self):
-        for i in range(self.blockSize*self.blockSize):
-            self.data[i] = 1
+        self.data.setall(1)
 
     def getColumn(self, columnID):
         return self.data[columnID::self.blockSize]
