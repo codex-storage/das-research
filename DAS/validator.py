@@ -67,15 +67,11 @@ class Validator:
             #broadcasted.print()
 
     def getColumn(self, columnID, broadcasted):
-        column = [0] * self.blockSize
-        for i in range(self.blockSize):
-            column[i] = broadcasted.data[(i*self.blockSize)+columnID]
+        column = broadcasted.getColumn(columnID)
         self.columns.append(column)
 
     def getRow(self, rowID, broadcasted):
-        row = [0] * self.blockSize
-        for i in range(self.blockSize):
-            row[i] = broadcasted.data[(rowID*self.blockSize)+i]
+        row = broadcasted.getRow(rowID)
         self.rows.append(row)
 
     def receiveRowsColumns(self, broadcasted):
