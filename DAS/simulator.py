@@ -64,12 +64,12 @@ class Simulator:
             for i in range(1,self.numberValidators):
                 self.validators[i].receiveRowsColumns(self.glob.broadcasted)
                 #Rows
-                self.validators[i].checkRestoreRows(self.glob.goldenData)
+                self.validators[i].restoreRows()
                 self.validators[i].sendRows(self.glob.broadcasted)
                 self.validators[i].logRows()
                 self.validators[i].logColumns()
                 # Columns
-                self.validators[i].checkRestoreColumns(self.glob.goldenData)
+                self.validators[i].restoreColumns()
                 self.validators[i].sendColumns(self.glob.broadcasted)
                 self.validators[i].logRows()
                 self.validators[i].logColumns()

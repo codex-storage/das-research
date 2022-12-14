@@ -2,6 +2,8 @@
 
 import random
 from DAS.block import *
+from bitarray import bitarray
+from bitarray.util import zeros
 
 class Validator:
 
@@ -36,13 +38,8 @@ class Validator:
             self.columnIDs = []
             if deterministic:
                 random.seed(self.ID)
-            lr = [i for i in range(self.blockSize)]
-            lc = [i for i in range(self.blockSize)]
-            random.shuffle(lr)
-            random.shuffle(lc)
-            for i in range(self.chi): # TODO : Avoid doubles
-                self.rowIDs.append(lr.pop())
-                self.columnIDs.append(lc.pop())
+            self.rowIDs = random.sample(range(self.blockSize), self.chi)
+            self.columnIDs = random.sample(range(self.blockSize), self.chi)
 
     def logIDs(self):
         if self.proposer == 1:
@@ -72,15 +69,11 @@ class Validator:
             #broadcasted.print()
 
     def getColumn(self, columnID, broadcasted):
-        column = [0] * self.blockSize
-        for i in range(self.blockSize):
-            column[i] = broadcasted.data[(i*self.blockSize)+columnID]
+        column = broadcasted.getColumn(columnID)
         self.columns.append(column)
 
     def getRow(self, rowID, broadcasted):
-        row = [0] * self.blockSize
-        for i in range(self.blockSize):
-            row[i] = broadcasted.data[(rowID*self.blockSize)+i]
+        row = broadcasted.getRow(rowID)
         self.rows.append(row)
 
     def receiveRowsColumns(self, broadcasted):
@@ -96,15 +89,10 @@ class Validator:
                 self.getColumn(c, broadcasted)
 
     def sendColumn(self, c, columnID, broadcasted):
-        column = [0] * self.blockSize
-        for i in range(self.blockSize):
-            if broadcasted.data[(i*self.blockSize)+columnID] == 0:
-                broadcasted.data[(i*self.blockSize)+columnID] = self.columns[c][i]
+        broadcasted.data[columnID::self.blockSize] |= self.columns[c]
 
     def sendRow(self, r, rowID, broadcasted):
-        for i in range(self.blockSize):
-            if broadcasted.data[(rowID*self.blockSize)+i] == 0:
-                broadcasted.data[(rowID*self.blockSize)+i] = self.rows[r][i]
+        broadcasted.data[rowID*self.blockSize:(rowID+1)*self.blockSize] |=  self.rows[r]
 
     def sendRows(self, broadcasted):
         if self.proposer == 1:
@@ -128,46 +116,25 @@ class Validator:
     def logColumns(self):
         self.logger.debug("Columns: "+str(self.columns), extra=self.format)
 
-    def checkRestoreRows(self, goldenData):
+    def restoreRows(self):
         for rid in range(len(self.rows)):
             row = self.rows[rid]
-            failures = 0
-            success = 0
-            for i in row:
-                if i == 0:
-                    failures += 1
-                elif i > 0 and i < 10:
-                    success += 1
-                else:
-                    self.logger.error("Data has been corrupted")
+            success = row.count(1)
 
-            if failures > 0:
-                if success >= len(row)/2:
-                    for i in range(len(row)):
-                        self.rows[rid][i] = goldenData[(self.rowIDs[rid]*self.blockSize)+i]
-                    self.logger.debug("%d samples restored in row %d" % (failures, self.rowIDs[rid]), extra=self.format )
-                else:
-                    self.logger.debug("Row %d cannot be restored" %  (self.rowIDs[rid]), extra=self.format)
+            if success >= len(row)/2:
+                self.rows[rid].setall(1)
+                self.logger.debug("%d samples restored in row %d" % (len(row)-success, self.rowIDs[rid]), extra=self.format )
+            else:
+                self.logger.debug("Row %d cannot be restored" %  (self.rowIDs[rid]), extra=self.format)
 
-    def checkRestoreColumns(self, goldenData):
+    def restoreColumns(self):
         for cid in range(len(self.columns)):
             column = self.columns[cid]
-            failures = 0
-            success = 0
-            for i in column:
-                if i == 0:
-                    failures += 1
-                elif i > 0 and i < 10:
-                    success += 1
-                else:
-                    self.logger.error("Data has been corrupted", extra=self.format)
-
-            if failures > 0:
-                if success >= len(column)/2:
-                    for i in range(len(column)):
-                        self.columns[cid][i] = goldenData[(i*self.blockSize)+self.columnIDs[cid]]
-                    self.logger.debug("%d samples restored in column %d" % (failures, self.columnIDs[cid]), extra=self.format)
-                else:
-                    self.logger.debug("Column %d cannot be restored" % (self.columnIDs[cid]), extra=self.format)
+            success = column.count(1)
+            if success >= len(column)/2:
+                self.columns[cid].setall(1)
+                self.logger.debug("%d samples restored in column %d" % (len(column)-success, self.columnIDs[cid]), extra=self.format)
+            else:
+                self.logger.debug("Column %d cannot be restored" % (self.columnIDs[cid]), extra=self.format)
 
 
