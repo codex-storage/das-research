@@ -7,8 +7,8 @@ from DAS import *
 def study():
     sim = Simulator(0)
     sim.initLogger()
-    maxTries = 2
-    step = 25
+    maxTries = 10
+    step = 20
     frRange = []
     resultRange = []
     simCnt = 0
@@ -24,7 +24,7 @@ def study():
             result += sim.run()
             simCnt += 1
         frRange.append(fr)
-        resultRange.append(100-result)
+        resultRange.append((maxTries-result)*100/maxTries)
     end = time.time()
     sim.logger.info("A total of %d simulations ran in %d seconds" % (simCnt, end-start), extra=sim.format)
     for i in range(len(frRange)):
