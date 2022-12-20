@@ -22,8 +22,6 @@ class Validator:
         self.ID = ID
         self.format = {"entity": "Val "+str(self.ID)}
         self.blockSize = blockSize
-        self.block = Block(blockSize)
-        self.receivedBlock = Block(blockSize)
         self.proposer = proposer
         self.failureRate = failureRate
         self.logger = logger
@@ -43,6 +41,8 @@ class Validator:
                     random.seed(self.ID)
                 self.rowIDs = random.sample(range(self.blockSize), self.chi)
                 self.columnIDs = random.sample(range(self.blockSize), self.chi)
+        self.block = SparseBlock(blockSize, self.rowIDs, self.columnIDs)
+        self.receivedBlock = SparseBlock(blockSize, self.rowIDs, self.columnIDs)
         self.rowNeighbors = collections.defaultdict(list)
         self.columnNeighbors = collections.defaultdict(list)
 
