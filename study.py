@@ -21,6 +21,7 @@ def study():
         result = 0
         for i in range(maxTries):
             sim.initValidators()
+            sim.initNetwork()
             result += sim.run()
             simCnt += 1
         frRange.append(fr)

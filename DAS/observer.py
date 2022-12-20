@@ -50,3 +50,12 @@ class Observer:
             self.logger.debug("There are %d missing samples in the network" % zeros, extra=self.format)
         return zeros
 
+    def checkStatus(self, validators):
+        arrived = 0
+        expected = 0
+        for val in validators:
+            if val.proposer == 0:
+                (a, e) = val.checkStatus()
+                arrived += a
+                expected += e
+        return (arrived, expected)
