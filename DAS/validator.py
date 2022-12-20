@@ -2,6 +2,7 @@
 
 import random
 import collections
+import logging
 from DAS.block import *
 from bitarray import bitarray
 from bitarray.util import zeros
@@ -136,10 +137,14 @@ class Validator:
                 self.sendColumn(c, self.columnIDs[c])
 
     def logRows(self):
-        self.logger.debug("Rows: "+str(self.rows), extra=self.format)
+        if self.logger.isEnabledFor(logging.DEBUG):
+            for id in self.rowIDs:
+                self.logger.debug("Row %d: %s", id, self.getRow(id), extra=self.format)
 
     def logColumns(self):
-        self.logger.debug("Columns: "+str(self.columns), extra=self.format)
+        if self.logger.isEnabledFor(logging.DEBUG):
+            for id in self.columnIDs:
+                self.logger.debug("Column %d: %s", id, self.getColumn(id), extra=self.format)
 
     def restoreRows(self):
         for id in self.rowIDs:
