@@ -74,9 +74,9 @@ class Validator:
                     self.block.data[i] = 0
             #broadcasted.print()
             for id in range(self.blockSize):
-                self.sendColumn(id, id)
+                self.sendColumn(id)
             for id in range(self.blockSize):
-                self.sendRow(id, id)
+                self.sendRow(id)
 
     def getColumn(self, index):
         return self.block.getColumn(index)
@@ -106,14 +106,14 @@ class Validator:
 
             self.block.merge(self.receivedBlock)
 
-    def sendColumn(self, c, columnID):
+    def sendColumn(self, columnID):
         line = self.getColumn(columnID)
         if line.any():
             self.logger.debug("col %d -> %s", columnID, self.columnNeighbors[columnID] , extra=self.format)
             for n in self.columnNeighbors[columnID]:
                 n.receiveColumn(columnID, line)
 
-    def sendRow(self, r, rowID):
+    def sendRow(self, rowID):
         line = self.getRow(rowID)
         if line.any():
             self.logger.debug("row %d -> %s", rowID, self.rowNeighbors[rowID], extra=self.format)
@@ -125,16 +125,16 @@ class Validator:
             self.logger.error("I am a block proposer", extra=self.format)
         else:
             self.logger.debug("Sending restored rows...", extra=self.format)
-            for r in range(len(self.rowIDs)):
-                self.sendRow(r, self.rowIDs[r])
+            for r in self.rowIDs:
+                self.sendRow(r)
 
     def sendColumns(self):
         if self.proposer == 1:
             self.logger.error("I am a block proposer", extra=self.format)
         else:
             self.logger.debug("Sending restored columns...", extra=self.format)
-            for c in range(len(self.columnIDs)):
-                self.sendColumn(c, self.columnIDs[c])
+            for c in self.columnIDs:
+                self.sendColumn(c)
 
     def logRows(self):
         if self.logger.isEnabledFor(logging.DEBUG):
