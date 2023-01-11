@@ -16,11 +16,30 @@ class Block:
     def fill(self):
         self.data.setall(1)
 
+    def merge(self, merged):
+        self.data |= merged.data
+
     def getColumn(self, columnID):
         return self.data[columnID::self.blockSize]
 
+    def mergeColumn(self, columnID, column):
+        self.data[columnID::self.blockSize] |= column
+
+    def repairColumn(self, id):
+        success = self.data[id::self.blockSize].count(1)
+        if success >= self.blockSize/2:
+            self.data[id::self.blockSize] = 1
+
     def getRow(self, rowID):
         return self.data[rowID*self.blockSize:(rowID+1)*self.blockSize]
+
+    def mergeRow(self, rowID, row):
+        self.data[rowID*self.blockSize:(rowID+1)*self.blockSize] |= row
+
+    def repairRow(self, id):
+        success = self.data[id*self.blockSize:(id+1)*self.blockSize].count(1)
+        if success >= self.blockSize/2:
+            self.data[id*self.blockSize:(id+1)*self.blockSize] = 1
 
     def print(self):
         dash = "-" * (self.blockSize+2)

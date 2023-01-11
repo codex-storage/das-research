@@ -1,6 +1,8 @@
 #!/bin/python3
 
 import random
+import collections
+import logging
 from DAS.block import *
 from bitarray import bitarray
 from bitarray.util import zeros
@@ -11,11 +13,6 @@ class Validator:
     chi = 0
     format = {}
     blocksize = 0
-    block = []
-    rowIDs = []
-    columnIDs = []
-    rows = []
-    columns = []
     proposer = 0
     failureRate = 0
     logger = []
@@ -25,6 +22,8 @@ class Validator:
         self.ID = ID
         self.format = {"entity": "Val "+str(self.ID)}
         self.blockSize = blockSize
+        self.block = Block(blockSize)
+        self.receivedBlock = Block(blockSize)
         self.proposer = proposer
         self.failureRate = failureRate
         self.logger = logger
@@ -34,12 +33,18 @@ class Validator:
             self.logger.error("Chi has to be smaller than %d" % blockSize, extra=self.format)
         else:
             self.chi = chi
-            self.rowIDs = []
-            self.columnIDs = []
-            if deterministic:
-                random.seed(self.ID)
-            self.rowIDs = random.sample(range(self.blockSize), self.chi)
-            self.columnIDs = random.sample(range(self.blockSize), self.chi)
+            if proposer:
+                self.rowIDs = range(blockSize)
+                self.columnIDs = range(blockSize)
+            else:
+                self.rowIDs = []
+                self.columnIDs = []
+                if deterministic:
+                    random.seed(self.ID)
+                self.rowIDs = random.sample(range(self.blockSize), self.chi)
+                self.columnIDs = random.sample(range(self.blockSize), self.chi)
+        self.rowNeighbors = collections.defaultdict(list)
+        self.columnNeighbors = collections.defaultdict(list)
 
     def logIDs(self):
         if self.proposer == 1:
@@ -54,87 +59,115 @@ class Validator:
         self.block.fill()
         #self.block.print()
 
-    def broadcastBlock(self, broadcasted):
+    def broadcastBlock(self):
         if self.proposer == 0:
             self.logger.error("I am NOT a block proposer", extra=self.format)
         else:
             self.logger.debug("Broadcasting my block...", extra=self.format)
-            tempBlock = self.block
             order = [i for i in range(self.blockSize * self.blockSize)]
             random.shuffle(order)
             while(order):
                 i = order.pop()
-                if (random.randint(0,99) > self.failureRate):
-                    broadcasted.data[i] = self.block.data[i]
+                if (random.randint(0,99) >= self.failureRate):
+                    self.block.data[i] = 1
+                else:
+                    self.block.data[i] = 0
+            nbFailures = self.block.data.count(0)
+            measuredFailureRate = nbFailures * 100 / (self.blockSize * self.blockSize)
+            self.logger.info("Number of failures: %d (%0.02f %%)", nbFailures, measuredFailureRate, extra=self.format)
             #broadcasted.print()
+            for id in range(self.blockSize):
+                self.sendColumn(id)
+            for id in range(self.blockSize):
+                self.sendRow(id)
 
-    def getColumn(self, columnID, broadcasted):
-        column = broadcasted.getColumn(columnID)
-        self.columns.append(column)
+    def getColumn(self, index):
+        return self.block.getColumn(index)
 
-    def getRow(self, rowID, broadcasted):
-        row = broadcasted.getRow(rowID)
-        self.rows.append(row)
+    def getRow(self, index):
+        return self.block.getRow(index)
 
-    def receiveRowsColumns(self, broadcasted):
-        self.rows = []
-        self.columns = []
+    def receiveColumn(self, id, column):
+        if id in self.columnIDs:
+            self.receivedBlock.mergeColumn(id, column)
+        else:
+            pass
+
+    def receiveRow(self, id, row):
+        if id in self.rowIDs:
+            self.receivedBlock.mergeRow(id, row)
+        else:
+            pass
+
+
+    def receiveRowsColumns(self):
         if self.proposer == 1:
             self.logger.error("I am a block proposer", extra=self.format)
         else:
             self.logger.debug("Receiving the data...", extra=self.format)
-            for r in self.rowIDs:
-                self.getRow(r, broadcasted)
-            for c in self.columnIDs:
-                self.getColumn(c, broadcasted)
+            #self.logger.debug("%s -> %s", self.block.data, self.receivedBlock.data, extra=self.format)
 
-    def sendColumn(self, c, columnID, broadcasted):
-        broadcasted.data[columnID::self.blockSize] |= self.columns[c]
+            self.block.merge(self.receivedBlock)
 
-    def sendRow(self, r, rowID, broadcasted):
-        broadcasted.data[rowID*self.blockSize:(rowID+1)*self.blockSize] |=  self.rows[r]
+    def sendColumn(self, columnID):
+        line = self.getColumn(columnID)
+        if line.any():
+            self.logger.debug("col %d -> %s", columnID, self.columnNeighbors[columnID] , extra=self.format)
+            for n in self.columnNeighbors[columnID]:
+                n.receiveColumn(columnID, line)
 
-    def sendRows(self, broadcasted):
+    def sendRow(self, rowID):
+        line = self.getRow(rowID)
+        if line.any():
+            self.logger.debug("row %d -> %s", rowID, self.rowNeighbors[rowID], extra=self.format)
+            for n in self.rowNeighbors[rowID]:
+                n.receiveRow(rowID, line)
+
+    def sendRows(self):
         if self.proposer == 1:
             self.logger.error("I am a block proposer", extra=self.format)
         else:
             self.logger.debug("Sending restored rows...", extra=self.format)
-            for r in range(len(self.rowIDs)):
-                self.sendRow(r, self.rowIDs[r], broadcasted)
+            for r in self.rowIDs:
+                self.sendRow(r)
 
-    def sendColumns(self, broadcasted):
+    def sendColumns(self):
         if self.proposer == 1:
             self.logger.error("I am a block proposer", extra=self.format)
         else:
             self.logger.debug("Sending restored columns...", extra=self.format)
-            for c in range(len(self.columnIDs)):
-                self.sendColumn(c, self.columnIDs[c], broadcasted)
+            for c in self.columnIDs:
+                self.sendColumn(c)
 
     def logRows(self):
-        self.logger.debug("Rows: "+str(self.rows), extra=self.format)
+        if self.logger.isEnabledFor(logging.DEBUG):
+            for id in self.rowIDs:
+                self.logger.debug("Row %d: %s", id, self.getRow(id), extra=self.format)
 
     def logColumns(self):
-        self.logger.debug("Columns: "+str(self.columns), extra=self.format)
+        if self.logger.isEnabledFor(logging.DEBUG):
+            for id in self.columnIDs:
+                self.logger.debug("Column %d: %s", id, self.getColumn(id), extra=self.format)
 
     def restoreRows(self):
-        for rid in range(len(self.rows)):
-            row = self.rows[rid]
-            success = row.count(1)
-
-            if success >= len(row)/2:
-                self.rows[rid].setall(1)
-                self.logger.debug("%d samples restored in row %d" % (len(row)-success, self.rowIDs[rid]), extra=self.format )
-            else:
-                self.logger.debug("Row %d cannot be restored" %  (self.rowIDs[rid]), extra=self.format)
+        for id in self.rowIDs:
+            self.block.repairRow(id)
 
     def restoreColumns(self):
-        for cid in range(len(self.columns)):
-            column = self.columns[cid]
-            success = column.count(1)
-            if success >= len(column)/2:
-                self.columns[cid].setall(1)
-                self.logger.debug("%d samples restored in column %d" % (len(column)-success, self.columnIDs[cid]), extra=self.format)
-            else:
-                self.logger.debug("Column %d cannot be restored" % (self.columnIDs[cid]), extra=self.format)
+        for id in self.columnIDs:
+            self.block.repairColumn(id)
 
+    def checkStatus(self):
+        arrived = 0
+        expected = 0
+        for id in self.columnIDs:
+            line = self.getColumn(id)
+            arrived += line.count(1)
+            expected += len(line)
+        for id in self.rowIDs:
+            line = self.getRow(id)
+            arrived += line.count(1)
+            expected += len(line)
+        self.logger.debug("status: %d / %d", arrived, expected, extra=self.format)
 
+        return (arrived, expected)
