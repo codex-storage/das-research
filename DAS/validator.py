@@ -68,10 +68,13 @@ class Validator:
             random.shuffle(order)
             while(order):
                 i = order.pop()
-                if (random.randint(0,99) > self.failureRate):
+                if (random.randint(0,99) >= self.failureRate):
                     self.block.data[i] = 1
                 else:
                     self.block.data[i] = 0
+            nbFailures = self.block.data.count(0)
+            measuredFailureRate = nbFailures * 100 / (self.blockSize * self.blockSize)
+            self.logger.info("Number of failures: %d (%0.02f %%)", nbFailures, measuredFailureRate, extra=self.format)
             #broadcasted.print()
             for id in range(self.blockSize):
                 self.sendColumn(id)

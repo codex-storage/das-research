@@ -89,7 +89,6 @@ class Simulator:
         self.steps = 0
         while(missingSamples > 0):
             oldMissingSamples = missingSamples
-            self.logger.info("Step %d:" % self.steps, extra=self.format)
             for i in range(1,self.numberValidators):
                 self.validators[i].receiveRowsColumns()
             for i in range(1,self.numberValidators):
@@ -102,7 +101,8 @@ class Simulator:
 
             arrived, expected = self.glob.checkStatus(self.validators)
             missingSamples = expected - arrived
-            self.logger.info("step %d, missing %d of %d" % (self.steps, missingSamples, expected), extra=self.format)
+            missingRate = missingSamples*100/expected
+            self.logger.info("step %d, missing %d of %d (%0.02f %%)" % (self.steps, missingSamples, expected, missingRate), extra=self.format)
             if missingSamples == oldMissingSamples:
                 break
             elif missingSamples == 0:
