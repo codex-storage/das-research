@@ -5,40 +5,40 @@ from DAS.block import *
 class Observer:
 
     block = []
-    blockSize = 0
     rows = []
     columns = []
     goldenData = []
     broadcasted = []
+    config = []
     logger = []
 
-    def __init__(self, blockSize, logger):
+    def __init__(self, logger, config):
+        self.config = config
         self.format = {"entity": "Observer"}
-        self.blockSize = blockSize
         self.logger = logger
 
     def reset(self):
-        self.block = [0] * self.blockSize * self.blockSize
-        self.goldenData = [0] * self.blockSize * self.blockSize
-        self.rows = [0] * self.blockSize
-        self.columns = [0] * self.blockSize
-        self.broadcasted = Block(self.blockSize)
+        self.block = [0] * self.config.blockSize * self.config.blockSize
+        self.goldenData = [0] * self.config.blockSize * self.config.blockSize
+        self.rows = [0] * self.config.blockSize
+        self.columns = [0] * self.config.blockSize
+        self.broadcasted = Block(self.config.blockSize)
 
     def checkRowsColumns(self, validators):
         for val in validators:
-            if val.proposer == 0:
+            if val.amIproposer == 0:
                 for r in val.rowIDs:
                     self.rows[r] += 1
                 for c in val.columnIDs:
                     self.columns[c] += 1
 
-        for i in range(self.blockSize):
+        for i in range(self.config.blockSize):
             self.logger.debug("Row/Column %d have %d and %d validators assigned." % (i, self.rows[i], self.columns[i]), extra=self.format)
             if self.rows[i] == 0 or self.columns[i] == 0:
                 self.logger.warning("There is a row/column that has not been assigned", extra=self.format)
 
     def setGoldenData(self, block):
-        for i in range(self.blockSize*self.blockSize):
+        for i in range(self.config.blockSize*self.config.blockSize):
             self.goldenData[i] = block.data[i]
 
     def checkBroadcasted(self):
@@ -54,7 +54,7 @@ class Observer:
         arrived = 0
         expected = 0
         for val in validators:
-            if val.proposer == 0:
+            if val.amIproposer == 0:
                 (a, e) = val.checkStatus()
                 arrived += a
                 expected += e

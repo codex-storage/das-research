@@ -9,32 +9,26 @@ from DAS.validator import *
 
 class Simulator:
 
-    chi = 8
-    blockSize = 256
-    numberValidators = 8192
-    failureRate = 0
     proposerID = 0
     logLevel = logging.INFO
-    deterministic = 0
     validators = []
     glob = []
+    config = []
     logger = []
     format = {}
-    steps = 0
 
-    def __init__(self, failureRate):
-        self.failureRate = failureRate
+    def __init__(self, config):
+        self.config = config
         self.format = {"entity": "Simulator"}
-        self.steps = 0
 
     def initValidators(self):
-        if not self.deterministic:
+        if not self.config.deterministic:
             random.seed(datetime.now())
-        self.glob = Observer(self.blockSize, self.logger)
+        self.glob = Observer(self.logger, self.config)
         self.glob.reset()
         self.validators = []
-        for i in range(self.numberValidators):
-            val = Validator(i, self.chi, self.blockSize, int(not i!=0), self.failureRate, self.deterministic, self.logger)
+        for i in range(self.config.numberValidators):
+            val = Validator(i, int(not i!=0), self.logger, self.config)
             if i == self.proposerID:
                 val.initBlock()
                 self.glob.setGoldenData(val.block)
@@ -43,15 +37,15 @@ class Simulator:
             self.validators.append(val)
 
     def initNetwork(self, d=6):
-        rowChannels = [[] for i in range(self.blockSize)]
-        columnChannels = [[] for i in range(self.blockSize)]
+        rowChannels = [[] for i in range(self.config.blockSize)]
+        columnChannels = [[] for i in range(self.config.blockSize)]
         for v in self.validators:
             for id in v.rowIDs:
                 rowChannels[id].append(v)
             for id in v.columnIDs:
                 columnChannels[id].append(v)
 
-        for id in range(self.blockSize):
+        for id in range(self.config.blockSize):
             G = nx.random_regular_graph(d, len(rowChannels[id]))
             if not nx.is_connected(G):
                 self.logger.error("graph not connected for row %d !" % id, extra=self.format)
@@ -86,12 +80,12 @@ class Simulator:
         self.validators[self.proposerID].broadcastBlock()
         arrived, expected = self.glob.checkStatus(self.validators)
         missingSamples = expected - arrived
-        self.steps = 0
+        steps = 0
         while(missingSamples > 0):
             oldMissingSamples = missingSamples
-            for i in range(1,self.numberValidators):
+            for i in range(1,self.config.numberValidators):
                 self.validators[i].receiveRowsColumns()
-            for i in range(1,self.numberValidators):
+            for i in range(1,self.config.numberValidators):
                 self.validators[i].restoreRows()
                 self.validators[i].restoreColumns()
                 self.validators[i].sendRows()
@@ -102,16 +96,16 @@ class Simulator:
             arrived, expected = self.glob.checkStatus(self.validators)
             missingSamples = expected - arrived
             missingRate = missingSamples*100/expected
-            self.logger.info("step %d, missing %d of %d (%0.02f %%)" % (self.steps, missingSamples, expected, missingRate), extra=self.format)
+            self.logger.info("step %d, missing %d of %d (%0.02f %%)" % (steps, missingSamples, expected, missingRate), extra=self.format)
             if missingSamples == oldMissingSamples:
                 break
             elif missingSamples == 0:
                 break
             else:
-                self.steps += 1
+                steps += 1
 
         if missingSamples == 0:
-            self.logger.debug("The entire block is available at step %d, with failure rate %d !" % (self.steps, self.failureRate), extra=self.format)
+            self.logger.debug("The entire block is available at step %d, with failure rate %d !" % (steps, self.failureRate), extra=self.format)
             return 0
         else:
             self.logger.debug("The block cannot be recovered, failure rate %d!" % self.failureRate, extra=self.format)
