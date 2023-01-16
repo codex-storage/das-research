@@ -4,6 +4,7 @@ import networkx as nx
 import logging
 from datetime import datetime
 from DAS.tools import *
+from DAS.results import *
 from DAS.observer import *
 from DAS.validator import *
 
@@ -13,6 +14,7 @@ class Simulator:
     logLevel = logging.INFO
     validators = []
     glob = []
+    result = []
     config = []
     logger = []
     format = {}
@@ -20,6 +22,7 @@ class Simulator:
     def __init__(self, config):
         self.config = config
         self.format = {"entity": "Simulator"}
+        self.result = Result(self.config)
 
     def initValidators(self):
         if not self.config.deterministic:
@@ -48,7 +51,7 @@ class Simulator:
         for id in range(self.config.blockSize):
             G = nx.random_regular_graph(d, len(rowChannels[id]))
             if not nx.is_connected(G):
-                self.logger.error("graph not connected for row %d !" % id, extra=self.format)
+                self.logger.error("Graph not connected for row %d !" % id, extra=self.format)
             for u, v in G.edges:
                 val1=rowChannels[id][u]
                 val2=rowChannels[id][v]
@@ -56,7 +59,7 @@ class Simulator:
                 val2.rowNeighbors[id].append(val1)
             G = nx.random_regular_graph(d, len(columnChannels[id]))
             if not nx.is_connected(G):
-                self.logger.error("graph not connected for column %d !" % id, extra=self.format)
+                self.logger.error("Graph not connected for column %d !" % id, extra=self.format)
             for u, v in G.edges:
                 val1=columnChannels[id][u]
                 val2=columnChannels[id][v]
@@ -73,15 +76,25 @@ class Simulator:
         self.logger = logger
 
     def resetFailureRate(self, failureRate):
-        self.failureRate = failureRate
+        self.config.failureRate = failureRate
+        for val in self.validators:
+            val.config.failureRate = failureRate
+
+    def resetChi(self, chi):
+        self.config.chi = chi
+        for val in self.validators:
+            val.config.chi = chi
+
 
     def run(self):
         self.glob.checkRowsColumns(self.validators)
         self.validators[self.proposerID].broadcastBlock()
         arrived, expected = self.glob.checkStatus(self.validators)
         missingSamples = expected - arrived
+        missingVector = []
         steps = 0
         while(missingSamples > 0):
+            missingVector.append(missingSamples)
             oldMissingSamples = missingSamples
             for i in range(1,self.config.numberValidators):
                 self.validators[i].receiveRowsColumns()
@@ -96,7 +109,7 @@ class Simulator:
             arrived, expected = self.glob.checkStatus(self.validators)
             missingSamples = expected - arrived
             missingRate = missingSamples*100/expected
-            self.logger.info("step %d, missing %d of %d (%0.02f %%)" % (steps, missingSamples, expected, missingRate), extra=self.format)
+            self.logger.debug("step %d, missing %d of %d (%0.02f %%)" % (steps, missingSamples, expected, missingRate), extra=self.format)
             if missingSamples == oldMissingSamples:
                 break
             elif missingSamples == 0:
@@ -104,10 +117,13 @@ class Simulator:
             else:
                 steps += 1
 
+        self.result.addMissing(missingVector)
         if missingSamples == 0:
-            self.logger.debug("The entire block is available at step %d, with failure rate %d !" % (steps, self.failureRate), extra=self.format)
-            return 0
+            self.result.blockAvailable = 1
+            self.logger.debug("The entire block is available at step %d, with failure rate %d !" % (steps, self.config.failureRate), extra=self.format)
+            return self.result
         else:
-            self.logger.debug("The block cannot be recovered, failure rate %d!" % self.failureRate, extra=self.format)
-            return 1
+            self.result.blockAvailable = 0
+            self.logger.debug("The block cannot be recovered, failure rate %d!" % self.config.failureRate, extra=self.format)
+            return self.result
 

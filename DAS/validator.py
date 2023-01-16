@@ -70,7 +70,7 @@ class Validator:
                     self.block.data[i] = 0
             nbFailures = self.block.data.count(0)
             measuredFailureRate = nbFailures * 100 / (self.config.blockSize * self.config.blockSize)
-            self.logger.info("Number of failures: %d (%0.02f %%)", nbFailures, measuredFailureRate, extra=self.format)
+            self.logger.debug("Number of failures: %d (%0.02f %%)", nbFailures, measuredFailureRate, extra=self.format)
             #broadcasted.print()
             for id in range(self.config.blockSize):
                 self.sendColumn(id)
