@@ -1,6 +1,6 @@
-# DAS Research 
+# DAS Research
 
-This repository hosts all the research on DAS for the collaboration between Codex and the EF. 
+This repository hosts all the research on DAS for the collaboration between Codex and the EF.
 
 ## Prepare the environment
 
@@ -16,11 +16,11 @@ $ cd das-research
 ```
 $ python3 -m venv myenv
 $ source myenv/bin/activate
-$ pip3 install -r DAS/requeriments.txt
+$ pip3 install -r DAS/requirements.txt
 ```
 
 ## Run the simulator
 
 ```
-$ python3 study.py
+$ python3 study.py config.das
 ```

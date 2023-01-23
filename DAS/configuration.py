@@ -1,50 +1,48 @@
 #!/bin/python3
 
+import configparser
+
 class Configuration:
 
     deterministic = 0
-    blockSize = 0
-    numberValidators = 0
-    failureRate = 0
-    failureRateStart = 0
-    failureRateStop = 0
-    failureRateStep = 0
-    chio = 0
-    chiStart = 0
-    chiStop = 0
-    chiStep = 0
-    run =0
-    runStart = 0
-    runStop = 0
-    runStep = 0
 
-    def __init__(self, deterministic, blockSize, numberValidators,\
-                 failureRateStart, failureRateStop, failureRateStep,\
-                 chiStart, chiStop, chiStep,\
-                 runStart, runStop, runStep):
+    def __init__(self, fileName):
 
-        if numberValidators < (blockSize*4):
+        config = configparser.RawConfigParser()
+        config.read(fileName)
+
+        self.nvStart = int(config.get("Simulation Space", "numberValidatorStart"))
+        self.nvStop = int(config.get("Simulation Space", "numberValidatorStop"))
+        self.nvStep = int(config.get("Simulation Space", "numberValidatorStep"))
+
+        self.blockSizeStart = int(config.get("Simulation Space", "blockSizeStart"))
+        self.blockSizeStop = int(config.get("Simulation Space", "blockSizeStop"))
+        self.blockSizeStep = int(config.get("Simulation Space", "blockSizeStep"))
+
+        self.netDegreeStart = int(config.get("Simulation Space", "netDegreeStart"))
+        self.netDegreeStop = int(config.get("Simulation Space", "netDegreeStop"))
+        self.netDegreeStep = int(config.get("Simulation Space", "netDegreeStep"))
+
+        self.failureRateStart = int(config.get("Simulation Space", "failureRateStart"))
+        self.failureRateStop = int(config.get("Simulation Space", "failureRateStop"))
+        self.failureRateStep = int(config.get("Simulation Space", "failureRateStep"))
+
+        self.chiStart = int(config.get("Simulation Space", "chiStart"))
+        self.chiStop = int(config.get("Simulation Space", "chiStop"))
+        self.chiStep = int(config.get("Simulation Space", "chiStep"))
+
+        self.numberRuns = int(config.get("Advanced", "numberRuns"))
+        self.deterministic = config.get("Advanced", "deterministic")
+
+        if self.nvStop < (self.blockSizeStart*4):
             print("ERROR: The number of validators cannot be lower than the block size * 4")
             exit(1)
-        if chiStart < 1:
+        if self.chiStart < 1:
             print("Chi has to be greater than 0")
             exit(1)
-        if chiStop > blockSize:
-            print("Chi has to be smaller than %d" % blockSize)
+        if self.chiStop > self.blockSizeStart:
+            print("Chi (%d) has to be smaller or equal to block the size (%d)" % (self.chiStop, self.blockSizeStart))
             exit(1)
 
-        self.deterministic = deterministic
-        self.blockSize = blockSize
-        self.numberValidators = numberValidators
-        self.failureRateStart = failureRateStart
-        self.failureRateStop = failureRateStop
-        self.failureRateStep = failureRateStep
-        self.failureRate = failureRateStart
-        self.chiStart = chiStart
-        self.chiStop = chiStop
-        self.chiStep = chiStep
-        self.chi = chiStart
-        self.runStart = runStart
-        self.runStop = runStop
-        self.runStep = runStep
-        self.run = runStart
+
+

@@ -1,7 +1,7 @@
 #!/bin/python
 
 import networkx as nx
-import logging
+import logging, random
 from datetime import datetime
 from DAS.tools import *
 from DAS.results import *
@@ -15,23 +15,25 @@ class Simulator:
     validators = []
     glob = []
     result = []
-    config = []
+    shape = []
     logger = []
     format = {}
 
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, shape):
+        self.shape = shape
         self.format = {"entity": "Simulator"}
-        self.result = Result(self.config)
+        self.result = Result(self.shape)
 
     def initValidators(self):
-        if not self.config.deterministic:
-            random.seed(datetime.now())
-        self.glob = Observer(self.logger, self.config)
+        self.glob = Observer(self.logger, self.shape)
         self.glob.reset()
         self.validators = []
-        for i in range(self.config.numberValidators):
-            val = Validator(i, int(not i!=0), self.logger, self.config)
+        rows = list(range(self.shape.blockSize)) * int(self.shape.chi*self.shape.numberValidators/self.shape.blockSize)
+        columns = list(range(self.shape.blockSize)) * int(self.shape.chi*self.shape.numberValidators/self.shape.blockSize)
+        random.shuffle(rows)
+        random.shuffle(columns)
+        for i in range(self.shape.numberValidators):
+            val = Validator(i, int(not i!=0), self.logger, self.shape, rows, columns)
             if i == self.proposerID:
                 val.initBlock()
                 self.glob.setGoldenData(val.block)
@@ -39,17 +41,21 @@ class Simulator:
                 val.logIDs()
             self.validators.append(val)
 
-    def initNetwork(self, d=6):
-        rowChannels = [[] for i in range(self.config.blockSize)]
-        columnChannels = [[] for i in range(self.config.blockSize)]
+    def initNetwork(self):
+        self.shape.netDegree = 6
+        rowChannels = [[] for i in range(self.shape.blockSize)]
+        columnChannels = [[] for i in range(self.shape.blockSize)]
         for v in self.validators:
             for id in v.rowIDs:
                 rowChannels[id].append(v)
             for id in v.columnIDs:
                 columnChannels[id].append(v)
 
-        for id in range(self.config.blockSize):
-            G = nx.random_regular_graph(d, len(rowChannels[id]))
+        for id in range(self.shape.blockSize):
+
+            if (len(rowChannels[id]) < self.shape.netDegree):
+                self.logger.error("Graph degree higher than %d" % len(rowChannels[id]), extra=self.format)
+            G = nx.random_regular_graph(self.shape.netDegree, len(rowChannels[id]))
             if not nx.is_connected(G):
                 self.logger.error("Graph not connected for row %d !" % id, extra=self.format)
             for u, v in G.edges:
@@ -57,7 +63,10 @@ class Simulator:
                 val2=rowChannels[id][v]
                 val1.rowNeighbors[id].append(val2)
                 val2.rowNeighbors[id].append(val1)
-            G = nx.random_regular_graph(d, len(columnChannels[id]))
+
+            if (len(columnChannels[id]) < self.shape.netDegree):
+                self.logger.error("Graph degree higher than %d" % len(columnChannels[id]), extra=self.format)
+            G = nx.random_regular_graph(self.shape.netDegree, len(columnChannels[id]))
             if not nx.is_connected(G):
                 self.logger.error("Graph not connected for column %d !" % id, extra=self.format)
             for u, v in G.edges:
@@ -75,15 +84,12 @@ class Simulator:
         logger.addHandler(ch)
         self.logger = logger
 
-    def resetFailureRate(self, failureRate):
-        self.config.failureRate = failureRate
-        for val in self.validators:
-            val.config.failureRate = failureRate
 
-    def resetChi(self, chi):
-        self.config.chi = chi
+    def resetShape(self, shape):
+        self.shape = shape
         for val in self.validators:
-            val.config.chi = chi
+            val.shape.failureRate = shape.failureRate
+            val.shape.chi = shape.chi
 
 
     def run(self):
@@ -96,9 +102,9 @@ class Simulator:
         while(missingSamples > 0):
             missingVector.append(missingSamples)
             oldMissingSamples = missingSamples
-            for i in range(1,self.config.numberValidators):
+            for i in range(1,self.shape.numberValidators):
                 self.validators[i].receiveRowsColumns()
-            for i in range(1,self.config.numberValidators):
+            for i in range(1,self.shape.numberValidators):
                 self.validators[i].restoreRows()
                 self.validators[i].restoreColumns()
                 self.validators[i].sendRows()
@@ -120,10 +126,10 @@ class Simulator:
         self.result.addMissing(missingVector)
         if missingSamples == 0:
             self.result.blockAvailable = 1
-            self.logger.debug("The entire block is available at step %d, with failure rate %d !" % (steps, self.config.failureRate), extra=self.format)
+            self.logger.debug("The entire block is available at step %d, with failure rate %d !" % (steps, self.shape.failureRate), extra=self.format)
             return self.result
         else:
             self.result.blockAvailable = 0
-            self.logger.debug("The block cannot be recovered, failure rate %d!" % self.config.failureRate, extra=self.format)
+            self.logger.debug("The block cannot be recovered, failure rate %d!" % self.shape.failureRate, extra=self.format)
             return self.result
 
