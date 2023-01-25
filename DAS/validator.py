@@ -12,8 +12,10 @@ class Neighbor:
     def __repr__(self):
         return str(self.node.ID)
 
-    def __init__(self, v):
+    def __init__(self, v, blockSize):
         self.node = v
+        self.received = zeros(blockSize)
+        self.sent = zeros(blockSize)
 
 class Validator:
 
@@ -49,8 +51,8 @@ class Validator:
                 #self.columnIDs = random.sample(range(self.shape.blockSize), self.shape.chi)
         self.changedRow = {id:False for id in self.rowIDs}
         self.changedColumn = {id:False for id in self.columnIDs}
-        self.rowNeighbors = collections.defaultdict(list)
-        self.columnNeighbors = collections.defaultdict(list)
+        self.rowNeighbors = collections.defaultdict(dict)
+        self.columnNeighbors = collections.defaultdict(dict)
 
     def logIDs(self):
         if self.amIproposer == 1:
@@ -93,14 +95,18 @@ class Validator:
     def getRow(self, index):
         return self.block.getRow(index)
 
-    def receiveColumn(self, id, column):
+    def receiveColumn(self, id, column, src):
         if id in self.columnIDs:
+            # register receive so that we are not sending back
+            self.columnNeighbors[id][src].received |= column
             self.receivedBlock.mergeColumn(id, column)
         else:
             pass
 
-    def receiveRow(self, id, row):
+    def receiveRow(self, id, row, src):
         if id in self.rowIDs:
+            # register receive so that we are not sending back
+            self.rowNeighbors[id][src].received |= row
             self.receivedBlock.mergeRow(id, row)
         else:
             pass
@@ -129,15 +135,25 @@ class Validator:
         line = self.getColumn(columnID)
         if line.any():
             self.logger.debug("col %d -> %s", columnID, self.columnNeighbors[columnID] , extra=self.format)
-            for n in self.columnNeighbors[columnID]:
-                n.node.receiveColumn(columnID, line)
+            for n in self.columnNeighbors[columnID].values():
+
+                # if there is anything new to send, send it
+                toSend = line & ~n.sent & ~n.received
+                if (toSend).any():
+                    n.sent |= toSend;
+                    n.node.receiveColumn(columnID, toSend, self.ID)
 
     def sendRow(self, rowID):
         line = self.getRow(rowID)
         if line.any():
             self.logger.debug("row %d -> %s", rowID, self.rowNeighbors[rowID], extra=self.format)
-            for n in self.rowNeighbors[rowID]:
-                n.node.receiveRow(rowID, line)
+            for n in self.rowNeighbors[rowID].values():
+
+                # if there is anything new to send, send it
+                toSend = line & ~n.sent & ~n.received
+                if (toSend).any():
+                    n.sent |= toSend;
+                    n.node.receiveRow(rowID, toSend, self.ID)
 
     def sendRows(self):
         if self.amIproposer == 1:
