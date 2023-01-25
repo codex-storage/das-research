@@ -39,6 +39,8 @@ class Validator:
                 #    random.seed(self.ID)
                 #self.rowIDs = random.sample(range(self.shape.blockSize), self.shape.chi)
                 #self.columnIDs = random.sample(range(self.shape.blockSize), self.shape.chi)
+        self.changedRow = {id:False for id in self.rowIDs}
+        self.changedColumn = {id:False for id in self.columnIDs}
         self.rowNeighbors = collections.defaultdict(list)
         self.columnNeighbors = collections.defaultdict(list)
 
@@ -103,6 +105,16 @@ class Validator:
             self.logger.debug("Receiving the data...", extra=self.format)
             #self.logger.debug("%s -> %s", self.block.data, self.receivedBlock.data, extra=self.format)
 
+            self.changedRow = { id:
+                self.getRow(id) != self.receivedBlock.getRow(id)
+                for id in self.rowIDs
+            }
+
+            self.changedColumn = { id:
+                self.getColumn(id) != self.receivedBlock.getColumn(id)
+                for id in self.columnIDs
+            }
+
             self.block.merge(self.receivedBlock)
 
     def sendColumn(self, columnID):
@@ -125,7 +137,8 @@ class Validator:
         else:
             self.logger.debug("Sending restored rows...", extra=self.format)
             for r in self.rowIDs:
-                self.sendRow(r)
+                if self.changedRow[r]:
+                    self.sendRow(r)
 
     def sendColumns(self):
         if self.amIproposer == 1:
@@ -133,7 +146,8 @@ class Validator:
         else:
             self.logger.debug("Sending restored columns...", extra=self.format)
             for c in self.columnIDs:
-                self.sendColumn(c)
+                if self.changedColumn[c]:
+                    self.sendColumn(c)
 
     def logRows(self):
         if self.logger.isEnabledFor(logging.DEBUG):
