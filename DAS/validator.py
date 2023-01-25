@@ -7,6 +7,14 @@ from DAS.block import *
 from bitarray import bitarray
 from bitarray.util import zeros
 
+class Neighbor:
+
+    def __repr__(self):
+        return str(self.node.ID)
+
+    def __init__(self, v):
+        self.node = v
+
 class Validator:
 
     ID = 0
@@ -122,14 +130,14 @@ class Validator:
         if line.any():
             self.logger.debug("col %d -> %s", columnID, self.columnNeighbors[columnID] , extra=self.format)
             for n in self.columnNeighbors[columnID]:
-                n.receiveColumn(columnID, line)
+                n.node.receiveColumn(columnID, line)
 
     def sendRow(self, rowID):
         line = self.getRow(rowID)
         if line.any():
             self.logger.debug("row %d -> %s", rowID, self.rowNeighbors[rowID], extra=self.format)
             for n in self.rowNeighbors[rowID]:
-                n.receiveRow(rowID, line)
+                n.node.receiveRow(rowID, line)
 
     def sendRows(self):
         if self.amIproposer == 1:

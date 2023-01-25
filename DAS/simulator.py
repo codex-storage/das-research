@@ -61,8 +61,8 @@ class Simulator:
             for u, v in G.edges:
                 val1=rowChannels[id][u]
                 val2=rowChannels[id][v]
-                val1.rowNeighbors[id].append(val2)
-                val2.rowNeighbors[id].append(val1)
+                val1.rowNeighbors[id].append(Neighbor(val2))
+                val2.rowNeighbors[id].append(Neighbor(val1))
 
             if (len(columnChannels[id]) < self.shape.netDegree):
                 self.logger.error("Graph degree higher than %d" % len(columnChannels[id]), extra=self.format)
@@ -72,8 +72,8 @@ class Simulator:
             for u, v in G.edges:
                 val1=columnChannels[id][u]
                 val2=columnChannels[id][v]
-                val1.columnNeighbors[id].append(val2)
-                val2.columnNeighbors[id].append(val1)
+                val1.columnNeighbors[id].append(Neighbor(val2))
+                val2.columnNeighbors[id].append(Neighbor(val1))
 
     def initLogger(self):
         logger = logging.getLogger("DAS")
