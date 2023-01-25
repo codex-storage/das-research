@@ -57,6 +57,12 @@ class Validator:
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)
 
+        #statistics
+        self.statsTxInSlot = 0
+        self.statsTxPerSlot = []
+        self.statsRxInSlot = 0
+        self.statsRxPerSlot = []
+
     def logIDs(self):
         if self.amIproposer == 1:
             self.logger.warning("I am a block proposer."% self.ID)
@@ -103,6 +109,7 @@ class Validator:
             # register receive so that we are not sending back
             self.columnNeighbors[id][src].received |= column
             self.receivedBlock.mergeColumn(id, column)
+            self.statsRxInSlot += column.count(1)
         else:
             pass
 
@@ -111,6 +118,7 @@ class Validator:
             # register receive so that we are not sending back
             self.rowNeighbors[id][src].received |= row
             self.receivedBlock.mergeRow(id, row)
+            self.statsRxInSlot += row.count(1)
         else:
             pass
 
@@ -134,6 +142,14 @@ class Validator:
 
             self.block.merge(self.receivedBlock)
 
+    def updateStats(self):
+        self.logger.debug("Stats: tx %d, rx %d", self.statsTxInSlot, self.statsRxInSlot, extra=self.format)
+        self.statsRxPerSlot.append(self.statsRxInSlot)
+        self.statsTxPerSlot.append(self.statsTxInSlot)
+        self.statsRxInSlot = 0
+        self.statsTxInSlot = 0
+
+
     def sendColumn(self, columnID):
         line = self.getColumn(columnID)
         if line.any():
@@ -145,6 +161,7 @@ class Validator:
                 if (toSend).any():
                     n.sent |= toSend;
                     n.node.receiveColumn(columnID, toSend, self.ID)
+                    self.statsTxInSlot += toSend.count(1)
 
     def sendRow(self, rowID):
         line = self.getRow(rowID)
@@ -157,6 +174,7 @@ class Validator:
                 if (toSend).any():
                     n.sent |= toSend;
                     n.node.receiveRow(rowID, toSend, self.ID)
+                    self.statsTxInSlot += toSend.count(1)
 
     def sendRows(self):
         if self.amIproposer == 1:

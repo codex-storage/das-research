@@ -111,6 +111,8 @@ class Simulator:
                 self.validators[i].sendColumns()
                 self.validators[i].logRows()
                 self.validators[i].logColumns()
+            for i in range(0,self.numberValidators):
+                self.validators[i].updateStats()
 
             arrived, expected = self.glob.checkStatus(self.validators)
             missingSamples = expected - arrived
