@@ -1,6 +1,6 @@
 #! /bin/python3
 
-import time, sys
+import time, sys, random, copy
 from DAS import *
 
 
@@ -10,35 +10,44 @@ def study():
         exit(1)
 
     config = Configuration(sys.argv[1])
-    sim = Simulator(config)
+    shape = Shape(0, 0, 0, 0, 0, 0)
+    sim = Simulator(shape)
     sim.initLogger()
     results = []
     simCnt = 0
+
+    now = datetime.now()
+    execID = now.strftime("%Y-%m-%d_%H-%M-%S_")+str(random.randint(100,999))
 
     sim.logger.info("Starting simulations:", extra=sim.format)
     start = time.time()
 
     for run in range(config.numberRuns):
-        for fr in range(config.failureRateStart, config.failureRateStop+1, config.failureRateStep):
-            for chi in range(config.chiStart, config.chiStop+1, config.chiStep):
-                for blockSize in range(config.blockSizeStart, config.blockSizeStop+1, config.blockSizeStep):
-                    for nv in range(config.nvStart, config.nvStop+1, config.nvStep):
-                        for netDegree in range(config.netDegreeStart, config.netDegreeStop, config.netDegreeStep):
+        for nv in range(config.nvStart, config.nvStop+1, config.nvStep):
+            for blockSize in range(config.blockSizeStart, config.blockSizeStop+1, config.blockSizeStep):
+                for fr in range(config.failureRateStart, config.failureRateStop+1, config.failureRateStep):
+                    for netDegree in range(config.netDegreeStart, config.netDegreeStop, config.netDegreeStep):
+                        for chi in range(config.chiStart, config.chiStop+1, config.chiStep):
 
                             if not config.deterministic:
                                 random.seed(datetime.now())
 
-                            shape = Shape(blockSize, nv, fr, chi, netDegree)
+                            shape = Shape(blockSize, nv, fr, chi, netDegree, run)
                             sim.resetShape(shape)
                             sim.initValidators()
                             sim.initNetwork()
                             result = sim.run()
-                            sim.logger.info("Run %d, FR: %d %%, Chi: %d, BlockSize: %d, Nb.Val: %d, netDegree: %d ... Block Available: %d" % (run, fr, chi, blockSize, nv, netDegree, result.blockAvailable), extra=sim.format)
-                            results.append(result)
+                            sim.logger.info("Shape: %s ... Block Available: %d" % (str(sim.shape.__dict__), result.blockAvailable), extra=sim.format)
+                            results.append(copy.deepcopy(result))
                             simCnt += 1
 
     end = time.time()
     sim.logger.info("A total of %d simulations ran in %d seconds" % (simCnt, end-start), extra=sim.format)
+
+    if config.dumpXML:
+        for res in results:
+            res.dump(execID)
+        sim.logger.info("Results dumped into results/%s/" % (execID), extra=sim.format)
 
 
 
