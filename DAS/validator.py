@@ -10,7 +10,7 @@ from bitarray.util import zeros
 class Neighbor:
 
     def __repr__(self):
-        return str(self.node.ID)
+        return "%d:%d/%d" % (self.node.ID, self.sent.count(1), self.received.count(1))
 
     def __init__(self, v, blockSize):
         self.node = v
@@ -24,6 +24,9 @@ class Validator:
     shape = []
     format = {}
     logger = []
+
+    def __repr__(self):
+        return str(self.ID)
 
     def __init__(self, ID, amIproposer, logger, shape, rows, columns):
         self.shape = shape
