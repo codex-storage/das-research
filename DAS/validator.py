@@ -14,6 +14,7 @@ class Neighbor:
 
     def __init__(self, v, blockSize):
         self.node = v
+        self.receiving = zeros(blockSize)
         self.received = zeros(blockSize)
         self.sent = zeros(blockSize)
 
@@ -107,7 +108,7 @@ class Validator:
     def receiveColumn(self, id, column, src):
         if id in self.columnIDs:
             # register receive so that we are not sending back
-            self.columnNeighbors[id][src].received |= column
+            self.columnNeighbors[id][src].receiving |= column
             self.receivedBlock.mergeColumn(id, column)
             self.statsRxInSlot += column.count(1)
         else:
@@ -116,7 +117,7 @@ class Validator:
     def receiveRow(self, id, row, src):
         if id in self.rowIDs:
             # register receive so that we are not sending back
-            self.rowNeighbors[id][src].received |= row
+            self.rowNeighbors[id][src].receiving |= row
             self.receivedBlock.mergeRow(id, row)
             self.statsRxInSlot += row.count(1)
         else:
@@ -142,6 +143,15 @@ class Validator:
 
             self.block.merge(self.receivedBlock)
 
+            for neighs in self.rowNeighbors.values():
+                for neigh in neighs.values():
+                    neigh.received |= neigh.receiving
+                    neigh.receiving.setall(0)
+
+            for neighs in self.columnNeighbors.values():
+                for neigh in neighs.values():
+                    neigh.received |= neigh.receiving
+                    neigh.receiving.setall(0)
     def updateStats(self):
         self.logger.debug("Stats: tx %d, rx %d", self.statsTxInSlot, self.statsRxInSlot, extra=self.format)
         self.statsRxPerSlot.append(self.statsRxInSlot)
