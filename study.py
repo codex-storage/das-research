@@ -23,7 +23,7 @@ def study():
             for chi in range(config.chiStart, config.chiStop+1, config.chiStep):
                 for blockSize in range(config.blockSizeStart, config.blockSizeStop+1, config.blockSizeStep):
                     for nv in range(config.nvStart, config.nvStop+1, config.nvStep):
-                        for netDegree in range(config.netDegreeStart, config.netDegreeStop, config.netDegreeStep):
+                        for netDegree in range(config.netDegreeStart, config.netDegreeStop+1, config.netDegreeStep):
 
                             if not config.deterministic:
                                 random.seed(datetime.now())
