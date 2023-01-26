@@ -120,8 +120,7 @@ class Simulator:
             oldMissingSamples = missingSamples
             self.logger.debug("PHASE SEND %d" % steps, extra=self.format)
             for i in range(0,self.shape.numberValidators):
-                self.validators[i].sendRows()
-                self.validators[i].sendColumns()
+                self.validators[i].send()
             self.logger.debug("PHASE RECEIVE %d" % steps, extra=self.format)
             for i in range(1,self.shape.numberValidators):
                 self.validators[i].receiveRowsColumns()
