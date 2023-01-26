@@ -1,40 +1,39 @@
 #!/bin/python
 
 import networkx as nx
-import logging
+import logging, random
 from datetime import datetime
 from DAS.tools import *
+from DAS.results import *
 from DAS.observer import *
 from DAS.validator import *
 
 class Simulator:
 
-    chi = 8
-    blockSize = 256
-    numberValidators = 8192
-    failureRate = 0
     proposerID = 0
     logLevel = logging.INFO
-    deterministic = 0
     validators = []
     glob = []
+    result = []
+    shape = []
     logger = []
     format = {}
-    steps = 0
 
-    def __init__(self, failureRate):
-        self.failureRate = failureRate
+    def __init__(self, shape):
+        self.shape = shape
         self.format = {"entity": "Simulator"}
-        self.steps = 0
+        self.result = Result(self.shape)
 
     def initValidators(self):
-        if not self.deterministic:
-            random.seed(datetime.now())
-        self.glob = Observer(self.blockSize, self.logger)
+        self.glob = Observer(self.logger, self.shape)
         self.glob.reset()
         self.validators = []
-        for i in range(self.numberValidators):
-            val = Validator(i, self.chi, self.blockSize, int(not i!=0), self.failureRate, self.deterministic, self.logger)
+        rows = list(range(self.shape.blockSize)) * int(self.shape.chi*self.shape.numberValidators/self.shape.blockSize)
+        columns = list(range(self.shape.blockSize)) * int(self.shape.chi*self.shape.numberValidators/self.shape.blockSize)
+        random.shuffle(rows)
+        random.shuffle(columns)
+        for i in range(self.shape.numberValidators):
+            val = Validator(i, int(not i!=0), self.logger, self.shape, rows, columns)
             if i == self.proposerID:
                 val.initBlock()
                 self.glob.setGoldenData(val.block)
@@ -42,27 +41,34 @@ class Simulator:
                 val.logIDs()
             self.validators.append(val)
 
-    def initNetwork(self, d=6):
-        rowChannels = [[] for i in range(self.blockSize)]
-        columnChannels = [[] for i in range(self.blockSize)]
+    def initNetwork(self):
+        self.shape.netDegree = 6
+        rowChannels = [[] for i in range(self.shape.blockSize)]
+        columnChannels = [[] for i in range(self.shape.blockSize)]
         for v in self.validators:
             for id in v.rowIDs:
                 rowChannels[id].append(v)
             for id in v.columnIDs:
                 columnChannels[id].append(v)
 
-        for id in range(self.blockSize):
-            G = nx.random_regular_graph(d, len(rowChannels[id]))
+        for id in range(self.shape.blockSize):
+
+            if (len(rowChannels[id]) < self.shape.netDegree):
+                self.logger.error("Graph degree higher than %d" % len(rowChannels[id]), extra=self.format)
+            G = nx.random_regular_graph(self.shape.netDegree, len(rowChannels[id]))
             if not nx.is_connected(G):
-                self.logger.error("graph not connected for row %d !" % id, extra=self.format)
+                self.logger.error("Graph not connected for row %d !" % id, extra=self.format)
             for u, v in G.edges:
                 val1=rowChannels[id][u]
                 val2=rowChannels[id][v]
                 val1.rowNeighbors[id].append(val2)
                 val2.rowNeighbors[id].append(val1)
-            G = nx.random_regular_graph(d, len(columnChannels[id]))
+
+            if (len(columnChannels[id]) < self.shape.netDegree):
+                self.logger.error("Graph degree higher than %d" % len(columnChannels[id]), extra=self.format)
+            G = nx.random_regular_graph(self.shape.netDegree, len(columnChannels[id]))
             if not nx.is_connected(G):
-                self.logger.error("graph not connected for column %d !" % id, extra=self.format)
+                self.logger.error("Graph not connected for column %d !" % id, extra=self.format)
             for u, v in G.edges:
                 val1=columnChannels[id][u]
                 val2=columnChannels[id][v]
@@ -78,20 +84,27 @@ class Simulator:
         logger.addHandler(ch)
         self.logger = logger
 
-    def resetFailureRate(self, failureRate):
-        self.failureRate = failureRate
+
+    def resetShape(self, shape):
+        self.shape = shape
+        for val in self.validators:
+            val.shape.failureRate = shape.failureRate
+            val.shape.chi = shape.chi
+
 
     def run(self):
         self.glob.checkRowsColumns(self.validators)
         self.validators[self.proposerID].broadcastBlock()
         arrived, expected = self.glob.checkStatus(self.validators)
         missingSamples = expected - arrived
-        self.steps = 0
+        missingVector = []
+        steps = 0
         while(missingSamples > 0):
+            missingVector.append(missingSamples)
             oldMissingSamples = missingSamples
-            for i in range(1,self.numberValidators):
+            for i in range(1,self.shape.numberValidators):
                 self.validators[i].receiveRowsColumns()
-            for i in range(1,self.numberValidators):
+            for i in range(1,self.shape.numberValidators):
                 self.validators[i].restoreRows()
                 self.validators[i].restoreColumns()
                 self.validators[i].sendRows()
@@ -102,18 +115,21 @@ class Simulator:
             arrived, expected = self.glob.checkStatus(self.validators)
             missingSamples = expected - arrived
             missingRate = missingSamples*100/expected
-            self.logger.info("step %d, missing %d of %d (%0.02f %%)" % (self.steps, missingSamples, expected, missingRate), extra=self.format)
+            self.logger.debug("step %d, missing %d of %d (%0.02f %%)" % (steps, missingSamples, expected, missingRate), extra=self.format)
             if missingSamples == oldMissingSamples:
                 break
             elif missingSamples == 0:
                 break
             else:
-                self.steps += 1
+                steps += 1
 
+        self.result.addMissing(missingVector)
         if missingSamples == 0:
-            self.logger.debug("The entire block is available at step %d, with failure rate %d !" % (self.steps, self.failureRate), extra=self.format)
-            return 0
+            self.result.blockAvailable = 1
+            self.logger.debug("The entire block is available at step %d, with failure rate %d !" % (steps, self.shape.failureRate), extra=self.format)
+            return self.result
         else:
-            self.logger.debug("The block cannot be recovered, failure rate %d!" % self.failureRate, extra=self.format)
-            return 1
+            self.result.blockAvailable = 0
+            self.logger.debug("The block cannot be recovered, failure rate %d!" % self.shape.failureRate, extra=self.format)
+            return self.result
 

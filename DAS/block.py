@@ -9,8 +9,8 @@ class Block:
     blockSize = 0
     data = bitarray()
 
-    def __init__(self, size):
-        self.blockSize = size
+    def __init__(self, blockSize):
+        self.blockSize = blockSize
         self.data = zeros(self.blockSize*self.blockSize)
 
     def fill(self):

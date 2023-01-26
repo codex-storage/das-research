@@ -10,44 +10,40 @@ from bitarray.util import zeros
 class Validator:
 
     ID = 0
-    chi = 0
+    amIproposer = 0
+    shape = []
     format = {}
-    blocksize = 0
-    proposer = 0
-    failureRate = 0
     logger = []
 
-    def __init__(self, ID, chi, blockSize, proposer, failureRate, deterministic, logger):
+    def __init__(self, ID, amIproposer, logger, shape, rows, columns):
+        self.shape = shape
         FORMAT = "%(levelname)s : %(entity)s : %(message)s"
         self.ID = ID
         self.format = {"entity": "Val "+str(self.ID)}
-        self.blockSize = blockSize
-        self.block = Block(blockSize)
-        self.receivedBlock = Block(blockSize)
-        self.proposer = proposer
-        self.failureRate = failureRate
+        self.block = Block(self.shape.blockSize)
+        self.receivedBlock = Block(self.shape.blockSize)
+        self.amIproposer = amIproposer
         self.logger = logger
-        if chi < 1:
+        if self.shape.chi < 1:
             self.logger.error("Chi has to be greater than 0", extra=self.format)
-        elif chi > blockSize:
+        elif self.shape.chi > self.shape.blockSize:
             self.logger.error("Chi has to be smaller than %d" % blockSize, extra=self.format)
         else:
-            self.chi = chi
-            if proposer:
-                self.rowIDs = range(blockSize)
-                self.columnIDs = range(blockSize)
+            if amIproposer:
+                self.rowIDs = range(shape.blockSize)
+                self.columnIDs = range(shape.blockSize)
             else:
-                self.rowIDs = []
-                self.columnIDs = []
-                if deterministic:
-                    random.seed(self.ID)
-                self.rowIDs = random.sample(range(self.blockSize), self.chi)
-                self.columnIDs = random.sample(range(self.blockSize), self.chi)
+                self.rowIDs = rows[(self.ID*self.shape.chi):(self.ID*self.shape.chi + self.shape.chi)]
+                self.columnIDs = rows[(self.ID*self.shape.chi):(self.ID*self.shape.chi + self.shape.chi)]
+                #if shape.deterministic:
+                #    random.seed(self.ID)
+                #self.rowIDs = random.sample(range(self.shape.blockSize), self.shape.chi)
+                #self.columnIDs = random.sample(range(self.shape.blockSize), self.shape.chi)
         self.rowNeighbors = collections.defaultdict(list)
         self.columnNeighbors = collections.defaultdict(list)
 
     def logIDs(self):
-        if self.proposer == 1:
+        if self.amIproposer == 1:
             self.logger.warning("I am a block proposer."% self.ID)
         else:
             self.logger.debug("Selected rows: "+str(self.rowIDs), extra=self.format)
@@ -55,30 +51,30 @@ class Validator:
 
     def initBlock(self):
         self.logger.debug("I am a block proposer.", extra=self.format)
-        self.block = Block(self.blockSize)
+        self.block = Block(self.shape.blockSize)
         self.block.fill()
         #self.block.print()
 
     def broadcastBlock(self):
-        if self.proposer == 0:
+        if self.amIproposer == 0:
             self.logger.error("I am NOT a block proposer", extra=self.format)
         else:
             self.logger.debug("Broadcasting my block...", extra=self.format)
-            order = [i for i in range(self.blockSize * self.blockSize)]
+            order = [i for i in range(self.shape.blockSize * self.shape.blockSize)]
             random.shuffle(order)
             while(order):
                 i = order.pop()
-                if (random.randint(0,99) >= self.failureRate):
+                if (random.randint(0,99) >= self.shape.failureRate):
                     self.block.data[i] = 1
                 else:
                     self.block.data[i] = 0
             nbFailures = self.block.data.count(0)
-            measuredFailureRate = nbFailures * 100 / (self.blockSize * self.blockSize)
-            self.logger.info("Number of failures: %d (%0.02f %%)", nbFailures, measuredFailureRate, extra=self.format)
+            measuredFailureRate = nbFailures * 100 / (self.shape.blockSize * self.shape.blockSize)
+            self.logger.debug("Number of failures: %d (%0.02f %%)", nbFailures, measuredFailureRate, extra=self.format)
             #broadcasted.print()
-            for id in range(self.blockSize):
+            for id in range(self.shape.blockSize):
                 self.sendColumn(id)
-            for id in range(self.blockSize):
+            for id in range(self.shape.blockSize):
                 self.sendRow(id)
 
     def getColumn(self, index):
@@ -101,7 +97,7 @@ class Validator:
 
 
     def receiveRowsColumns(self):
-        if self.proposer == 1:
+        if self.amIproposer == 1:
             self.logger.error("I am a block proposer", extra=self.format)
         else:
             self.logger.debug("Receiving the data...", extra=self.format)
@@ -124,7 +120,7 @@ class Validator:
                 n.receiveRow(rowID, line)
 
     def sendRows(self):
-        if self.proposer == 1:
+        if self.amIproposer == 1:
             self.logger.error("I am a block proposer", extra=self.format)
         else:
             self.logger.debug("Sending restored rows...", extra=self.format)
@@ -132,7 +128,7 @@ class Validator:
                 self.sendRow(r)
 
     def sendColumns(self):
-        if self.proposer == 1:
+        if self.amIproposer == 1:
             self.logger.error("I am a block proposer", extra=self.format)
         else:
             self.logger.debug("Sending restored columns...", extra=self.format)
