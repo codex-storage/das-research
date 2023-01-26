@@ -89,14 +89,14 @@ class Validator:
                     self.block.data[i] = 1
                 else:
                     self.block.data[i] = 0
+
+            self.changedRow = {id:True for id in self.rowIDs}
+            self.changedColumn = {id:True for id in self.columnIDs}
+
             nbFailures = self.block.data.count(0)
             measuredFailureRate = nbFailures * 100 / (self.shape.blockSize * self.shape.blockSize)
             self.logger.debug("Number of failures: %d (%0.02f %%)", nbFailures, measuredFailureRate, extra=self.format)
             #broadcasted.print()
-            for id in range(self.shape.blockSize):
-                self.sendColumn(id)
-            for id in range(self.shape.blockSize):
-                self.sendRow(id)
 
     def getColumn(self, index):
         return self.block.getColumn(index)
@@ -177,22 +177,16 @@ class Validator:
                     self.statsTxInSlot += toSend.count(1)
 
     def sendRows(self):
-        if self.amIproposer == 1:
-            self.logger.error("I am a block proposer", extra=self.format)
-        else:
-            self.logger.debug("Sending restored rows...", extra=self.format)
-            for r in self.rowIDs:
-                if self.changedRow[r]:
-                    self.sendRow(r)
+        self.logger.debug("Sending restored rows...", extra=self.format)
+        for r in self.rowIDs:
+            if self.changedRow[r]:
+                self.sendRow(r)
 
     def sendColumns(self):
-        if self.amIproposer == 1:
-            self.logger.error("I am a block proposer", extra=self.format)
-        else:
-            self.logger.debug("Sending restored columns...", extra=self.format)
-            for c in self.columnIDs:
-                if self.changedColumn[c]:
-                    self.sendColumn(c)
+        self.logger.debug("Sending restored columns...", extra=self.format)
+        for c in self.columnIDs:
+            if self.changedColumn[c]:
+                self.sendColumn(c)
 
     def logRows(self):
         if self.logger.isEnabledFor(logging.DEBUG):

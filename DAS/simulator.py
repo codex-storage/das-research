@@ -99,19 +99,20 @@ class Simulator:
         missingSamples = expected - arrived
         missingVector = []
         steps = 0
-        while(missingSamples > 0):
+        while(True):
             missingVector.append(missingSamples)
             oldMissingSamples = missingSamples
+            for i in range(0,self.shape.numberValidators):
+                self.validators[i].sendRows()
+                self.validators[i].sendColumns()
             for i in range(1,self.shape.numberValidators):
                 self.validators[i].receiveRowsColumns()
             for i in range(1,self.shape.numberValidators):
                 self.validators[i].restoreRows()
                 self.validators[i].restoreColumns()
-                self.validators[i].sendRows()
-                self.validators[i].sendColumns()
+            for i in range(0,self.shape.numberValidators):
                 self.validators[i].logRows()
                 self.validators[i].logColumns()
-            for i in range(0,self.numberValidators):
                 self.validators[i].updateStats()
 
             arrived, expected = self.glob.checkStatus(self.validators)
