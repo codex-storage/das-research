@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<root>
+	<run type="int">1</run>
+	<numberValidators type="int">256</numberValidators>
+	<blockSize type="int">64</blockSize>
+	<failureRate type="int">50</failureRate>
+	<netDegree type="int">6</netDegree>
+	<chi type="int">8</chi>
+	<blockAvailable type="int">1</blockAvailable>
+	<tta type="int">4</tta>
+	<missingVector type="list">
+		<item type="int">261120</item>
+		<item type="int">215832</item>
+		<item type="int">52918</item>
+		<item type="int">0</item>
+	</missingVector>
+</root>
