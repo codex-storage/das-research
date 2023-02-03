@@ -246,10 +246,10 @@ class Validator:
         while True:
             perLine = []
             for c in self.columnIDs:
-                perLine.append(self.nextColumnToSend(c))
+                perLine.append(self.nextColumnToSend(c, 1))
 
             for r in self.rowIDs:
-                perLine.append(self.nextRowToSend(r))
+                perLine.append(self.nextRowToSend(r, 1))
 
             count = 0
             random.shuffle(perLine)
