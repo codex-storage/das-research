@@ -259,7 +259,7 @@ class Validator:
 
             # until we exhaust capacity
             # TODO: use exact limit
-            if self.statsTxInSlot >self.bwUplink:
+            if self.statsTxInSlot >= self.bwUplink:
                 return
 
         # Scheduler exited, nothing to send. Create new one for next round.
