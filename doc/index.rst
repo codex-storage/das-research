@@ -6,6 +6,13 @@
 Welcome to DAS simulator's documentation!
 =========================================
 
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
@@ -34,9 +41,4 @@ Welcome to DAS simulator's documentation!
 .. automodule:: validator
    :members:
 
-Indices and tables
-==================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

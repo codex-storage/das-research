@@ -2,7 +2,8 @@
 
 import logging
 
-class CustomFormatter(logging.Formatter):
+class CustomFormatter():
+    """This class defines the terminal output formatting."""
 
     blue = "\x1b[34;20m"
     grey = "\x1b[38;20m"

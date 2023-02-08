@@ -5,7 +5,7 @@ from bitarray import bitarray
 from bitarray.util import zeros
 
 class Block:
-
+    """This class represents a block in the Ethereum blockchain"""
 
     def __init__(self, blockSize):
         self.blockSize = blockSize
