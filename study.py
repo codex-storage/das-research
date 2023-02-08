@@ -23,11 +23,11 @@ def study():
     start = time.time()
 
     for run in range(config.numberRuns):
-        for nv in range(config.nvStart, config.nvStop+1, config.nvStep):
-            for blockSize in range(config.blockSizeStart, config.blockSizeStop+1, config.blockSizeStep):
-                for fr in range(config.failureRateStart, config.failureRateStop+1, config.failureRateStep):
-                    for netDegree in range(config.netDegreeStart, config.netDegreeStop, config.netDegreeStep):
-                        for chi in range(config.chiStart, config.chiStop+1, config.chiStep):
+        for fr in range(config.failureRateStart, config.failureRateStop+1, config.failureRateStep):
+            for chi in range(config.chiStart, config.chiStop+1, config.chiStep):
+                for blockSize in range(config.blockSizeStart, config.blockSizeStop+1, config.blockSizeStep):
+                    for nv in range(config.nvStart, config.nvStop+1, config.nvStep):
+                        for netDegree in range(config.netDegreeStart, config.netDegreeStop+1, config.netDegreeStep):
 
                             if not config.deterministic:
                                 random.seed(datetime.now())

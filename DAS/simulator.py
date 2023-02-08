@@ -61,8 +61,8 @@ class Simulator:
             for u, v in G.edges:
                 val1=rowChannels[id][u]
                 val2=rowChannels[id][v]
-                val1.rowNeighbors[id].append(val2)
-                val2.rowNeighbors[id].append(val1)
+                val1.rowNeighbors[id].update({val2.ID : Neighbor(val2, self.shape.blockSize)})
+                val2.rowNeighbors[id].update({val1.ID : Neighbor(val1, self.shape.blockSize)})
 
             if (len(columnChannels[id]) < self.shape.netDegree):
                 self.logger.error("Graph degree higher than %d" % len(columnChannels[id]), extra=self.format)
@@ -72,8 +72,8 @@ class Simulator:
             for u, v in G.edges:
                 val1=columnChannels[id][u]
                 val2=columnChannels[id][v]
-                val1.columnNeighbors[id].append(val2)
-                val2.columnNeighbors[id].append(val1)
+                val1.columnNeighbors[id].update({val2.ID : Neighbor(val2, self.shape.blockSize)})
+                val2.columnNeighbors[id].update({val1.ID : Neighbor(val1, self.shape.blockSize)})
 
     def initLogger(self):
         logger = logging.getLogger("DAS")
@@ -100,18 +100,21 @@ class Simulator:
         missingSamples = expected - arrived
         missingVector = []
         steps = 0
-        while(missingSamples > 0):
+        while(True):
             missingVector.append(missingSamples)
             oldMissingSamples = missingSamples
+            for i in range(0,self.shape.numberValidators):
+                self.validators[i].sendRows()
+                self.validators[i].sendColumns()
             for i in range(1,self.shape.numberValidators):
                 self.validators[i].receiveRowsColumns()
             for i in range(1,self.shape.numberValidators):
                 self.validators[i].restoreRows()
                 self.validators[i].restoreColumns()
-                self.validators[i].sendRows()
-                self.validators[i].sendColumns()
+            for i in range(0,self.shape.numberValidators):
                 self.validators[i].logRows()
                 self.validators[i].logColumns()
+                self.validators[i].updateStats()
 
             arrived, expected = self.glob.checkStatus(self.validators)
             missingSamples = expected - arrived
