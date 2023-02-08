@@ -4,7 +4,6 @@ import configparser
 
 class Configuration:
 
-    deterministic = 0
 
     def __init__(self, fileName):
 

@@ -10,19 +10,16 @@ from DAS.validator import *
 
 class Simulator:
 
-    proposerID = 0
-    logLevel = logging.INFO
-    validators = []
-    glob = []
-    result = []
-    shape = []
-    logger = []
-    format = {}
 
     def __init__(self, shape):
         self.shape = shape
         self.format = {"entity": "Simulator"}
         self.result = Result(self.shape)
+        self.validators = []
+        self.logger = []
+        self.logLevel = logging.INFO
+        self.proposerID = 0
+        self.glob = []
 
     def initValidators(self):
         self.glob = Observer(self.logger, self.shape)

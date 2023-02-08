@@ -6,8 +6,6 @@ from bitarray.util import zeros
 
 class Block:
 
-    blockSize = 0
-    data = bitarray()
 
     def __init__(self, blockSize):
         self.blockSize = blockSize

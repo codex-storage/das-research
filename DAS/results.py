@@ -6,10 +6,6 @@ from dicttoxml import dicttoxml
 
 class Result:
 
-    shape = []
-    missingVector = []
-    blockAvailable = -1
-    tta = -1
 
     def __init__(self, shape):
         self.shape = shape
