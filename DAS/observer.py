@@ -4,18 +4,16 @@ from DAS.block import *
 
 class Observer:
 
-    block = []
-    rows = []
-    columns = []
-    goldenData = []
-    broadcasted = []
-    config = []
-    logger = []
-
     def __init__(self, logger, config):
         self.config = config
         self.format = {"entity": "Observer"}
         self.logger = logger
+        self.block = []
+        self.rows = []
+        self.columns = []
+        self.goldenData = []
+        self.broadcasted = []
+
 
     def reset(self):
         self.block = [0] * self.config.blockSize * self.config.blockSize

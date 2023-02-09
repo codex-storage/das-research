@@ -20,11 +20,6 @@ class Neighbor:
 
 class Validator:
 
-    ID = 0
-    amIproposer = 0
-    shape = []
-    format = {}
-    logger = []
 
     def __repr__(self):
         return str(self.ID)

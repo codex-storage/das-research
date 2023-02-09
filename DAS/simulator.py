@@ -10,19 +10,16 @@ from DAS.validator import *
 
 class Simulator:
 
-    proposerID = 0
-    logLevel = logging.INFO
-    validators = []
-    glob = []
-    result = []
-    shape = []
-    logger = []
-    format = {}
 
     def __init__(self, shape):
         self.shape = shape
         self.format = {"entity": "Simulator"}
         self.result = Result(self.shape)
+        self.validators = []
+        self.logger = []
+        self.logLevel = logging.INFO
+        self.proposerID = 0
+        self.glob = []
 
     def initValidators(self):
         self.glob = Observer(self.logger, self.shape)
@@ -87,6 +84,7 @@ class Simulator:
 
     def resetShape(self, shape):
         self.shape = shape
+        self.result = Result(self.shape)
         for val in self.validators:
             val.shape.failureRate = shape.failureRate
             val.shape.chi = shape.chi
@@ -120,19 +118,16 @@ class Simulator:
             missingRate = missingSamples*100/expected
             self.logger.debug("step %d, missing %d of %d (%0.02f %%)" % (steps, missingSamples, expected, missingRate), extra=self.format)
             if missingSamples == oldMissingSamples:
+                #self.logger.info("The block cannot be recovered, failure rate %d!" % self.shape.failureRate, extra=self.format)
+                missingVector.append(missingSamples)
                 break
             elif missingSamples == 0:
+                #self.logger.info("The entire block is available at step %d, with failure rate %d !" % (steps, self.shape.failureRate), extra=self.format)
+                missingVector.append(missingSamples)
                 break
             else:
                 steps += 1
 
-        self.result.addMissing(missingVector)
-        if missingSamples == 0:
-            self.result.blockAvailable = 1
-            self.logger.debug("The entire block is available at step %d, with failure rate %d !" % (steps, self.shape.failureRate), extra=self.format)
-            return self.result
-        else:
-            self.result.blockAvailable = 0
-            self.logger.debug("The block cannot be recovered, failure rate %d!" % self.shape.failureRate, extra=self.format)
-            return self.result
+        self.result.populate(self.shape, missingVector)
+        return self.result
 

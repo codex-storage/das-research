@@ -4,7 +4,6 @@ import configparser
 
 class Configuration:
 
-    deterministic = 0
 
     def __init__(self, fileName):
 
@@ -33,6 +32,7 @@ class Configuration:
 
         self.numberRuns = int(config.get("Advanced", "numberRuns"))
         self.deterministic = config.get("Advanced", "deterministic")
+        self.dumpXML = config.get("Advanced", "dumpXML")
 
         if self.nvStop < (self.blockSizeStart*4):
             print("ERROR: The number of validators cannot be lower than the block size * 4")
