@@ -20,6 +20,12 @@ class Block:
         """It merges (OR) the existing block with the received one."""
         self.data |= merged.data
 
+    def getSegment(self, rowID, columnID):
+        return self.data[rowID*self.blockSize + columnID]
+
+    def setSegment(self, rowID, columnID, v = 1):
+        self.data[rowID*self.blockSize + columnID] = v
+
     def getColumn(self, columnID):
         """It returns the block column corresponding to columnID."""
         return self.data[columnID::self.blockSize]

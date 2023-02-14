@@ -177,6 +177,20 @@ class Validator:
         else:
             pass
 
+    def receiveSegment(self, rID, cID, src):
+        # register receive so that we are not sending back
+        if rID in self.rowIDs:
+            if src in self.rowNeighbors[rID]:
+                self.rowNeighbors[rID][src].receiving[cID] = 1
+        if cID in self.columnIDs:
+            if src in self.columnNeighbors[cID]:
+                self.columnNeighbors[cID][src].receiving[rID] = 1
+        if not self.receivedBlock.getSegment(rID, cID):
+            self.receivedBlock.setSegment(rID, cID)
+        # else:
+        #     self.statsRxDuplicateInSlot += 1
+        self.statsRxInSlot += 1
+
 
     def receiveRowsColumns(self):
         """It receives rows and columns."""
@@ -265,6 +279,15 @@ class Validator:
             # return if there is nothing more to send
             if not count:
                 return
+
+    def sendSegmentToNeigh(self, rID, cID, neigh):
+        if not neigh.sent[cID] and not neigh.receiving[cID] :
+            neigh.sent[cID] = 1
+            neigh.node.receiveSegment(rID, cID, self.ID)
+            self.statsTxInSlot += 1
+            return True
+        else:
+            return False # received or already sent
 
     def send(self):
         """ Send as much as we can in the timeslot, limited by bwUplink
