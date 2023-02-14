@@ -173,6 +173,9 @@ class Validator:
             # register receive so that we are not sending back
             self.columnNeighbors[id][src].receiving |= column
             self.receivedBlock.mergeColumn(id, column)
+            for i in range(len(column)):
+                if column[i]:
+                    self.receivedQueue.append((i, id))
             self.statsRxInSlot += column.count(1)
         else:
             pass
@@ -183,6 +186,9 @@ class Validator:
             # register receive so that we are not sending back
             self.rowNeighbors[id][src].receiving |= row
             self.receivedBlock.mergeRow(id, row)
+            for i in range(len(row)):
+                if row[i]:
+                    self.receivedQueue.append((id, i))
             self.statsRxInSlot += row.count(1)
         else:
             pass
