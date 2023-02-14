@@ -15,6 +15,12 @@ def shuffled(lis):
     for index in random.sample(range(len(lis)), len(lis)):
         yield lis[index]
 
+def shuffledDict(d):
+    lis = list(d.values())
+    # based on https://stackoverflow.com/a/60342323
+    for index in random.sample(range(len(d)), len(d)):
+        yield lis[index]
+
 def sampleLine(line, limit):
     """ sample up to 'limit' bits from a bitarray
 
@@ -233,7 +239,7 @@ class Validator:
         line = self.getColumn(columnID)
         if line.any():
             self.logger.debug("col %d -> %s", columnID, self.columnNeighbors[columnID] , extra=self.format)
-            for n in shuffled(list(self.columnNeighbors[columnID].values())):
+            for n in shuffledDict(self.columnNeighbors[columnID]):
 
                 # if there is anything new to send, send it
                 toSend = line & ~n.sent & ~n.received
@@ -245,7 +251,7 @@ class Validator:
         line = self.getRow(rowID)
         if line.any():
             self.logger.debug("row %d -> %s", rowID, self.rowNeighbors[rowID], extra=self.format)
-            for n in shuffled(list(self.rowNeighbors[rowID].values())):
+            for n in shuffledDict(self.rowNeighbors[rowID]):
 
                 # if there is anything new to send, send it
                 toSend = line & ~n.sent & ~n.received
