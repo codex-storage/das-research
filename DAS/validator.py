@@ -119,6 +119,7 @@ class Validator:
         # TODO: this should be a parameter
         self.bwUplink = 110 if not self.amIproposer else 2200 # approx. 10Mbps and 200Mbps
 
+        self.perNodeQueue = False # keep a global queue of incoming messages for later sequential dispatch
         self.sched = self.nextToSend()
 
     def logIDs(self):
@@ -230,7 +231,8 @@ class Validator:
                     neigh.receiving.setall(0)
 
             # add newly received segments to the send queue
-            self.sendQueue.extend(self.receivedQueue)
+            if self.perNeighborQueue:
+                self.sendQueue.extend(self.receivedQueue)
             self.receivedQueue.clear()
 
     def updateStats(self):
