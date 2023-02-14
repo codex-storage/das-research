@@ -321,6 +321,35 @@ class Validator:
 
             self.sendQueue.popleft()
 
+        tries = 100
+        while tries:
+            if self.rowIDs:
+                rID = random.choice(self.rowIDs)
+                cID = random.randrange(0, self.shape.blockSize)
+                if self.block.getSegment(rID, cID) :
+                    neigh = random.choice(list(self.rowNeighbors[rID].values()))
+                    if not neigh.sent[cID] and not neigh.receiving[cID] :
+                        neigh.sent[cID] = 1
+                        neigh.node.receiveSegment(rID, cID, self.ID)
+                        self.statsTxInSlot += 1
+                        tries = 100
+            if self.statsTxInSlot >= self.bwUplink:
+                return
+            if self.columnIDs:
+                cID = random.choice(self.columnIDs)
+                rID = random.randrange(0, self.shape.blockSize)
+                if self.block.getSegment(rID, cID) :
+                    neigh = random.choice(list(self.columnNeighbors[cID].values()))
+                    if not neigh.sent[rID] and not neigh.receiving[rID] :
+                        neigh.sent[rID] = 1
+                        neigh.node.receiveSegment(rID, cID, self.ID)
+                        self.statsTxInSlot += 1
+                        tries = 100
+            tries -= 1
+            if self.statsTxInSlot >= self.bwUplink:
+                return
+        return
+            
         for n in self.sched:
             neigh = n.neigh
             toSend = n.toSend
