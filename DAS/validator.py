@@ -364,6 +364,7 @@ class Validator:
         """ Send as much as we can in the timeslot, limited by bwUplink
         """
 
+        # process node level send queue
         while self.sendQueue:
             (rID, cID) = self.sendQueue[0]
 
@@ -383,6 +384,7 @@ class Validator:
 
             self.sendQueue.popleft()
 
+        # process neighbor level send queues in shuffled breadth-first order
         progress = True
         while (progress):
             progress = False
