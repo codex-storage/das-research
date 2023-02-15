@@ -121,6 +121,7 @@ class Validator:
         # TODO: this should be a parameter
         self.bwUplink = 110 if not self.amIproposer else 2200 # approx. 10Mbps and 200Mbps
 
+        self.repairOnTheFly = True
         self.perNeighborQueue = False # queue incoming messages to outgoing connections on arrival (as typical GossipSub impl)
         self.perNodeQueue = False # keep a global queue of incoming messages for later sequential dispatch
         self.dumbRandomScheduler = False # dumb random scheduler
@@ -445,29 +446,31 @@ class Validator:
 
     def restoreRows(self):
         """It restores the rows assigned to the validator, that can be repaired."""
-        for id in self.rowIDs:
-            rep = self.block.repairRow(id)
-            if (rep.any()):
-                # If operation is based on send queues, segments should
-                # be queued after successful repair.
-                for i in range(len(rep)):
-                    if rep[i]:
-                        self.logger.debug("Rep: %d,%d", id, i, extra=self.format)
-                        self.addToSendQueue(id, i)
-                # self.statsRepairInSlot += rep.count(1)
+        if self.repairOnTheFly:
+            for id in self.rowIDs:
+                rep = self.block.repairRow(id)
+                if (rep.any()):
+                    # If operation is based on send queues, segments should
+                    # be queued after successful repair.
+                    for i in range(len(rep)):
+                        if rep[i]:
+                            self.logger.debug("Rep: %d,%d", id, i, extra=self.format)
+                            self.addToSendQueue(id, i)
+                    # self.statsRepairInSlot += rep.count(1)
 
     def restoreColumns(self):
         """It restores the columns assigned to the validator, that can be repaired."""
-        for id in self.columnIDs:
-            rep = self.block.repairColumn(id)
-            if (rep.any()):
-                # If operation is based on send queues, segments should
-                # be queued after successful repair.
-                for i in range(len(rep)):
-                    if rep[i]:
-                        self.logger.debug("Rep: %d,%d", i, id, extra=self.format)
-                        self.addToSendQueue(i, id)
-                # self.statsRepairInSlot += rep.count(1)
+        if self.repairOnTheFly:
+            for id in self.columnIDs:
+                rep = self.block.repairColumn(id)
+                if (rep.any()):
+                    # If operation is based on send queues, segments should
+                    # be queued after successful repair.
+                    for i in range(len(rep)):
+                        if rep[i]:
+                            self.logger.debug("Rep: %d,%d", i, id, extra=self.format)
+                            self.addToSendQueue(i, id)
+                    # self.statsRepairInSlot += rep.count(1)
 
     def checkStatus(self):
         """It checks how many expected/arrived samples are for each assigned row/column."""
