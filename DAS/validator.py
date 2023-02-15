@@ -193,7 +193,8 @@ class Validator:
             for i in range(len(column)):
                 if column[i]:
                     self.logger.debug("Recv: %d->%d: %d,%d", src, self.ID, i, id, extra=self.format)
-                    self.receivedQueue.append((i, id))
+                    if self.perNodeQueue or self.perNeighborQueue:
+                        self.receivedQueue.append((i, id))
             self.statsRxInSlot += column.count(1)
         else:
             pass
@@ -207,7 +208,8 @@ class Validator:
             for i in range(len(row)):
                 if row[i]:
                     self.logger.debug("Recv %d->%d: %d,%d", src, self.ID, id, i, extra=self.format)
-                    self.receivedQueue.append((id, i))
+                    if self.perNodeQueue or self.perNeighborQueue:
+                        self.receivedQueue.append((id, i))
             self.statsRxInSlot += row.count(1)
         else:
             pass
@@ -223,7 +225,8 @@ class Validator:
         if not self.receivedBlock.getSegment(rID, cID):
             self.logger.debug("Recv new: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
             self.receivedBlock.setSegment(rID, cID)
-            self.receivedQueue.append((rID, cID))
+            if self.perNodeQueue or self.perNeighborQueue:
+                self.receivedQueue.append((rID, cID))
         else:
             self.logger.debug("Recv DUP: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
         #     self.statsRxDuplicateInSlot += 1
@@ -263,9 +266,10 @@ class Validator:
                     neigh.receiving.setall(0)
 
             # add newly received segments to the send queue
-            while self.receivedQueue:
-                (rID, cID) = self.receivedQueue.popleft()
-                self.addToSendQueue(rID, cID)
+            if self.perNodeQueue or self.perNeighborQueue:
+                while self.receivedQueue:
+                    (rID, cID) = self.receivedQueue.popleft()
+                    self.addToSendQueue(rID, cID)
 
     def updateStats(self):
         """It updates the stats related to sent and received data."""
