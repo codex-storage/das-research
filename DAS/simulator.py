@@ -106,14 +106,18 @@ class Simulator:
         while(True):
             missingVector.append(missingSamples)
             oldMissingSamples = missingSamples
+            self.logger.debug("PHASE SEND %d" % steps, extra=self.format)
             for i in range(0,self.shape.numberValidators):
                 self.validators[i].sendRows()
                 self.validators[i].sendColumns()
+            self.logger.debug("PHASE RECEIVE %d" % steps, extra=self.format)
             for i in range(1,self.shape.numberValidators):
                 self.validators[i].receiveRowsColumns()
+            self.logger.debug("PHASE RESTORE %d" % steps, extra=self.format)
             for i in range(1,self.shape.numberValidators):
                 self.validators[i].restoreRows()
                 self.validators[i].restoreColumns()
+            self.logger.debug("PHASE LOG %d" % steps, extra=self.format)
             for i in range(0,self.shape.numberValidators):
                 self.validators[i].logRows()
                 self.validators[i].logColumns()
