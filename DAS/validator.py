@@ -213,6 +213,18 @@ class Validator:
         #     self.statsRxDuplicateInSlot += 1
         self.statsRxInSlot += 1
 
+    def addToSendQueue(self, rID, cID):
+        if self.perNodeQueue:
+            self.sendQueue.append((rID, cID))
+
+        if self.perNeighborQueue:
+            if rID in self.rowIDs:
+                for neigh in self.rowNeighbors[rID].values():
+                    neigh.sendQueue.append(cID)
+
+            if cID in self.columnIDs:
+                for neigh in self.columnNeighbors[cID].values():
+                    neigh.sendQueue.append(rID)
 
     def receiveRowsColumns(self):
         """It receives rows and columns."""
@@ -235,22 +247,9 @@ class Validator:
                     neigh.receiving.setall(0)
 
             # add newly received segments to the send queue
-            if self.perNeighborQueue:
-                self.sendQueue.extend(self.receivedQueue)
-
-            if self.perNodeQueue:
-                while self.receivedQueue:
-                    (rID, cID) = self.receivedQueue.popleft()
-
-                    if rID in self.rowIDs:
-                        for neigh in self.rowNeighbors[rID].values():
-                            neigh.sendQueue.append(cID)
-
-                    if cID in self.columnIDs:
-                        for neigh in self.columnNeighbors[cID].values():
-                            neigh.sendQueue.append(rID)
-
-            self.receivedQueue.clear()
+            while self.receivedQueue:
+                (rID, cID) = self.receivedQueue.popleft()
+                self.addToSendQueue(rID, cID)
 
     def updateStats(self):
         """It updates the stats related to sent and received data."""
