@@ -70,7 +70,7 @@ class Neighbor:
 
     def __repr__(self):
         """It returns the amount of sent and received data."""
-        return "%d:%d/%d" % (self.node.ID, self.sent.count(1), self.received.count(1))
+        return "%d:%d/%d, q:%d" % (self.node.ID, self.sent.count(1), self.received.count(1), len(self.sendQueue))
 
     def __init__(self, v, dim, blockSize):
         """It initializes the neighbor with the node and sets counters to zero."""
@@ -192,6 +192,7 @@ class Validator:
             self.receivedBlock.mergeColumn(id, column)
             for i in range(len(column)):
                 if column[i]:
+                    self.logger.debug("Recv: %d->%d: %d,%d", src, self.ID, i, id, extra=self.format)
                     self.receivedQueue.append((i, id))
             self.statsRxInSlot += column.count(1)
         else:
@@ -205,6 +206,7 @@ class Validator:
             self.receivedBlock.mergeRow(id, row)
             for i in range(len(row)):
                 if row[i]:
+                    self.logger.debug("Recv %d->%d: %d,%d", src, self.ID, id, i, extra=self.format)
                     self.receivedQueue.append((id, i))
             self.statsRxInSlot += row.count(1)
         else:
@@ -219,9 +221,11 @@ class Validator:
             if src in self.columnNeighbors[cID]:
                 self.columnNeighbors[cID][src].receiving[rID] = 1
         if not self.receivedBlock.getSegment(rID, cID):
+            self.logger.debug("Recv new: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
             self.receivedBlock.setSegment(rID, cID)
             self.receivedQueue.append((rID, cID))
-        # else:
+        else:
+            self.logger.debug("Recv DUP: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
         #     self.statsRxDuplicateInSlot += 1
         self.statsRxInSlot += 1
 
