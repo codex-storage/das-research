@@ -344,7 +344,7 @@ class Validator:
             i = cID
         else:
             i = rID
-        if not neigh.sent[i] and not neigh.receiving[i] :
+        if not neigh.sent[i] and not neigh.received[i] :
             neigh.sent[i] = 1
             neigh.node.receiveSegment(rID, cID, self.ID)
             self.statsTxInSlot += 1
@@ -404,7 +404,7 @@ class Validator:
                     cID = random.randrange(0, self.shape.blockSize)
                     if self.block.getSegment(rID, cID) :
                         neigh = random.choice(list(self.rowNeighbors[rID].values()))
-                        if not neigh.sent[cID] and not neigh.receiving[cID] :
+                        if not neigh.sent[cID] and not neigh.received[cID] :
                             neigh.sent[cID] = 1
                             neigh.node.receiveSegment(rID, cID, self.ID)
                             self.statsTxInSlot += 1
@@ -416,7 +416,7 @@ class Validator:
                     rID = random.randrange(0, self.shape.blockSize)
                     if self.block.getSegment(rID, cID) :
                         neigh = random.choice(list(self.columnNeighbors[cID].values()))
-                        if not neigh.sent[rID] and not neigh.receiving[rID] :
+                        if not neigh.sent[rID] and not neigh.received[rID] :
                             neigh.sent[rID] = 1
                             neigh.node.receiveSegment(rID, cID, self.ID)
                             self.statsTxInSlot += 1
