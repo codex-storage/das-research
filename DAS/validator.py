@@ -446,12 +446,28 @@ class Validator:
     def restoreRows(self):
         """It restores the rows assigned to the validator, that can be repaired."""
         for id in self.rowIDs:
-            self.block.repairRow(id)
+            rep = self.block.repairRow(id)
+            if (rep.any()):
+                # If operation is based on send queues, segments should
+                # be queued after successful repair.
+                for i in range(len(rep)):
+                    if rep[i]:
+                        self.logger.debug("Rep: %d,%d", id, i, extra=self.format)
+                        self.addToSendQueue(id, i)
+                # self.statsRepairInSlot += rep.count(1)
 
     def restoreColumns(self):
         """It restores the columns assigned to the validator, that can be repaired."""
         for id in self.columnIDs:
-            self.block.repairColumn(id)
+            rep = self.block.repairColumn(id)
+            if (rep.any()):
+                # If operation is based on send queues, segments should
+                # be queued after successful repair.
+                for i in range(len(rep)):
+                    if rep[i]:
+                        self.logger.debug("Rep: %d,%d", i, id, extra=self.format)
+                        self.addToSendQueue(i, id)
+                # self.statsRepairInSlot += rep.count(1)
 
     def checkStatus(self):
         """It checks how many expected/arrived samples are for each assigned row/column."""
