@@ -5,15 +5,17 @@ from xml.dom import minidom
 from dicttoxml import dicttoxml
 
 class Result:
-
+    """This class stores and process/store the results of a simulation."""
 
     def __init__(self, shape):
+        """It initializes the instance with a specific shape."""
         self.shape = shape
         self.blockAvailable = -1
         self.tta = -1
         self.missingVector = []
 
     def populate(self, shape, missingVector):
+        """It populates part of the result data inside a vector."""
         self.shape = shape
         self.missingVector = missingVector
         missingSamples = missingVector[-1]
@@ -25,6 +27,7 @@ class Result:
             self.tta = -1
 
     def dump(self, execID):
+        """It dumps the results of the simulation in an XML file."""
         if not os.path.exists("results"):
             os.makedirs("results")
         if not os.path.exists("results/"+execID):
