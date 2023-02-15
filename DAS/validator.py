@@ -63,9 +63,10 @@ class Neighbor:
         """It returns the amount of sent and received data."""
         return "%d:%d/%d" % (self.node.ID, self.sent.count(1), self.received.count(1))
 
-    def __init__(self, v, blockSize):
+    def __init__(self, v, dim, blockSize):
         """It initializes the neighbor with the node and sets counters to zero."""
         self.node = v
+        self.dim = dim # 0:row 1:col
         self.receiving = zeros(blockSize)
         self.received = zeros(blockSize)
         self.sent = zeros(blockSize)
@@ -319,8 +320,12 @@ class Validator:
                 return
 
     def sendSegmentToNeigh(self, rID, cID, neigh):
-        if not neigh.sent[cID] and not neigh.receiving[cID] :
-            neigh.sent[cID] = 1
+        if neigh.dim == 0: #row
+            i = cID
+        else:
+            i = rID
+        if not neigh.sent[i] and not neigh.receiving[i] :
+            neigh.sent[i] = 1
             neigh.node.receiveSegment(rID, cID, self.ID)
             self.statsTxInSlot += 1
             return True
