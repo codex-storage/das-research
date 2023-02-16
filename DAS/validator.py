@@ -410,9 +410,9 @@ class Validator:
             # one neighbor needing it). Then it sends each segment that's worth sending
             # once, in shuffled order. This is repeated until bw limit.
             while True:
-                if hasattr(self, 'segmentsToSend') and self.segmentsToSend:
-                    self.logger.debug("TX:%d q:%d", self.statsTxInSlot, len(self.segmentsToSend), extra=self.format)
-                    for s in shuffled(self.segmentsToSend):
+                if hasattr(self, 'segmentShuffleGen') and self.segmentShuffleGen is not None:
+                    #self.logger.debug("TX:%d queue:%d", self.statsTxInSlot, len(self.segmentsToSend), extra=self.format)
+                    for s in self.segmentShuffleGen:
                         self.logger.debug("%d:%d/%d", s.dim, s.id, s.i, extra=self.format)
                         if s.dim == 0:
                             for _, neigh in shuffledDict(self.rowNeighbors[s.id], self.shuffleNeighbors):
@@ -433,6 +433,7 @@ class Validator:
                             if not self.segmentShuffleSchedulerPersist:
                                 # remove scheduler state before leaving
                                 self.segmentsToSend = []
+                                self.segmentShuffleGen = None
                             return
 
                 self.segmentsToSend = []
@@ -460,6 +461,8 @@ class Validator:
 
                 if not self.segmentsToSend:
                     break
+                else:
+                    self.segmentShuffleGen = shuffled(self.segmentsToSend)
 
         if self.dumbRandomScheduler:
             # dumb random scheduler picking segments at random and trying to send it
