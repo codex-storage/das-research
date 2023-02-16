@@ -9,9 +9,10 @@ from DAS.observer import *
 from DAS.validator import *
 
 class Simulator:
-
+    """This class implements the main DAS simulator."""
 
     def __init__(self, shape):
+        """It initializes the simulation with a set of parameters (shape)."""
         self.shape = shape
         self.format = {"entity": "Simulator"}
         self.result = Result(self.shape)
@@ -22,6 +23,7 @@ class Simulator:
         self.glob = []
 
     def initValidators(self):
+        """It initializes all the validators in the network."""
         self.glob = Observer(self.logger, self.shape)
         self.glob.reset()
         self.validators = []
@@ -39,6 +41,7 @@ class Simulator:
             self.validators.append(val)
 
     def initNetwork(self):
+        """It initializes the simulated network."""
         self.shape.netDegree = 6
         rowChannels = [[] for i in range(self.shape.blockSize)]
         columnChannels = [[] for i in range(self.shape.blockSize)]
@@ -73,6 +76,7 @@ class Simulator:
                 val2.columnNeighbors[id].update({val1.ID : Neighbor(val1, self.shape.blockSize)})
 
     def initLogger(self):
+        """It initializes the logger."""
         logger = logging.getLogger("DAS")
         logger.setLevel(self.logLevel)
         ch = logging.StreamHandler()
@@ -83,6 +87,7 @@ class Simulator:
 
 
     def resetShape(self, shape):
+        """It resets the parameters of the simulation."""
         self.shape = shape
         self.result = Result(self.shape)
         for val in self.validators:
@@ -91,6 +96,7 @@ class Simulator:
 
 
     def run(self):
+        """It runs the main simulation until the block is available or it gets stucked."""
         self.glob.checkRowsColumns(self.validators)
         self.validators[self.proposerID].broadcastBlock()
         arrived, expected = self.glob.checkStatus(self.validators)
@@ -118,7 +124,7 @@ class Simulator:
             missingRate = missingSamples*100/expected
             self.logger.debug("step %d, missing %d of %d (%0.02f %%)" % (steps, missingSamples, expected, missingRate), extra=self.format)
             if missingSamples == oldMissingSamples:
-                #self.logger.info("The block cannot be recovered, failure rate %d!" % self.shape.failureRate, extra=self.format)
+                self.logger.debug("The block cannot be recovered, failure rate %d!" % self.shape.failureRate, extra=self.format)
                 missingVector.append(missingSamples)
                 break
             elif missingSamples == 0:

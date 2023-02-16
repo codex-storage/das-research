@@ -3,9 +3,10 @@
 import configparser
 
 class Configuration:
-
+    """This class stores all the configuration parameters for the given run."""
 
     def __init__(self, fileName):
+        """It initializes the configuration based on the given configuration."""
 
         config = configparser.RawConfigParser()
         config.read(fileName)
