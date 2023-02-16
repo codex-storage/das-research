@@ -76,7 +76,7 @@ class Simulator:
                 val2.columnNeighbors[id].update({val1.ID : Neighbor(val1, self.shape.blockSize)})
 
         if self.logger.isEnabledFor(logging.DEBUG):
-            for i in range(1, self.shape.numberValidators):
+            for i in range(0, self.shape.numberValidators):
                 self.logger.debug("Val %d : rowN %s", i, self.validators[i].rowNeighbors, extra=self.format)
                 self.logger.debug("Val %d : colN %s", i, self.validators[i].columnNeighbors, extra=self.format)
 
