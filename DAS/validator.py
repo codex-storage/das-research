@@ -197,12 +197,17 @@ class Validator:
         if id in self.columnIDs:
             # register receive so that we are not sending back
             self.columnNeighbors[id][src].receiving |= column
-            self.receivedBlock.mergeColumn(id, column)
+            #check for duplicates
+            old = self.receivedBlock.getColumn(id)
             for i in range(len(column)):
                 if column[i]:
-                    self.logger.debug("Recv: %d->%d: %d,%d", src, self.ID, i, id, extra=self.format)
-                    if self.perNodeQueue or self.perNeighborQueue:
-                        self.receivedQueue.append((i, id))
+                    if old[i]:
+                       self.logger.debug("Recv DUP: %d->%d: %d,%d", src, self.ID, i, id, extra=self.format)
+                    else:
+                        self.logger.debug("Recv new: %d->%d: %d,%d", src, self.ID, i, id, extra=self.format)
+                        if self.perNodeQueue or self.perNeighborQueue:
+                            self.receivedQueue.append((i, id))
+            self.receivedBlock.mergeColumn(id, column)
             self.statsRxInSlot += column.count(1)
         else:
             pass
@@ -212,12 +217,17 @@ class Validator:
         if id in self.rowIDs:
             # register receive so that we are not sending back
             self.rowNeighbors[id][src].receiving |= row
-            self.receivedBlock.mergeRow(id, row)
+            #check for duplicates
+            old = self.receivedBlock.getRow(id)
             for i in range(len(row)):
                 if row[i]:
-                    self.logger.debug("Recv %d->%d: %d,%d", src, self.ID, id, i, extra=self.format)
-                    if self.perNodeQueue or self.perNeighborQueue:
-                        self.receivedQueue.append((id, i))
+                    if old[i]:
+                       self.logger.debug("Recv DUP: %d->%d: %d,%d", src, self.ID, id, i, extra=self.format)
+                    else:
+                        self.logger.debug("Recv new: %d->%d: %d,%d", src, self.ID, id, i, extra=self.format)
+                        if self.perNodeQueue or self.perNeighborQueue:
+                            self.receivedQueue.append((id, i))
+            self.receivedBlock.mergeRow(id, row)
             self.statsRxInSlot += row.count(1)
         else:
             pass
