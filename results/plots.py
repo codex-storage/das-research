@@ -6,6 +6,12 @@ import numpy as np
 import seaborn as sns
 from itertools import combinations
 
+#Title formatting for the figures
+def formatTitle(key):
+    name = ''.join([f" {char}" if char.isupper() else char for char in key.split('_')[0]])
+    number = key.split('_')[1]
+    return f"{name.title()}: {number} "
+    
 results_folder = os.getcwd()
 
 #Get all folders and store their time info and sort
@@ -88,22 +94,25 @@ heatmaps_folder = 'heatmaps'
 if not os.path.exists(heatmaps_folder):
     os.makedirs(heatmaps_folder)
 
-#Plot the heatmaps and store them in subfolders
 for labels, keys in filtered_keys.items():
     for key in keys:
         hist, xedges, yedges = np.histogram2d(data[key][labels[0]], data[key][labels[1]], bins=(3, 3), weights=data[key]['ttas'])
         hist = hist.T
-        sns.heatmap(hist, xticklabels=False, yticklabels=False, cmap='Purples', cbar_kws={'label': 'Time to block availability'}, linecolor='black', linewidths=0.3, annot=True, fmt=".2f")
+        xlabels = [f'{val:.2f}' for val in xedges[::2]] + [f'{xedges[-1]:.2f}']
+        ylabels = [f'{val:.2f}' for val in yedges[::2]] + [f'{yedges[-1]:.2f}']
+        sns.heatmap(hist, xticklabels=xlabels, yticklabels=ylabels, cmap='Purples', cbar_kws={'label': 'Time to block availability'}, linecolor='black', linewidths=0.3, annot=True, fmt=".2f")
         plt.xlabel(labels[0])
         plt.ylabel(labels[1])
+        filename = ""
         title = ""
         paramValueCnt = 0
         for param in parameters:
             if param != labels[0] and param != labels[1]:
-                title += f"{key[paramValueCnt]}"
+                filename += f"{key[paramValueCnt]}"
+                title += formatTitle(key[paramValueCnt])
                 paramValueCnt += 1
         plt.title(title)
-        filename = title + ".png"
+        filename = filename + ".png"
         target_folder = os.path.join(heatmaps_folder, f"{labels[0]}Vs{labels[1]}")
         if not os.path.exists(target_folder):
             os.makedirs(target_folder)
