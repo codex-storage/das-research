@@ -1,2 +1,4 @@
 *.swp
 *.pyc
+results/*
+!results/plots.py
