@@ -51,6 +51,10 @@ def study():
             res.dump(execID)
         sim.logger.info("Results dumped into results/%s/" % (execID), extra=sim.format)
 
+    visualization = 1
+    if visualization:
+        vis = Visualizer(execID)
+        vis.plotHeatmaps()
 
 
 study()
