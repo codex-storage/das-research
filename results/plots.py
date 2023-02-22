@@ -1,4 +1,4 @@
-import os
+import os, sys
 import time
 import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
@@ -14,7 +14,7 @@ def formatTitle(key):
     number = key.split('_')[1]
     return f"{name.title()}: {number} "
 
-def getLatestDirectory():  
+def getLatestDirectory():
     resultsFolder = os.getcwd()
 
     #Get all folders and store their time info and sort
@@ -94,9 +94,9 @@ def similarKeys(data):
                     filteredKeys[(subKeys1[0], subKeys1[1])] = [key2]
     return filteredKeys
 
-def plotHeatmaps(filteredKeys, data):
+def plotHeatmaps(folderPath, filteredKeys, data):
     #Store the 2D heatmaps in a folder
-    heatmapsFolder = 'heatmaps'
+    heatmapsFolder = folderPath+'/heatmaps'
     if not os.path.exists(heatmapsFolder):
         os.makedirs(heatmapsFolder)
 
@@ -129,10 +129,10 @@ def plotHeatmaps(filteredKeys, data):
             plt.close()
             plt.clf()
 
-def generateHeatmaps():
-    folderPath = getLatestDirectory()
+def generateHeatmaps(folderPath):
+    #folderPath = getLatestDirectory()
     data = plottingData(folderPath)
     filteredKeys = similarKeys(data)
-    plotHeatmaps(filteredKeys, data)
+    plotHeatmaps(folderPath, filteredKeys, data)
 
-generateHeatmaps()
+generateHeatmaps(sys.argv[1])
