@@ -37,7 +37,7 @@ def study():
                             sim.initValidators()
                             sim.initNetwork()
                             result = sim.run()
-                            sim.logger.info("Shape: %s ... Block Available: %d" % (str(sim.shape.__dict__), result.blockAvailable), extra=sim.format)
+                            sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
                             results.append(copy.deepcopy(result))
                             simCnt += 1
 
