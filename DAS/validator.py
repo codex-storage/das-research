@@ -10,13 +10,16 @@ from bitarray.util import zeros
 from collections import deque
 
 
-def shuffled(lis):
+def shuffled(lis, shuffle=True):
     ''' Generator yielding list in shuffled order
     '''
     # based on https://stackoverflow.com/a/60342323
-    for index in random.sample(range(len(lis)), len(lis)):
-        yield lis[index]
-
+    if shuffle:
+        for index in random.sample(range(len(lis)), len(lis)):
+            yield lis[index]
+    else:
+        for v in lis:
+            yield v
 def shuffledDict(d, shuffle=True):
     ''' Generator yielding dictionary in shuffled order
 
@@ -479,7 +482,7 @@ class Validator:
                 if not self.segmentsToSend:
                     break
                 else:
-                    self.segmentShuffleGen = shuffled(self.segmentsToSend)
+                    self.segmentShuffleGen = shuffled(self.segmentsToSend, self.shuffleLines)
 
         if self.dumbRandomScheduler:
             # dumb random scheduler picking segments at random and trying to send it
