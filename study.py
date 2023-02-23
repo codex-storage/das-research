@@ -11,7 +11,7 @@ def study():
 
     config = Configuration(sys.argv[1])
     shape = Shape(0, 0, 0, 0, 0, 0)
-    sim = Simulator(shape)
+    sim = Simulator(shape, config)
     sim.initLogger()
     results = []
     simCnt = 0
