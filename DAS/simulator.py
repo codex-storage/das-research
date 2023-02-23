@@ -22,6 +22,18 @@ class Simulator:
         self.proposerID = 0
         self.glob = []
 
+        # In GossipSub the initiator might push messages without participating in the mesh.
+        # proposerPublishOnly regulates this behavior. If set to true, the proposer is not
+        # part of the p2p distribution graph, only pushes segments to it. If false, the proposer
+        # might get back segments from other peers since links are symmetric.
+        self.proposerPublishOnly = True
+
+        # If proposerPublishOnly == True, this regulates how many copies of each segment are
+        # pushed out by the proposer.
+        # 1: the data is sent out exactly once on rows and once on columns (2 copies in total)
+        # self.shape.netDegree: default behavior similar (but not same) to previous code
+        self.proposerPublishTo = self.shape.netDegree
+
     def initValidators(self):
         """It initializes all the validators in the network."""
         self.glob = Observer(self.logger, self.shape)
@@ -46,10 +58,11 @@ class Simulator:
         rowChannels = [[] for i in range(self.shape.blockSize)]
         columnChannels = [[] for i in range(self.shape.blockSize)]
         for v in self.validators:
-            for id in v.rowIDs:
-                rowChannels[id].append(v)
-            for id in v.columnIDs:
-                columnChannels[id].append(v)
+            if not (self.proposerPublishOnly and v.amIproposer):
+                for id in v.rowIDs:
+                    rowChannels[id].append(v)
+                for id in v.columnIDs:
+                    columnChannels[id].append(v)
 
         for id in range(self.shape.blockSize):
 
@@ -81,6 +94,19 @@ class Simulator:
                 val2=columnChannels[id][v]
                 val1.columnNeighbors[id].update({val2.ID : Neighbor(val2, 1, self.shape.blockSize)})
                 val2.columnNeighbors[id].update({val1.ID : Neighbor(val1, 1, self.shape.blockSize)})
+
+        for v in self.validators:
+            if (self.proposerPublishOnly and v.amIproposer):
+                for id in v.rowIDs:
+                    count = min(self.proposerPublishTo, len(rowChannels[id]))
+                    publishTo = random.sample(rowChannels[id], count)
+                    for vi in publishTo:
+                        v.rowNeighbors[id].update({vi.ID : Neighbor(vi, 0, self.shape.blockSize)})
+                for id in v.columnIDs:
+                    count = min(self.proposerPublishTo, len(columnChannels[id]))
+                    publishTo = random.sample(columnChannels[id], count)
+                    for vi in publishTo:
+                        v.columnNeighbors[id].update({vi.ID : Neighbor(vi, 1, self.shape.blockSize)})
 
         if self.logger.isEnabledFor(logging.DEBUG):
             for i in range(0, self.shape.numberValidators):
