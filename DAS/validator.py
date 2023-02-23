@@ -431,16 +431,16 @@ class Validator:
                             for _, neigh in shuffledDict(self.rowNeighbors[s.id], self.shuffleNeighbors):
                                 self.logger.debug("%d or %d", neigh.sent[s.i], neigh.received[s.i], extra=self.format)
                                 if not neigh.sent[s.i] and not neigh.received[s.i]:
-                                    self.logger.debug("sending to %d", neigh.node.ID, extra=self.format)
-                                    self.sendSegmentToNeigh(s.id, s.i, neigh)
-                                    break
+                                    if self.sendSegmentToNeigh(s.id, s.i, neigh):
+                                        self.logger.debug("sending to %d", neigh.node.ID, extra=self.format)
+                                        break
                         else:
                             for _, neigh in shuffledDict(self.columnNeighbors[s.id], self.shuffleNeighbors):
                                 self.logger.debug("%d or %d", neigh.sent[s.i], neigh.received[s.i], extra=self.format)
                                 if not neigh.sent[s.i] and not neigh.received[s.i]:
-                                    self.logger.debug("sending to %d", neigh.node.ID, extra=self.format)
-                                    self.sendSegmentToNeigh(s.i, s.id, neigh)
-                                    break
+                                    if self.sendSegmentToNeigh(s.i, s.id, neigh):
+                                        self.logger.debug("sending to %d", neigh.node.ID, extra=self.format)
+                                        break
 
                         if self.statsTxInSlot >= self.bwUplink:
                             if not self.segmentShuffleSchedulerPersist:
