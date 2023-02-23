@@ -22,18 +22,6 @@ class Simulator:
         self.proposerID = 0
         self.glob = []
 
-        # In GossipSub the initiator might push messages without participating in the mesh.
-        # proposerPublishOnly regulates this behavior. If set to true, the proposer is not
-        # part of the p2p distribution graph, only pushes segments to it. If false, the proposer
-        # might get back segments from other peers since links are symmetric.
-        self.proposerPublishOnly = True
-
-        # If proposerPublishOnly == True, this regulates how many copies of each segment are
-        # pushed out by the proposer.
-        # 1: the data is sent out exactly once on rows and once on columns (2 copies in total)
-        # self.shape.netDegree: default behavior similar (but not same) to previous code
-        self.proposerPublishTo = self.shape.netDegree
-
     def initValidators(self):
         """It initializes all the validators in the network."""
         self.glob = Observer(self.logger, self.shape)
@@ -131,6 +119,18 @@ class Simulator:
         for val in self.validators:
             val.shape.failureRate = shape.failureRate
             val.shape.chi = shape.chi
+
+        # In GossipSub the initiator might push messages without participating in the mesh.
+        # proposerPublishOnly regulates this behavior. If set to true, the proposer is not
+        # part of the p2p distribution graph, only pushes segments to it. If false, the proposer
+        # might get back segments from other peers since links are symmetric.
+        self.proposerPublishOnly = True
+
+        # If proposerPublishOnly == True, this regulates how many copies of each segment are
+        # pushed out by the proposer.
+        # 1: the data is sent out exactly once on rows and once on columns (2 copies in total)
+        # self.shape.netDegree: default behavior similar (but not same) to previous code
+        self.proposerPublishTo = self.shape.netDegree
 
 
     def run(self):
