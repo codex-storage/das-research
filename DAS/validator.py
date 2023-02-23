@@ -50,7 +50,7 @@ class Validator:
                 self.columnIDs = range(shape.blockSize)
             else:
                 self.rowIDs = rows[(self.ID*self.shape.chi):(self.ID*self.shape.chi + self.shape.chi)]
-                self.columnIDs = rows[(self.ID*self.shape.chi):(self.ID*self.shape.chi + self.shape.chi)]
+                self.columnIDs = columns[(self.ID*self.shape.chi):(self.ID*self.shape.chi + self.shape.chi)]
                 #if shape.deterministic:
                 #    random.seed(self.ID)
                 #self.rowIDs = random.sample(range(self.shape.blockSize), self.shape.chi)
