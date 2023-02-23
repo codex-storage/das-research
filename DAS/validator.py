@@ -200,7 +200,10 @@ class Validator:
         """It receives the given column if it has been assigned to it."""
         if id in self.columnIDs:
             # register receive so that we are not sending back
-            self.columnNeighbors[id][src].receiving |= column
+            if src in self.columnNeighbors[id]: # (check if peer or initial publish)
+                self.columnNeighbors[id][src].receiving |= column
+            else:
+                pass
             #check for duplicates
             old = self.receivedBlock.getColumn(id)
             for i in range(len(column)):
@@ -220,7 +223,10 @@ class Validator:
         """It receives the given row if it has been assigned to it."""
         if id in self.rowIDs:
             # register receive so that we are not sending back
-            self.rowNeighbors[id][src].receiving |= row
+            if src in self.rowNeighbors[id]: # (check if peer or initial publish)
+                self.rowNeighbors[id][src].receiving |= row
+            else:
+                pass
             #check for duplicates
             old = self.receivedBlock.getRow(id)
             for i in range(len(row)):
