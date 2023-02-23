@@ -11,14 +11,14 @@ from DAS.validator import *
 class Simulator:
     """This class implements the main DAS simulator."""
 
-    def __init__(self, shape):
+    def __init__(self, shape, config):
         """It initializes the simulation with a set of parameters (shape)."""
         self.shape = shape
         self.format = {"entity": "Simulator"}
         self.result = Result(self.shape)
         self.validators = []
         self.logger = []
-        self.logLevel = logging.INFO
+        self.logLevel = config.logLevel
         self.proposerID = 0
         self.glob = []
 
