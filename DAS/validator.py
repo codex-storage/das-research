@@ -141,7 +141,7 @@ class Validator:
 
         self.repairOnTheFly = True
         self.sendLineUntil = (self.shape.blockSize + 1) // 2 # stop sending on a p2p link if at least this amount of samples passed
-        self.perNeighborQueue = False # queue incoming messages to outgoing connections on arrival (as typical GossipSub impl)
+        self.perNeighborQueue = True # queue incoming messages to outgoing connections on arrival (as typical GossipSub impl)
         self.perNodeQueue = False # keep a global queue of incoming messages for later sequential dispatch
         self.shuffleLines = True # shuffle the order of rows/columns in each iteration while trying to send
         self.shuffleNeighbors = True # shuffle the order of neighbors when sending the same segment to each neighbor
