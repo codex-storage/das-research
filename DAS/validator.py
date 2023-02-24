@@ -408,16 +408,24 @@ class Validator:
 
         # process node level send queue
         self.processSendQueue()
+        if self.statsTxInSlot >= self.bwUplink:
+            return
 
         # process neighbor level send queues in shuffled breadth-first order
         self.processPerNeighborSendQueue()
+        if self.statsTxInSlot >= self.bwUplink:
+            return
 
         # process possible segments to send in shuffled breadth-first order
         if self.segmentShuffleScheduler:
             self.runSegmentShuffleScheduler()
+        if self.statsTxInSlot >= self.bwUplink:
+            return
 
         if self.dumbRandomScheduler:
             self.runDumbRandomScheduler()
+        if self.statsTxInSlot >= self.bwUplink:
+            return
 
     def logRows(self):
         """It logs the rows assigned to the validator."""
