@@ -3,6 +3,7 @@
 import networkx as nx
 import logging, random
 from datetime import datetime
+from statistics import mean
 from DAS.tools import *
 from DAS.results import *
 from DAS.observer import *
@@ -158,6 +159,15 @@ class Simulator:
             for i in range(0,self.shape.numberValidators):
                 self.validators[i].logRows()
                 self.validators[i].logColumns()
+
+            # log TX and RX statistics
+            statsTxInSlot = [v.statsTxInSlot for v in self.validators]
+            statsRxInSlot = [v.statsRxInSlot for v in self.validators]
+            self.logger.debug("step %d: TX_prod=%.1f, RX_prod=%.1f, TX_avg=%.1f, TX_max=%.1f, Rx_avg=%.1f, Rx_max=%.1f" % 
+                (steps, statsTxInSlot[0], statsRxInSlot[0],
+                 mean(statsTxInSlot[1:]), max(statsTxInSlot[1:]),
+                 mean(statsRxInSlot[1:]), max(statsRxInSlot[1:])), extra=self.format)
+            for i in range(0,self.shape.numberValidators):
                 self.validators[i].updateStats()
 
             arrived, expected = self.glob.checkStatus(self.validators)
