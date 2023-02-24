@@ -119,12 +119,13 @@ class Validator:
                 self.rowIDs = range(shape.blockSize)
                 self.columnIDs = range(shape.blockSize)
             else:
-                self.rowIDs = rows[(self.ID*self.shape.chi):(self.ID*self.shape.chi + self.shape.chi)]
-                self.columnIDs = columns[(self.ID*self.shape.chi):(self.ID*self.shape.chi + self.shape.chi)]
-                #if shape.deterministic:
+                # self.rowIDs = rows[(self.ID*self.shape.chi):(self.ID*self.shape.chi + self.shape.chi)]
+                # self.columnIDs = columns[(self.ID*self.shape.chi):(self.ID*self.shape.chi + self.shape.chi)]
+                # if shape.deterministic:
                 #    random.seed(self.ID)
-                #self.rowIDs = random.sample(range(self.shape.blockSize), self.shape.chi)
-                #self.columnIDs = random.sample(range(self.shape.blockSize), self.shape.chi)
+                chi = 50 if self.ID <= 100 else self.shape.chi
+                self.rowIDs = random.sample(range(self.shape.blockSize), chi)
+                self.columnIDs = random.sample(range(self.shape.blockSize), chi)
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)
 
@@ -137,7 +138,13 @@ class Validator:
         # Set uplink bandwidth. In segments (~560 bytes) per timestep (50ms?)
         # 1 Mbps ~= 1e6 / 20 / 8 / 560 ~= 11
         # TODO: this should be a parameter
-        self.bwUplink = 110 if not self.amIproposer else 2200 # approx. 10Mbps and 200Mbps
+        if self.amIproposer:
+            self.bwUplink = 2200
+        elif self.ID <= 100:
+            self.bwUplink = 1000
+        else:
+            self.bwUplink = 110
+        #self.bwUplink = 110 if not self.amIproposer else 2200 # approx. 10Mbps and 200Mbps
 
         self.repairOnTheFly = True
         self.sendLineUntil = (self.shape.blockSize + 1) // 2 # stop sending on a p2p link if at least this amount of samples passed
