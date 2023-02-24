@@ -8,7 +8,7 @@ from DAS.block import *
 from bitarray import bitarray
 from bitarray.util import zeros
 from collections import deque
-
+from itertools import chain
 
 def shuffled(lis, shuffle=True):
     ''' Generator yielding list in shuffled order
@@ -236,12 +236,7 @@ class Validator:
 
             self.block.merge(self.receivedBlock)
 
-            for neighs in self.rowNeighbors.values():
-                for neigh in neighs.values():
-                    neigh.received |= neigh.receiving
-                    neigh.receiving.setall(0)
-
-            for neighs in self.columnNeighbors.values():
+            for neighs in chain (self.rowNeighbors.values(), self.columnNeighbors.values()):
                 for neigh in neighs.values():
                     neigh.received |= neigh.receiving
                     neigh.receiving.setall(0)
@@ -332,17 +327,15 @@ class Validator:
                         if s.dim == 0:
                             for _, neigh in shuffledDict(self.rowNeighbors[s.id], self.shuffleNeighbors):
                                 self.logger.debug("%d or %d", neigh.sent[s.i], neigh.received[s.i], extra=self.format)
-                                if not neigh.sent[s.i] and not neigh.received[s.i]:
-                                    if self.sendSegmentToNeigh(s.id, s.i, neigh):
-                                        self.logger.debug("sending to %d", neigh.node.ID, extra=self.format)
-                                        break
+                                if self.sendSegmentToNeigh(s.id, s.i, neigh):
+                                    self.logger.debug("sending to %d", neigh.node.ID, extra=self.format)
+                                    break
                         else:
                             for _, neigh in shuffledDict(self.columnNeighbors[s.id], self.shuffleNeighbors):
                                 self.logger.debug("%d or %d", neigh.sent[s.i], neigh.received[s.i], extra=self.format)
-                                if not neigh.sent[s.i] and not neigh.received[s.i]:
-                                    if self.sendSegmentToNeigh(s.i, s.id, neigh):
-                                        self.logger.debug("sending to %d", neigh.node.ID, extra=self.format)
-                                        break
+                                if self.sendSegmentToNeigh(s.i, s.id, neigh):
+                                    self.logger.debug("sending to %d", neigh.node.ID, extra=self.format)
+                                    break
 
                         if self.statsTxInSlot >= self.bwUplink:
                             if not self.segmentShuffleSchedulerPersist:
