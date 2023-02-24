@@ -1,6 +1,7 @@
 #! /bin/python3
 
 import time, sys, random, copy
+import importlib
 from DAS import *
 
 
@@ -9,7 +10,7 @@ def study():
         print("You need to pass a configuration file in parameter")
         exit(1)
 
-    config = Configuration(sys.argv[1])
+    config = importlib.import_module(sys.argv[1])
     shape = Shape(0, 0, 0, 0, 0, 0)
     sim = Simulator(shape, config)
     sim.initLogger()
@@ -22,26 +23,17 @@ def study():
     sim.logger.info("Starting simulations:", extra=sim.format)
     start = time.time()
 
-    for run in range(config.numberRuns):
-        for nv in range(config.nvStart, config.nvStop+1, config.nvStep):
-            for blockSize in range(config.blockSizeStart, config.blockSizeStop+1, config.blockSizeStep):
-                for fr in range(config.failureRateStart, config.failureRateStop+1, config.failureRateStep):
-                    for netDegree in range(config.netDegreeStart, config.netDegreeStop+1, config.netDegreeStep):
-                        for chi in range(config.chiStart, config.chiStop+1, config.chiStep):
+    for shape in config.nextShape():
+        if not config.deterministic:
+            random.seed(datetime.now())
 
-                            if not config.deterministic:
-                                random.seed(datetime.now())
-
-                            # Network Degree has to be an even number
-                            if netDegree % 2 == 0:
-                                shape = Shape(blockSize, nv, fr, chi, netDegree, run)
-                                sim.resetShape(shape)
-                                sim.initValidators()
-                                sim.initNetwork()
-                                result = sim.run()
-                                sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
-                                results.append(copy.deepcopy(result))
-                                simCnt += 1
+        sim.resetShape(shape)
+        sim.initValidators()
+        sim.initNetwork()
+        result = sim.run()
+        sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
+        results.append(copy.deepcopy(result))
+        simCnt += 1
 
     end = time.time()
     sim.logger.info("A total of %d simulations ran in %d seconds" % (simCnt, end-start), extra=sim.format)
