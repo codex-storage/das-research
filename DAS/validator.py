@@ -270,11 +270,7 @@ class Validator:
         else:
             return False # received or already sent
 
-    def send(self):
-        """ Send as much as we can in the timeslot, limited by bwUplink
-        """
-
-        # process node level send queue
+    def processSendQueue(self):
         while self.sendQueue:
             (rID, cID) = self.sendQueue[0]
 
@@ -294,7 +290,7 @@ class Validator:
 
             self.sendQueue.popleft()
 
-        # process neighbor level send queues in shuffled breadth-first order
+    def processPerNeighborSendQueue(self):
         progress = True
         while (progress):
             progress = False
@@ -314,8 +310,7 @@ class Validator:
                     if self.statsTxInSlot >= self.bwUplink:
                         return
 
-        # process possible segments to send in shuffled breadth-first order
-        if self.segmentShuffleScheduler:
+    def runSegmentShuffleScheduler(self):
             # This scheduler check which owned segments needs sending (at least
             # one neighbor needing it). Then it sends each segment that's worth sending
             # once, in shuffled order. This is repeated until bw limit.
@@ -376,7 +371,7 @@ class Validator:
                 else:
                     self.segmentShuffleGen = shuffled(self.segmentsToSend, self.shuffleLines)
 
-        if self.dumbRandomScheduler:
+    def runDumbRandomScheduler(self):
             # dumb random scheduler picking segments at random and trying to send it
             tries = 100
             t = tries
@@ -407,6 +402,23 @@ class Validator:
                 if self.statsTxInSlot >= self.bwUplink:
                     return
             return
+
+    def send(self):
+        """ Send as much as we can in the timeslot, limited by bwUplink
+        """
+
+        # process node level send queue
+        self.processSendQueue()
+
+        # process neighbor level send queues in shuffled breadth-first order
+        self.processPerNeighborSendQueue()
+
+        # process possible segments to send in shuffled breadth-first order
+        if self.segmentShuffleScheduler:
+            self.runSegmentShuffleScheduler()
+
+        if self.dumbRandomScheduler:
+            self.runDumbRandomScheduler()
 
     def logRows(self):
         """It logs the rows assigned to the validator."""
