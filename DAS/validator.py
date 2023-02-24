@@ -371,9 +371,8 @@ class Validator:
                 else:
                     self.segmentShuffleGen = shuffled(self.segmentsToSend, self.shuffleLines)
 
-    def runDumbRandomScheduler(self):
+    def runDumbRandomScheduler(self, tries = 100):
             # dumb random scheduler picking segments at random and trying to send it
-            tries = 100
             t = tries
             while t:
                 if self.rowIDs:
