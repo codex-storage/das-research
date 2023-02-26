@@ -25,3 +25,4 @@ chiStep  = 2
 
 deterministic = 0
 numberRuns = 2
+dumpXML = 1
