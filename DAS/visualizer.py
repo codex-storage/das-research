@@ -13,9 +13,10 @@ class Visualizer:
         self.execID = execID
         self.folderPath = "results/"+self.execID
         self.parameters = ['run', 'blockSize', 'failureRate', 'numberValidators', 'netDegree', 'chi']
+        self.minimumDataPoints = 2
 
-    #Store data with a unique key for each params combination
     def plottingData(self):
+        #Store data with a unique key for each params combination
         data = {}
         #Loop over the xml files in the folder
         for filename in os.listdir(self.folderPath):
@@ -65,8 +66,8 @@ class Visualizer:
         print("Getting data from the folder...")
         return data
 
-    #Get the keys for all data with the same x and y labels
     def similarKeys(self, data):
+        #Get the keys for all data with the same x and y labels
         filteredKeys = {}
         for key1, value1 in data.items():
             subKeys1 = list(value1.keys())
@@ -81,14 +82,19 @@ class Visualizer:
         print("Getting filtered keys from data...")
         return filteredKeys
 
-    #Title formatting for the figures
+    def formatLabel(self, label):
+        #Label formatting for the figures
+        result = ''.join([f" {char}" if char.isupper() else char for char in label])
+        return result.title()
+    
     def formatTitle(self, key):
+        #Title formatting for the figures
         name = ''.join([f" {char}" if char.isupper() else char for char in key.split('_')[0]])
         number = key.split('_')[1]
         return f"{name.title()}: {number} "
 
-    #Plot and store the 2D heatmaps in subfolders
     def plotHeatmaps(self):
+        #Plot and store the 2D heatmaps in subfolders
         data = self.plottingData()
         filteredKeys = self.similarKeys(data)
         print("Plotting heatmaps...")
@@ -103,12 +109,14 @@ class Visualizer:
             for key in keys:
                 xlabels = np.sort(np.unique(data[key][labels[0]]))
                 ylabels = np.sort(np.unique(data[key][labels[1]]))
+                if len(xlabels) < self.minimumDataPoints or len(ylabels) < self.minimumDataPoints:
+                    continue
                 hist, xedges, yedges = np.histogram2d(data[key][labels[0]], data[key][labels[1]], bins=(len(xlabels), len(ylabels)), weights=data[key]['ttas'])
                 hist = hist.T
                 fig, ax = plt.subplots(figsize=(10, 6))
                 sns.heatmap(hist, xticklabels=xlabels, yticklabels=ylabels, cmap='Purples', cbar_kws={'label': 'Time to block availability'}, linecolor='black', linewidths=0.3, annot=True, fmt=".2f", ax=ax)
-                plt.xlabel(labels[0])
-                plt.ylabel(labels[1])
+                plt.xlabel(self.formatLabel(labels[0]))
+                plt.ylabel(self.formatLabel(labels[1]))
                 filename = ""
                 title = ""
                 paramValueCnt = 0
