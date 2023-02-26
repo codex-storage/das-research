@@ -23,23 +23,25 @@ def study():
     start = time.time()
 
     for run in range(config.numberRuns):
-        for fr in range(config.failureRateStart, config.failureRateStop+1, config.failureRateStep):
-            for chi in range(config.chiStart, config.chiStop+1, config.chiStep):
-                for blockSize in range(config.blockSizeStart, config.blockSizeStop+1, config.blockSizeStep):
-                    for nv in range(config.nvStart, config.nvStop+1, config.nvStep):
-                        for netDegree in range(config.netDegreeStart, config.netDegreeStop+1, config.netDegreeStep):
+        for nv in range(config.nvStart, config.nvStop+1, config.nvStep):
+            for blockSize in range(config.blockSizeStart, config.blockSizeStop+1, config.blockSizeStep):
+                for fr in range(config.failureRateStart, config.failureRateStop+1, config.failureRateStep):
+                    for netDegree in range(config.netDegreeStart, config.netDegreeStop+1, config.netDegreeStep):
+                        for chi in range(config.chiStart, config.chiStop+1, config.chiStep):
 
                             if not config.deterministic:
                                 random.seed(datetime.now())
 
-                            shape = Shape(blockSize, nv, fr, chi, netDegree, run)
-                            sim.resetShape(shape)
-                            sim.initValidators()
-                            sim.initNetwork()
-                            result = sim.run()
-                            sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
-                            results.append(copy.deepcopy(result))
-                            simCnt += 1
+                            # Network Degree has to be an even number
+                            if netDegree % 2 == 0:
+                                shape = Shape(blockSize, nv, fr, chi, netDegree, run)
+                                sim.resetShape(shape)
+                                sim.initValidators()
+                                sim.initNetwork()
+                                result = sim.run()
+                                sim.logger.info("Shape: %s ... Block Available: %d" % (str(sim.shape.__dict__), result.blockAvailable), extra=sim.format)
+                                results.append(copy.deepcopy(result))
+                                simCnt += 1
 
     end = time.time()
     sim.logger.info("A total of %d simulations ran in %d seconds" % (simCnt, end-start), extra=sim.format)
@@ -49,6 +51,10 @@ def study():
             res.dump(execID)
         sim.logger.info("Results dumped into results/%s/" % (execID), extra=sim.format)
 
+    visualization = 1
+    if visualization:
+        vis = Visualizer(execID)
+        vis.plotHeatmaps()
 
 
 study()
