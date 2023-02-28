@@ -61,13 +61,6 @@ def sampleLine(line, limit):
                         limit -= 1
                 return r
 
-class NextToSend:
-    def __init__(self, neigh, toSend, id, dim):
-        self.neigh = neigh
-        self.toSend = toSend
-        self.id = id
-        self.dim = dim
-
 class SegmentToSend:
     def __init__(self, dim, id, i):
         self.dim = dim
@@ -387,10 +380,7 @@ class Validator:
                     cID = random.randrange(0, self.shape.blockSize)
                     if self.block.getSegment(rID, cID) :
                         neigh = random.choice(list(self.rowNeighbors[rID].values()))
-                        if not neigh.sent[cID] and not neigh.received[cID] :
-                            neigh.sent[cID] = 1
-                            neigh.node.receiveSegment(rID, cID, self.ID)
-                            self.statsTxInSlot += 1
+                        if self.sendSegmentToNeigh(rID, cID, neigh):
                             t = tries
                 if self.statsTxInSlot >= self.bwUplink:
                     return
@@ -399,10 +389,7 @@ class Validator:
                     rID = random.randrange(0, self.shape.blockSize)
                     if self.block.getSegment(rID, cID) :
                         neigh = random.choice(list(self.columnNeighbors[cID].values()))
-                        if not neigh.sent[rID] and not neigh.received[rID] :
-                            neigh.sent[rID] = 1
-                            neigh.node.receiveSegment(rID, cID, self.ID)
-                            self.statsTxInSlot += 1
+                        if self.sendSegmentToNeigh(rID, cID, neigh):
                             t = tries
                 t -= 1
                 if self.statsTxInSlot >= self.bwUplink:
