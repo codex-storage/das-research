@@ -21,14 +21,18 @@ class Neighbor:
         """It returns the amount of sent and received data."""
         return "%d:%d/%d, q:%d" % (self.node.ID, self.sent.count(1), self.received.count(1), len(self.sendQueue))
 
-    def __init__(self, v, dim, blockSize):
+    def __init__(self, src, dst, dim, blockSize):
         """It initializes the neighbor with the node and sets counters to zero."""
-        self.node = v
+        self.src = src
+        self.dst = dst
         self.dim = dim # 0:row 1:col
         self.receiving = zeros(blockSize)
         self.received = zeros(blockSize)
         self.sent = zeros(blockSize)
         self.sendQueue = deque()
+
+    def sendSegment(self, lineId, id):
+        self.dst.receiveSegment(lineId, id, self.src.ID)
 
 
 class Validator:
@@ -210,10 +214,10 @@ class Validator:
 
     def sendSegmentToNeigh(self, rID, cID, neigh):
         """Send segment to a neighbor (without checks)."""
-        self.logger.debug("sending %d/%d to %d", rID, cID, neigh.node.ID, extra=self.format)
+        self.logger.debug("sending %d/%d to %d", rID, cID, neigh.dst.ID, extra=self.format)
         i = rID if neigh.dim else cID
         neigh.sent[i] = 1
-        neigh.node.receiveSegment(rID, cID, self.ID)
+        neigh.sendSegment(rID, cID)
         self.statsTxInSlot += 1
 
     def checkSendSegmentToNeigh(self, rID, cID, neigh):
