@@ -437,29 +437,35 @@ class Validator:
         """It restores the rows assigned to the validator, that can be repaired."""
         if self.repairOnTheFly:
             for id in self.rowIDs:
-                rep = self.block.repairRow(id)
-                if (rep.any()):
-                    # If operation is based on send queues, segments should
-                    # be queued after successful repair.
-                    for i in range(len(rep)):
-                        if rep[i]:
-                            self.logger.debug("Rep: %d,%d", id, i, extra=self.format)
-                            self.addToSendQueue(id, i)
-                    # self.statsRepairInSlot += rep.count(1)
+                self.restoreRow(id)
+
+    def restoreRow(self, id):
+        rep = self.block.repairRow(id)
+        if (rep.any()):
+            # If operation is based on send queues, segments should
+            # be queued after successful repair.
+            for i in range(len(rep)):
+                if rep[i]:
+                    self.logger.debug("Rep: %d,%d", id, i, extra=self.format)
+                    self.addToSendQueue(id, i)
+            # self.statsRepairInSlot += rep.count(1)
 
     def restoreColumns(self):
         """It restores the columns assigned to the validator, that can be repaired."""
         if self.repairOnTheFly:
             for id in self.columnIDs:
-                rep = self.block.repairColumn(id)
-                if (rep.any()):
-                    # If operation is based on send queues, segments should
-                    # be queued after successful repair.
-                    for i in range(len(rep)):
-                        if rep[i]:
-                            self.logger.debug("Rep: %d,%d", i, id, extra=self.format)
-                            self.addToSendQueue(i, id)
-                    # self.statsRepairInSlot += rep.count(1)
+                self.restoreColumn(id)
+
+    def restoreColumn(self, id):
+        rep = self.block.repairColumn(id)
+        if (rep.any()):
+            # If operation is based on send queues, segments should
+            # be queued after successful repair.
+            for i in range(len(rep)):
+                if rep[i]:
+                    self.logger.debug("Rep: %d,%d", i, id, extra=self.format)
+                    self.addToSendQueue(i, id)
+            # self.statsRepairInSlot += rep.count(1)
 
     def checkStatus(self):
         """It checks how many expected/arrived samples are for each assigned row/column."""
