@@ -172,9 +172,9 @@ class Validator:
         if cID in self.columnIDs:
             if src in self.columnNeighbors[cID]:
                 self.columnNeighbors[cID][src].received[rID] = 1
-        if not self.receivedBlock.getSegment(rID, cID):
+        if not self.block.getSegment(rID, cID):
             self.logger.debug("Recv new: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
-            self.receivedBlock.setSegment(rID, cID)
+            self.block.setSegment(rID, cID)
             if self.perNodeQueue or self.perNeighborQueue:
                 self.addToSendQueue(rID, cID)
                 #self.receiveRowsColumns()
