@@ -384,7 +384,9 @@ class Validator:
                 return
 
     def runDumbRandomScheduler(self, tries = 100):
-            # dumb random scheduler picking segments at random and trying to send it
+        # dumb random scheduler picking segments at random and trying to send it
+
+        def nextSegment():
             t = tries
             while t:
                 if self.rowIDs:
@@ -392,21 +394,25 @@ class Validator:
                     cID = random.randrange(0, self.shape.blockSize)
                     if self.block.getSegment(rID, cID) :
                         neigh = random.choice(list(self.rowNeighbors[rID].values()))
-                        if self.checkSendSegmentToNeigh(rID, cID, neigh):
+                        if self.checkSegmentToNeigh(rID, cID, neigh):
+                            yield(rID, cID, neigh)
                             t = tries
-                if self.statsTxInSlot >= self.bwUplink:
-                    return
                 if self.columnIDs:
                     cID = random.choice(self.columnIDs)
                     rID = random.randrange(0, self.shape.blockSize)
                     if self.block.getSegment(rID, cID) :
                         neigh = random.choice(list(self.columnNeighbors[cID].values()))
-                        if self.checkSendSegmentToNeigh(rID, cID, neigh):
+                        if self.checkSegmentToNeigh(rID, cID, neigh):
+                            yield(rID, cID, neigh)
                             t = tries
                 t -= 1
-                if self.statsTxInSlot >= self.bwUplink:
-                    return
-            return
+
+        for rid, cid, neigh in nextSegment():
+            # segments are checked just before yield, so we can send directly
+            self.sendSegmentToNeigh(rid, cid, neigh)
+
+            if self.statsTxInSlot >= self.bwUplink:
+                return
 
     def send(self):
         """ Send as much as we can in the timeslot, limited by bwUplink
