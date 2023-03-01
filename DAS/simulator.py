@@ -68,8 +68,8 @@ class Simulator:
             for u, v in G.edges:
                 val1=rowChannels[id][u]
                 val2=rowChannels[id][v]
-                val1.rowNeighbors[id].update({val2.ID : Neighbor(val1, val2, 0, self.shape.blockSize)})
-                val2.rowNeighbors[id].update({val1.ID : Neighbor(val2, val1, 0, self.shape.blockSize)})
+                val1.rowNeighbors[id].update({val2.ID : Neighbor(val1, val2, 0, id, self.shape.blockSize)})
+                val2.rowNeighbors[id].update({val1.ID : Neighbor(val2, val1, 0, id, self.shape.blockSize)})
 
             if (len(columnChannels[id]) <= self.shape.netDegree):
                 self.logger.debug("Graph fully connected with degree %d !" % (len(columnChannels[id]) - 1), extra=self.format)
@@ -81,8 +81,8 @@ class Simulator:
             for u, v in G.edges:
                 val1=columnChannels[id][u]
                 val2=columnChannels[id][v]
-                val1.columnNeighbors[id].update({val2.ID : Neighbor(val1, val2, 1, self.shape.blockSize)})
-                val2.columnNeighbors[id].update({val1.ID : Neighbor(val2, val1, 1, self.shape.blockSize)})
+                val1.columnNeighbors[id].update({val2.ID : Neighbor(val1, val2, 1, id, self.shape.blockSize)})
+                val2.columnNeighbors[id].update({val1.ID : Neighbor(val2, val1, 1, id, self.shape.blockSize)})
 
         for v in self.validators:
             if (self.proposerPublishOnly and v.amIproposer):
@@ -90,12 +90,12 @@ class Simulator:
                     count = min(self.proposerPublishTo, len(rowChannels[id]))
                     publishTo = random.sample(rowChannels[id], count)
                     for vi in publishTo:
-                        v.rowNeighbors[id].update({vi.ID : Neighbor(v, vi, 0, self.shape.blockSize)})
+                        v.rowNeighbors[id].update({vi.ID : Neighbor(v, vi, 0, id, self.shape.blockSize)})
                 for id in v.columnIDs:
                     count = min(self.proposerPublishTo, len(columnChannels[id]))
                     publishTo = random.sample(columnChannels[id], count)
                     for vi in publishTo:
-                        v.columnNeighbors[id].update({vi.ID : Neighbor(v, vi, 1, self.shape.blockSize)})
+                        v.columnNeighbors[id].update({vi.ID : Neighbor(v, vi, 1, id, self.shape.blockSize)})
 
         if self.logger.isEnabledFor(logging.DEBUG):
             for i in range(0, self.shape.numberValidators):

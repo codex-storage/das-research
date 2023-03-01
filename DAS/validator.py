@@ -24,11 +24,12 @@ class Neighbor:
         """It returns the amount of sent and received data."""
         return "%d:%d/%d, q:%d" % (self.node.ID, self.sent.count(1), self.received.count(1), len(self.sendQueue))
 
-    def __init__(self, src, dst, dim, blockSize):
+    def __init__(self, src, dst, dim, lineID, blockSize):
         """It initializes the neighbor with the node and sets counters to zero."""
         self.src = src
         self.dst = dst
         self.dim = dim # 0:row 1:col
+        self.lineID = lineID
         self.receiving = zeros(blockSize)
         self.received = zeros(blockSize)
         self.sent = zeros(blockSize)
@@ -58,6 +59,8 @@ class Validator:
         self.receivedBlock = Block(self.shape.blockSize)
         self.receivedQueue = deque()
         self.sendQueue = deque()
+        self.activeSendQueues = set()
+        self.scheduledSendQueues = []
         self.amIproposer = amIproposer
         self.logger = logger
         if self.shape.chi < 1:
@@ -196,10 +199,12 @@ class Validator:
             if rID in self.rowIDs:
                 for neigh in self.rowNeighbors[rID].values():
                     neigh.sendQueue.append(cID)
+                    self.activeSendQueues.add(neigh)
 
             if cID in self.columnIDs:
                 for neigh in self.columnNeighbors[cID].values():
                     neigh.sendQueue.append(rID)
+                    self.activeSendQueues.add(neigh)
 
     def receiveRowsColumns(self):
         """Finalize time step by merging newly received segments in state."""
@@ -292,38 +297,25 @@ class Validator:
         multiplexed over the same transport.
         """
 
-        def activeSendQueues():
-            queues = []
-            # collect and shuffle
-            for rID, neighs in self.rowNeighbors.items():
-                for neigh in neighs.values():
-                    if (neigh.sendQueue):
-                        queues.append((0, rID, neigh))
-
-            for cID, neighs in self.columnNeighbors.items():
-                for neigh in neighs.values():
-                    if (neigh.sendQueue):
-                        queues.append((1, cID, neigh))
-
-            return queues
-
         progress = True
         while (progress):
 
-            if hasattr(self, 'activeSendQueues'):
-                progress = False
-                for dim, lineID, neigh in self.activeSendQueues:
-                    if dim == 0:
-                        self.checkSendSegmentToNeigh(lineID, neigh.sendQueue.popleft(), neigh)
-                    else:
-                        self.checkSendSegmentToNeigh(neigh.sendQueue.popleft(), lineID, neigh)
-                    progress = True
-                    if self.statsTxInSlot >= 1:
-                        return
+            progress = False
+            for neigh in self.scheduledSendQueues:
+                if neigh.dim == 0:
+                    self.checkSendSegmentToNeigh(neigh.lineID, neigh.sendQueue.popleft(), neigh)
+                    if not neigh.sendQueue:
+                        self.activeSendQueues.remove(neigh)
+                else:
+                    self.checkSendSegmentToNeigh(neigh.sendQueue.popleft(), neigh.lineID, neigh)
+                    if not neigh.sendQueue:
+                        self.activeSendQueues.remove(neigh)
+                progress = True
+                if self.statsTxInSlot >= 1:
+                    return
 
-            self.activeSendQueues = activeSendQueues()
             if self.activeSendQueues:
-                self.activeSendQueues = shuffled(activeSendQueues(), self.shuffleQueues)
+                self.scheduledSendQueues = shuffled(list(self.activeSendQueues), self.shuffleQueues)
             else:
                 return
 
