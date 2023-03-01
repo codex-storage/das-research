@@ -73,6 +73,12 @@ class Sim:
         Simulation initialization method
         :param run_number: the index of the simulation to be run
         """
+        # current simulation time
+        self.time = 0
+        # queue of events, implemented as a heap
+        self.queue = []
+        # list of nodes
+        self.nodes = []
         # get simulation duration
         self.duration = 1000
         # get seeds. each seed generates a simulation repetition
