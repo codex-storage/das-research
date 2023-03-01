@@ -142,13 +142,15 @@ class Simulator:
         self.glob.checkRowsColumns(self.validators)
         self.validators[self.proposerID].broadcastBlock()
 
-        # arrived, expected = self.glob.checkStatus(self.validators)
-        # missingSamples = expected - arrived
-        # missingVector = []
-
         simulator.initialize()
         self.validators[0].send()
         simulator.run()
+
+        arrived, expected = self.glob.checkStatus(self.validators)
+        missingSamples = expected - arrived
+        missingRate = missingSamples*100/expected
+        self.logger.info("time %f, missing %d of %d (%0.02f %%)" % (simulator.time, missingSamples, expected, missingRate), extra=self.format)
+        # missingVector = []
 
         # steps = 0
         # while(True):
