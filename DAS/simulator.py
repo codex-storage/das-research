@@ -42,7 +42,6 @@ class Simulator:
 
     def initNetwork(self):
         """It initializes the simulated network."""
-        self.shape.netDegree = 6
         rowChannels = [[] for i in range(self.shape.blockSize)]
         columnChannels = [[] for i in range(self.shape.blockSize)]
         for v in self.validators:
