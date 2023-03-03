@@ -8,11 +8,15 @@ from DAS import *
 # Parallel execution:
 # The code currently uses 'joblib' to execute on multiple cores. For other options such as 'ray', see
 # https://stackoverflow.com/questions/9786102/how-do-i-parallelize-a-simple-python-loop
+# For fixing logging issues in parallel execution, see
+# https://stackoverflow.com/questions/58026381/logging-nested-functions-using-joblib-parallel-and-delayed-calls
+# and https://github.com/joblib/joblib/issues/1017
 
 def runOnce(sim, config, shape):
     if not config.deterministic:
         random.seed(datetime.now())
 
+    sim.initLogger()
     sim.resetShape(shape)
     sim.initValidators()
     sim.initNetwork()
