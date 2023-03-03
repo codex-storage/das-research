@@ -3,6 +3,7 @@
 import networkx as nx
 import logging, random
 from datetime import datetime
+from statistics import mean
 from DAS.tools import *
 from DAS.results import *
 from DAS.observer import *
@@ -45,10 +46,11 @@ class Simulator:
         rowChannels = [[] for i in range(self.shape.blockSize)]
         columnChannels = [[] for i in range(self.shape.blockSize)]
         for v in self.validators:
-            for id in v.rowIDs:
-                rowChannels[id].append(v)
-            for id in v.columnIDs:
-                columnChannels[id].append(v)
+            if not (self.proposerPublishOnly and v.amIproposer):
+                for id in v.rowIDs:
+                    rowChannels[id].append(v)
+                for id in v.columnIDs:
+                    columnChannels[id].append(v)
 
         for id in range(self.shape.blockSize):
 
@@ -65,8 +67,8 @@ class Simulator:
             for u, v in G.edges:
                 val1=rowChannels[id][u]
                 val2=rowChannels[id][v]
-                val1.rowNeighbors[id].update({val2.ID : Neighbor(val2, self.shape.blockSize)})
-                val2.rowNeighbors[id].update({val1.ID : Neighbor(val1, self.shape.blockSize)})
+                val1.rowNeighbors[id].update({val2.ID : Neighbor(val2, 0, self.shape.blockSize)})
+                val2.rowNeighbors[id].update({val1.ID : Neighbor(val1, 0, self.shape.blockSize)})
 
             if (len(columnChannels[id]) <= self.shape.netDegree):
                 self.logger.debug("Graph fully connected with degree %d !" % (len(columnChannels[id]) - 1), extra=self.format)
@@ -78,8 +80,21 @@ class Simulator:
             for u, v in G.edges:
                 val1=columnChannels[id][u]
                 val2=columnChannels[id][v]
-                val1.columnNeighbors[id].update({val2.ID : Neighbor(val2, self.shape.blockSize)})
-                val2.columnNeighbors[id].update({val1.ID : Neighbor(val1, self.shape.blockSize)})
+                val1.columnNeighbors[id].update({val2.ID : Neighbor(val2, 1, self.shape.blockSize)})
+                val2.columnNeighbors[id].update({val1.ID : Neighbor(val1, 1, self.shape.blockSize)})
+
+        for v in self.validators:
+            if (self.proposerPublishOnly and v.amIproposer):
+                for id in v.rowIDs:
+                    count = min(self.proposerPublishTo, len(rowChannels[id]))
+                    publishTo = random.sample(rowChannels[id], count)
+                    for vi in publishTo:
+                        v.rowNeighbors[id].update({vi.ID : Neighbor(vi, 0, self.shape.blockSize)})
+                for id in v.columnIDs:
+                    count = min(self.proposerPublishTo, len(columnChannels[id]))
+                    publishTo = random.sample(columnChannels[id], count)
+                    for vi in publishTo:
+                        v.columnNeighbors[id].update({vi.ID : Neighbor(vi, 1, self.shape.blockSize)})
 
         if self.logger.isEnabledFor(logging.DEBUG):
             for i in range(0, self.shape.numberValidators):
@@ -105,6 +120,18 @@ class Simulator:
             val.shape.failureRate = shape.failureRate
             val.shape.chi = shape.chi
 
+        # In GossipSub the initiator might push messages without participating in the mesh.
+        # proposerPublishOnly regulates this behavior. If set to true, the proposer is not
+        # part of the p2p distribution graph, only pushes segments to it. If false, the proposer
+        # might get back segments from other peers since links are symmetric.
+        self.proposerPublishOnly = True
+
+        # If proposerPublishOnly == True, this regulates how many copies of each segment are
+        # pushed out by the proposer.
+        # 1: the data is sent out exactly once on rows and once on columns (2 copies in total)
+        # self.shape.netDegree: default behavior similar (but not same) to previous code
+        self.proposerPublishTo = self.shape.netDegree
+
 
     def run(self):
         """It runs the main simulation until the block is available or it gets stucked."""
@@ -119,8 +146,7 @@ class Simulator:
             oldMissingSamples = missingSamples
             self.logger.debug("PHASE SEND %d" % steps, extra=self.format)
             for i in range(0,self.shape.numberValidators):
-                self.validators[i].sendRows()
-                self.validators[i].sendColumns()
+                self.validators[i].send()
             self.logger.debug("PHASE RECEIVE %d" % steps, extra=self.format)
             for i in range(1,self.shape.numberValidators):
                 self.validators[i].receiveRowsColumns()
@@ -132,6 +158,15 @@ class Simulator:
             for i in range(0,self.shape.numberValidators):
                 self.validators[i].logRows()
                 self.validators[i].logColumns()
+
+            # log TX and RX statistics
+            statsTxInSlot = [v.statsTxInSlot for v in self.validators]
+            statsRxInSlot = [v.statsRxInSlot for v in self.validators]
+            self.logger.debug("step %d: TX_prod=%.1f, RX_prod=%.1f, TX_avg=%.1f, TX_max=%.1f, Rx_avg=%.1f, Rx_max=%.1f" % 
+                (steps, statsTxInSlot[0], statsRxInSlot[0],
+                 mean(statsTxInSlot[1:]), max(statsTxInSlot[1:]),
+                 mean(statsRxInSlot[1:]), max(statsRxInSlot[1:])), extra=self.format)
+            for i in range(0,self.shape.numberValidators):
                 self.validators[i].updateStats()
 
             arrived, expected = self.glob.checkStatus(self.validators)

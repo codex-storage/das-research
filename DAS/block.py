@@ -20,6 +20,14 @@ class Block:
         """It merges (OR) the existing block with the received one."""
         self.data |= merged.data
 
+    def getSegment(self, rowID, columnID):
+        """Check whether a segment is included"""
+        return self.data[rowID*self.blockSize + columnID]
+
+    def setSegment(self, rowID, columnID, value = 1):
+        """Set value for a segment (default 1)"""
+        self.data[rowID*self.blockSize + columnID] = value
+
     def getColumn(self, columnID):
         """It returns the block column corresponding to columnID."""
         return self.data[columnID::self.blockSize]
@@ -29,10 +37,17 @@ class Block:
         self.data[columnID::self.blockSize] |= column
 
     def repairColumn(self, id):
-        """It repairs the entire column if it has at least blockSize/2 ones."""
-        success = self.data[id::self.blockSize].count(1)
+        """It repairs the entire column if it has at least blockSize/2 ones.
+            Returns: list of repaired segments
+        """
+        line = self.data[id::self.blockSize]
+        success = line.count(1)
         if success >= self.blockSize/2:
+            ret = ~line
             self.data[id::self.blockSize] = 1
+        else:
+            ret = zeros(self.blockSize)
+        return ret
 
     def getRow(self, rowID):
         """It returns the block row corresponding to rowID."""
@@ -43,10 +58,17 @@ class Block:
         self.data[rowID*self.blockSize:(rowID+1)*self.blockSize] |= row
 
     def repairRow(self, id):
-        """It repairs the entire row if it has at least blockSize/2 ones."""
-        success = self.data[id*self.blockSize:(id+1)*self.blockSize].count(1)
+        """It repairs the entire row if it has at least blockSize/2 ones.
+            Returns: list of repaired segments.
+        """
+        line = self.data[id*self.blockSize:(id+1)*self.blockSize]
+        success = line.count(1)
         if success >= self.blockSize/2:
+            ret = ~line
             self.data[id*self.blockSize:(id+1)*self.blockSize] = 1
+        else:
+            ret = zeros(self.blockSize)
+        return ret
 
     def print(self):
         """It prints the block in the terminal (outside of the logger rules))."""
