@@ -4,6 +4,16 @@ import time, sys, random, copy
 import importlib
 from DAS import *
 
+def runOnce(sim, config, shape):
+    if not config.deterministic:
+        random.seed(datetime.now())
+
+    sim.resetShape(shape)
+    sim.initValidators()
+    sim.initNetwork()
+    result = sim.run()
+    sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
+    return result
 
 def study():
     if len(sys.argv) < 2:
@@ -24,7 +34,6 @@ def study():
     sim = Simulator(shape, config)
     sim.initLogger()
     results = []
-    simCnt = 0
 
     now = datetime.now()
     execID = now.strftime("%Y-%m-%d_%H-%M-%S_")+str(random.randint(100,999))
@@ -33,19 +42,11 @@ def study():
     start = time.time()
 
     for shape in config.nextShape():
-        if not config.deterministic:
-            random.seed(datetime.now())
-
-        sim.resetShape(shape)
-        sim.initValidators()
-        sim.initNetwork()
-        result = sim.run()
-        sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
+        result = runOnce(sim, config, shape)
         results.append(copy.deepcopy(result))
-        simCnt += 1
 
     end = time.time()
-    sim.logger.info("A total of %d simulations ran in %d seconds" % (simCnt, end-start), extra=sim.format)
+    sim.logger.info("A total of %d simulations ran in %d seconds" % (len(results), end-start), extra=sim.format)
 
     if config.dumpXML:
         for res in results:
