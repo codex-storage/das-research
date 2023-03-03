@@ -2,7 +2,12 @@
 
 import time, sys, random, copy
 import importlib
+from joblib import Parallel, delayed
 from DAS import *
+
+# Parallel execution:
+# The code currently uses 'joblib' to execute on multiple cores. For other options such as 'ray', see
+# https://stackoverflow.com/questions/9786102/how-do-i-parallelize-a-simple-python-loop
 
 def runOnce(sim, config, shape):
     if not config.deterministic:
@@ -41,9 +46,7 @@ def study():
     sim.logger.info("Starting simulations:", extra=sim.format)
     start = time.time()
 
-    for shape in config.nextShape():
-        result = runOnce(sim, config, shape)
-        results.append(copy.deepcopy(result))
+    results = Parallel(-1)(delayed(runOnce)(sim, config, shape) for shape in config.nextShape())
 
     end = time.time()
     sim.logger.info("A total of %d simulations ran in %d seconds" % (len(results), end-start), extra=sim.format)
