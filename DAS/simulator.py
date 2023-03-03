@@ -8,6 +8,7 @@ from DAS.tools import *
 from DAS.results import *
 from DAS.observer import *
 from DAS.validator import *
+import DAS.sim as sim
 
 class Simulator:
     """This class implements the main DAS simulator."""
@@ -135,55 +136,62 @@ class Simulator:
 
     def run(self):
         """It runs the main simulation until the block is available or it gets stucked."""
+
+        simulator = sim.Sim.Instance()
+
         self.glob.checkRowsColumns(self.validators)
         self.validators[self.proposerID].broadcastBlock()
-        arrived, expected = self.glob.checkStatus(self.validators)
-        missingSamples = expected - arrived
-        missingVector = []
-        steps = 0
-        while(True):
-            missingVector.append(missingSamples)
-            oldMissingSamples = missingSamples
-            self.logger.debug("PHASE SEND %d" % steps, extra=self.format)
-            for i in range(0,self.shape.numberValidators):
-                self.validators[i].send()
-            self.logger.debug("PHASE RECEIVE %d" % steps, extra=self.format)
-            for i in range(1,self.shape.numberValidators):
-                self.validators[i].receiveRowsColumns()
-            self.logger.debug("PHASE RESTORE %d" % steps, extra=self.format)
-            for i in range(1,self.shape.numberValidators):
-                self.validators[i].restoreRows()
-                self.validators[i].restoreColumns()
-            self.logger.debug("PHASE LOG %d" % steps, extra=self.format)
-            for i in range(0,self.shape.numberValidators):
-                self.validators[i].logRows()
-                self.validators[i].logColumns()
 
-            # log TX and RX statistics
-            statsTxInSlot = [v.statsTxInSlot for v in self.validators]
-            statsRxInSlot = [v.statsRxInSlot for v in self.validators]
-            self.logger.debug("step %d: TX_prod=%.1f, RX_prod=%.1f, TX_avg=%.1f, TX_max=%.1f, Rx_avg=%.1f, Rx_max=%.1f" % 
-                (steps, statsTxInSlot[0], statsRxInSlot[0],
-                 mean(statsTxInSlot[1:]), max(statsTxInSlot[1:]),
-                 mean(statsRxInSlot[1:]), max(statsRxInSlot[1:])), extra=self.format)
-            for i in range(0,self.shape.numberValidators):
-                self.validators[i].updateStats()
+        # arrived, expected = self.glob.checkStatus(self.validators)
+        # missingSamples = expected - arrived
+        # missingVector = []
 
-            arrived, expected = self.glob.checkStatus(self.validators)
-            missingSamples = expected - arrived
-            missingRate = missingSamples*100/expected
-            self.logger.debug("step %d, missing %d of %d (%0.02f %%)" % (steps, missingSamples, expected, missingRate), extra=self.format)
-            if missingSamples == oldMissingSamples:
-                self.logger.debug("The block cannot be recovered, failure rate %d!" % self.shape.failureRate, extra=self.format)
-                missingVector.append(missingSamples)
-                break
-            elif missingSamples == 0:
-                #self.logger.info("The entire block is available at step %d, with failure rate %d !" % (steps, self.shape.failureRate), extra=self.format)
-                missingVector.append(missingSamples)
-                break
-            else:
-                steps += 1
+        simulator.initialize()
+        self.validators[0].send()
+        simulator.run()
 
-        self.result.populate(self.shape, missingVector)
-        return self.result
+        # steps = 0
+        # while(True):
+        #     self.logger.debug("PHASE SEND %d" % steps, extra=self.format)
+        #     for i in range(0,self.shape.numberValidators):
+        #         self.validators[i].send()
+        #     self.logger.debug("PHASE RECEIVE %d" % steps, extra=self.format)
+        #     for i in range(1,self.shape.numberValidators):
+        #         self.validators[i].receiveRowsColumns()
+        #     self.logger.debug("PHASE RESTORE %d" % steps, extra=self.format)
+        #     for i in range(1,self.shape.numberValidators):
+        #         self.validators[i].restoreRows()
+        #         self.validators[i].restoreColumns()
+        #     self.logger.debug("PHASE LOG %d" % steps, extra=self.format)
+        #     for i in range(0,self.shape.numberValidators):
+        #         self.validators[i].logRows()
+        #         self.validators[i].logColumns()
+
+        #     # log TX and RX statistics
+        #     statsTxInSlot = [v.statsTxInSlot for v in self.validators]
+        #     statsRxInSlot = [v.statsRxInSlot for v in self.validators]
+        #     self.logger.debug("step %d: TX_prod=%.1f, RX_prod=%.1f, TX_avg=%.1f, TX_max=%.1f, Rx_avg=%.1f, Rx_max=%.1f" % 
+        #         (steps, statsTxInSlot[0], statsRxInSlot[0],
+        #          mean(statsTxInSlot[1:]), max(statsTxInSlot[1:]),
+        #          mean(statsRxInSlot[1:]), max(statsRxInSlot[1:])), extra=self.format)
+        #     for i in range(0,self.shape.numberValidators):
+        #         self.validators[i].updateStats()
+
+        #     arrived, expected = self.glob.checkStatus(self.validators)
+        #     missingSamples = expected - arrived
+        #     missingRate = missingSamples*100/expected
+        #     self.logger.debug("step %d, missing %d of %d (%0.02f %%)" % (steps, missingSamples, expected, missingRate), extra=self.format)
+        #     if missingSamples == oldMissingSamples:
+        #         self.logger.debug("The block cannot be recovered, failure rate %d!" % self.shape.failureRate, extra=self.format)
+        #         missingVector.append(missingSamples)
+        #         break
+        #     elif missingSamples == 0:
+        #         #self.logger.info("The entire block is available at step %d, with failure rate %d !" % (steps, self.shape.failureRate), extra=self.format)
+        #         missingVector.append(missingSamples)
+        #         break
+        #     else:
+        #         steps += 1
+
+        # self.result.populate(self.shape, missingVector)
+        # return self.result
 

@@ -8,6 +8,9 @@ from DAS.tools import shuffled, shuffledDict
 from bitarray.util import zeros
 from collections import deque
 from itertools import chain
+from DAS.events import Events
+from DAS.event import Event
+import DAS.sim as sim
 
 class Neighbor:
     """This class implements a node neighbor to monitor sent and received data.
@@ -31,9 +34,12 @@ class Neighbor:
         self.sent = zeros(blockSize)
         self.sendQueue = deque()
 
-    def sendSegment(self, lineId, id):
-        self.dst.receiveSegment(lineId, id, self.src.ID)
-
+    def sendSegment(self, rID, cID):
+        simulator = sim.Sim.Instance()
+        end_tx = Event(simulator.time + 1.0/20/self.src.bwUplink, Events.END_TX, self.src, self.src) 
+        simulator.schedule_event(end_tx)
+        packet_arrival = Event(simulator.time + 0.050, Events.PACKET_ARRIVAL, self.dst, self.src, (rID, cID)) 
+        simulator.schedule_event(packet_arrival)
 
 class Validator:
     """This class implements a validator/node in the network."""
@@ -72,6 +78,8 @@ class Validator:
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)
 
+        self.sending = False
+
         #statistics
         self.statsTxInSlot = 0
         self.statsTxPerSlot = []
@@ -93,6 +101,21 @@ class Validator:
         self.dumbRandomScheduler = False # dumb random scheduler
         self.segmentShuffleScheduler = True # send each segment that's worth sending once in shuffled order, then repeat
         self.segmentShuffleSchedulerPersist = True # Persist scheduler state between timesteps
+
+    def handle_event(self, event):
+        """
+        Handles events notified to the node
+        :param event: the event
+        """
+        if event.get_type() == Events.PACKET_ARRIVAL:
+            rID, cID = event.obj
+            self.receiveSegment(rID, cID, event.destination)
+        elif event.get_type() == Events.END_TX:
+            self.send()
+        else:
+            print("Node %d has received a notification for event type %d which"
+                  " can't be handled", (self.get_id(), event.get_type()))
+            sys.exit(1)
 
     def logIDs(self):
         """It logs the assigned rows and columns."""
@@ -145,15 +168,20 @@ class Validator:
         # register receive so that we are not sending back
         if rID in self.rowIDs:
             if src in self.rowNeighbors[rID]:
-                self.rowNeighbors[rID][src].receiving[cID] = 1
+                self.rowNeighbors[rID][src].received[cID] = 1
         if cID in self.columnIDs:
             if src in self.columnNeighbors[cID]:
-                self.columnNeighbors[cID][src].receiving[rID] = 1
+                self.columnNeighbors[cID][src].received[rID] = 1
         if not self.receivedBlock.getSegment(rID, cID):
             self.logger.debug("Recv new: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
             self.receivedBlock.setSegment(rID, cID)
             if self.perNodeQueue or self.perNeighborQueue:
-                self.receivedQueue.append((rID, cID))
+                self.addToSendQueue(rID, cID)
+                #self.receiveRowsColumns()
+                self.restoreRow(rID)
+                self.restoreColumn(cID)
+                if not self.sending:
+                    self.send()
         else:
             self.logger.debug("Recv DUP: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
         #     self.statsRxDuplicateInSlot += 1
@@ -241,14 +269,14 @@ class Validator:
                 for _, neigh in shuffledDict(self.rowNeighbors[rID], self.shuffleNeighbors):
                     self.checkSendSegmentToNeigh(rID, cID, neigh)
 
-                if self.statsTxInSlot >= self.bwUplink:
+                if self.statsTxInSlot >= 1:
                     return
 
             if cID in self.columnIDs:
                 for _, neigh in shuffledDict(self.columnNeighbors[cID], self.shuffleNeighbors):
                     self.checkSendSegmentToNeigh(rID, cID, neigh)
 
-                if self.statsTxInSlot >= self.bwUplink:
+                if self.statsTxInSlot >= 1:
                     return
 
             self.sendQueue.popleft()
@@ -285,7 +313,7 @@ class Validator:
                 else:
                     self.checkSendSegmentToNeigh(neigh.sendQueue.popleft(), lineID, neigh)
                 progress = True
-                if self.statsTxInSlot >= self.bwUplink:
+                if self.statsTxInSlot >= 1:
                     return
 
     def runSegmentShuffleScheduler(self):
@@ -356,7 +384,7 @@ class Validator:
             # segments are checked just before yield, so we can send directly
             self.sendSegmentToNeigh(rid, cid, neigh)
 
-            if self.statsTxInSlot >= self.bwUplink:
+            if self.statsTxInSlot >= 1:
                 if not self.segmentShuffleSchedulerPersist:
                     # remove scheduler state before leaving
                     self.segmentShuffleGen = None
@@ -396,32 +424,40 @@ class Validator:
             # segments are checked just before yield, so we can send directly
             self.sendSegmentToNeigh(rid, cid, neigh)
 
-            if self.statsTxInSlot >= self.bwUplink:
+            if self.statsTxInSlot >= 1:
                 return
 
     def send(self):
         """ Send as much as we can in the timestep, limited by bwUplink."""
 
+        self.sending = True
+
         # process node level send queue
         self.processSendQueue()
-        if self.statsTxInSlot >= self.bwUplink:
+        if self.statsTxInSlot >= 1:
+            self.statsTxInSlot = 0
             return
 
         # process neighbor level send queues in shuffled breadth-first order
         self.processPerNeighborSendQueue()
-        if self.statsTxInSlot >= self.bwUplink:
+        if self.statsTxInSlot >= 1:
+            self.statsTxInSlot = 0
             return
 
         # process possible segments to send in shuffled breadth-first order
         if self.segmentShuffleScheduler:
             self.runSegmentShuffleScheduler()
-        if self.statsTxInSlot >= self.bwUplink:
+        if self.statsTxInSlot >= 1:
+            self.statsTxInSlot = 0
             return
 
         if self.dumbRandomScheduler:
             self.runDumbRandomScheduler()
-        if self.statsTxInSlot >= self.bwUplink:
+        if self.statsTxInSlot >= 1:
+            self.statsTxInSlot = 0
             return
+
+        self.sending = False
 
     def logRows(self):
         """It logs the rows assigned to the validator."""
