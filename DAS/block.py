@@ -59,7 +59,7 @@ class Block:
 
     def repairRow(self, id):
         """It repairs the entire row if it has at least blockSize/2 ones.
-            Returns: list of repaired segments
+            Returns: list of repaired segments.
         """
         line = self.data[id*self.blockSize:(id+1)*self.blockSize]
         success = line.count(1)

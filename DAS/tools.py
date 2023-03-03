@@ -31,8 +31,7 @@ class CustomFormatter():
         return formatter.format(record)
 
 def shuffled(lis, shuffle=True):
-    ''' Generator yielding list in shuffled order
-    '''
+    """Generator yielding list in shuffled order."""
     # based on https://stackoverflow.com/a/60342323
     if shuffle:
         for index in random.sample(range(len(lis)), len(lis)):
@@ -41,10 +40,10 @@ def shuffled(lis, shuffle=True):
         for v in lis:
             yield v
 def shuffledDict(d, shuffle=True):
-    ''' Generator yielding dictionary in shuffled order
+    """Generator yielding dictionary in shuffled order.
 
-        Shuffle, except if not (optional parameter useful for experiment setup)
-    '''
+        Shuffle, except if not (optional parameter useful for experiment setup).
+    """
     if shuffle:
         lis = list(d.items())
         for index in random.sample(range(len(d)), len(d)):
@@ -54,9 +53,9 @@ def shuffledDict(d, shuffle=True):
             yield kv
 
 def sampleLine(line, limit):
-    """ sample up to 'limit' bits from a bitarray
+    """Sample up to 'limit' bits from a bitarray.
 
-    Since this is quite expensive, we use a number of heuristics to get it fast.
+        Since this is quite expensive, we use a number of heuristics to get it fast.
     """
     if limit == sys.maxsize :
         return line
