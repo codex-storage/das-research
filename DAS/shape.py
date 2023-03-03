@@ -3,7 +3,7 @@
 class Shape:
     """This class represents a set of parameters for a specific simulation."""
 
-    def __init__(self, blockSize, numberValidators, failureRate, chi, netDegree, run):
+    def __init__(self, blockSize, numberValidators, failureRate, chi, netDegree, bwUplink, run):
         """Initializes the shape with the parameters passed in argument."""
         self.run = run
         self.numberValidators = numberValidators
@@ -12,6 +12,7 @@ class Shape:
         self.netDegree = netDegree
         self.chi = chi
         self.randomSeed = ""
+        self.bwUplink = bwUplink
 
     def __repr__(self):
         """Returns a printable representation of the shape"""

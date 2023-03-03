@@ -42,6 +42,10 @@ netDegrees = range(6, 9, 2)
 # Number of rows and columns a validator is interested in
 chis = range(4, 9, 2)
 
+# Set uplink bandwidth. In segments (~560 bytes) per timestep (50ms?)
+# 1 Mbps ~= 1e6 / 20 / 8 / 560 ~= 11
+bwUplinks = [11, 110]
+
 # Set to True if you want your run to be deterministic, False if not
 deterministic = False
 
@@ -55,7 +59,8 @@ def nextShape():
                 for blockSize in blockSizes:
                     for nv in numberValidators:
                         for netDegree in netDegrees:
-                            # Network Degree has to be an even number
-                            if netDegree % 2 == 0:
-                                shape = Shape(blockSize, nv, fr, chi, netDegree, run)
-                                yield shape
+                            for bwUplink in bwUplinks:
+                                # Network Degree has to be an even number
+                                if netDegree % 2 == 0:
+                                    shape = Shape(blockSize, nv, fr, chi, netDegree, bwUplink, run)
+                                    yield shape

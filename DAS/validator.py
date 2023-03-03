@@ -77,7 +77,7 @@ class Validator:
         # Set uplink bandwidth. In segments (~560 bytes) per timestep (50ms?)
         # 1 Mbps ~= 1e6 / 20 / 8 / 560 ~= 11
         # TODO: this should be a parameter
-        self.bwUplink = 110 if not self.amIproposer else 2200 # approx. 10Mbps and 200Mbps
+        self.bwUplink = shape.bwUplink if not self.amIproposer else 2200 # approx. 10Mbps and 200Mbps
 
         self.repairOnTheFly = True
         self.sendLineUntil = (self.shape.blockSize + 1) // 2 # stop sending on a p2p link if at least this amount of samples passed
