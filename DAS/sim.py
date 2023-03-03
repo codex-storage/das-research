@@ -119,7 +119,7 @@ class Sim:
             return event
         except IndexError:
             print("No more events in the simulation queue. Terminating.")
-            sys.exit(0)
+            return None
 
     def cancel_event(self, event):
         """
@@ -151,6 +151,8 @@ class Sim:
         while self.time <= self.duration:
             # get next event and call the handle method of the destination
             event = self.next_event()
+            if not event:
+                return
             dst = event.get_destination()
             dst.handle_event(event)
             # get current real time
