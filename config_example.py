@@ -14,6 +14,7 @@ if needed.
 """
 
 import logging
+import itertools
 from DAS.shape import Shape
 
 dumpXML = 1
@@ -57,14 +58,9 @@ deterministic = False
 randomSeed = "DAS"
 
 def nextShape():
-    for run in runs:
-        for fr in failureRates:
-            for chi in chis:
-                for blockSize in blockSizes:
-                    for nv in numberValidators:
-                        for netDegree in netDegrees:
-                            for bwUplink in bwUplinks:
-                                # Network Degree has to be an even number
-                                if netDegree % 2 == 0:
-                                    shape = Shape(blockSize, nv, fr, chi, netDegree, bwUplink, run)
-                                    yield shape
+    for run, fr, chi, blockSize, nv, netDegree, bwUplink in itertools.product(
+        runs, failureRates, chis, blockSizes, numberValidators, netDegrees, bwUplinks):
+        # Network Degree has to be an even number
+        if netDegree % 2 == 0:
+            shape = Shape(blockSize, nv, fr, chi, netDegree, bwUplink, run)
+            yield shape
