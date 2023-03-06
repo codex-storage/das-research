@@ -21,6 +21,7 @@ class Shape:
         shastr += "-nbv-"+str(self.numberValidators)
         shastr += "-fr-"+str(self.failureRate)
         shastr += "-chi-"+str(self.chi)
+        shastr += "-bwu-"+str(self.bwUplink)
         shastr += "-nd-"+str(self.netDegree)
         shastr += "-r-"+str(self.run)
         return shastr
