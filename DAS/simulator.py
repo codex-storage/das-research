@@ -15,6 +15,7 @@ class Simulator:
     def __init__(self, shape, config):
         """It initializes the simulation with a set of parameters (shape)."""
         self.shape = shape
+        self.config = config
         self.format = {"entity": "Simulator"}
         self.result = Result(self.shape)
         self.validators = []
@@ -28,12 +29,18 @@ class Simulator:
         self.glob = Observer(self.logger, self.shape)
         self.glob.reset()
         self.validators = []
-        rows = list(range(self.shape.blockSize)) * int(self.shape.chi*self.shape.numberValidators/self.shape.blockSize)
-        columns = list(range(self.shape.blockSize)) * int(self.shape.chi*self.shape.numberValidators/self.shape.blockSize)
-        random.shuffle(rows)
-        random.shuffle(columns)
+        if self.config.evenLineDistribution:
+            rows = list(range(self.shape.blockSize)) * int(self.shape.chi*self.shape.numberValidators/self.shape.blockSize)
+            columns = list(range(self.shape.blockSize)) * int(self.shape.chi*self.shape.numberValidators/self.shape.blockSize)
+            random.shuffle(rows)
+            random.shuffle(columns)
         for i in range(self.shape.numberValidators):
-            val = Validator(i, int(not i!=0), self.logger, self.shape, rows, columns)
+            if self.config.evenLineDistribution:
+                val = Validator(i, int(not i!=0), self.logger, self.shape,
+                            rows[(i*self.shape.chi):((i+1)*self.shape.chi)],
+                            columns[(i*self.shape.chi):((i+1)*self.shape.chi)])
+            else:
+                val = Validator(i, int(not i!=0), self.logger, self.shape)
             if i == self.proposerID:
                 val.initBlock()
                 self.glob.setGoldenData(val.block)

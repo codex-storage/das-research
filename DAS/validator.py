@@ -38,8 +38,13 @@ class Validator:
         """It returns the validator ID."""
         return str(self.ID)
 
-    def __init__(self, ID, amIproposer, logger, shape, rows, columns):
-        """It initializes the validator with the logger, shape and assigned rows/columns."""
+    def __init__(self, ID, amIproposer, logger, shape, rows = None, columns = None):
+        """It initializes the validator with the logger shape and rows/columns.
+
+            If rows/columns are specified these are observed, otherwise (default)
+            chi rows and columns are selected randomly.
+        """
+
         self.shape = shape
         FORMAT = "%(levelname)s : %(entity)s : %(message)s"
         self.ID = ID
@@ -59,12 +64,16 @@ class Validator:
                 self.rowIDs = range(shape.blockSize)
                 self.columnIDs = range(shape.blockSize)
             else:
-                self.rowIDs = rows[(self.ID*self.shape.chi):(self.ID*self.shape.chi + self.shape.chi)]
-                self.columnIDs = columns[(self.ID*self.shape.chi):(self.ID*self.shape.chi + self.shape.chi)]
                 #if shape.deterministic:
                 #    random.seed(self.ID)
-                #self.rowIDs = random.sample(range(self.shape.blockSize), self.shape.chi)
-                #self.columnIDs = random.sample(range(self.shape.blockSize), self.shape.chi)
+                if rows:
+                    self.rowIDs = rows
+                else:
+                    self.rowIDs = random.sample(range(self.shape.blockSize), self.shape.chi)
+                if columns:
+                    self.columnIDs = columns
+                else:
+                    self.columnIDs = random.sample(range(self.shape.blockSize), self.shape.chi)
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)
 
