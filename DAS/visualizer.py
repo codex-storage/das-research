@@ -12,7 +12,8 @@ class Visualizer:
     def __init__(self, execID):
         self.execID = execID
         self.folderPath = "results/"+self.execID
-        self.parameters = ['run', 'blockSize', 'failureRate', 'numberValidators', 'netDegree', 'chi']
+        self.parameters = ['run', 'blockSize', 'failureRate', 'numberValidators', 'netDegree',
+                           'chi1', 'chi2', 'bwUplinkProd', 'bwUplink1', 'bwUplink2']
         self.minimumDataPoints = 2
 
     def plottingData(self):
@@ -29,20 +30,24 @@ class Visualizer:
                 failureRate = int(root.find('failureRate').text)
                 numberValidators = int(root.find('numberValidators').text)
                 netDegree = int(root.find('netDegree').text)
-                chi = int(root.find('chi').text)
+                chi1 = int(root.find('chi1').text)
+                chi2 = int(root.find('chi2').text)
+                bwUplinkProd = int(root.find('bwUplinkProd').text)
+                bwUplink1 = int(root.find('bwUplink1').text)
+                bwUplink2 = int(root.find('bwUplink2').text)
                 tta = int(root.find('tta').text)
 
                 # Loop over all possible combinations of length 4 of the parameters
                 for combination in combinations(self.parameters, 4):
                     # Get the indices and values of the parameters in the combination
                     indices = [self.parameters.index(element) for element in combination]
-                    selectedValues = [run, blockSize, failureRate, numberValidators, netDegree, chi]
+                    selectedValues = [run, blockSize, failureRate, numberValidators, netDegree, chi1, chi2, bwUplinkProd, bwUplink1, bwUplink2]
                     values = [selectedValues[index] for index in indices]
                     names = [self.parameters[i] for i in indices]
                     keyComponents = [f"{name}_{value}" for name, value in zip(names, values)]
                     key = tuple(keyComponents[:4])
                     #Get the names of the other 2 parameters that are not included in the key
-                    otherParams = [self.parameters[i] for i in range(6) if i not in indices]
+                    otherParams = [self.parameters[i] for i in range(len(self.parameters)) if i not in indices]
                     #Append the values of the other 2 parameters and the ttas to the lists for the key
                     otherIndices = [i for i in range(len(self.parameters)) if i not in indices]
 
