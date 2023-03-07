@@ -126,7 +126,8 @@ class Simulator:
         self.result = Result(self.shape)
         for val in self.validators:
             val.shape.failureRate = shape.failureRate
-            val.shape.chi = shape.chi
+            val.shape.chi1 = shape.chi1
+            val.shape.chi2 = shape.chi2
 
         # In GossipSub the initiator might push messages without participating in the mesh.
         # proposerPublishOnly regulates this behavior. If set to true, the proposer is not

@@ -55,11 +55,17 @@ class Validator:
         self.sendQueue = deque()
         self.amIproposer = amIproposer
         self.logger = logger
-        if self.shape.chi < 1:
+        if self.shape.chi1 < 1 or self.shape.chi2 < 1:
             self.logger.error("Chi has to be greater than 0", extra=self.format)
-        elif self.shape.chi > self.shape.blockSize:
+        elif self.shape.chi1 > self.shape.blockSize or self.shape.chi2 > self.shape.blockSize:
             self.logger.error("Chi has to be smaller than %d" % blockSize, extra=self.format)
         else:
+            if self.amIproposer:
+                self.chi = 1 # not used
+            elif self.ID <= shape.numberValidators * shape.class1ratio:
+                self.chi = shape.chi1
+            else:
+                self.chi = shape.chi2
             if amIproposer:
                 self.rowIDs = range(shape.blockSize)
                 self.columnIDs = range(shape.blockSize)
@@ -69,11 +75,11 @@ class Validator:
                 if rows:
                     self.rowIDs = rows
                 else:
-                    self.rowIDs = random.sample(range(self.shape.blockSize), self.shape.chi)
+                    self.rowIDs = random.sample(range(self.shape.blockSize), self.chi)
                 if columns:
                     self.columnIDs = columns
                 else:
-                    self.columnIDs = random.sample(range(self.shape.blockSize), self.shape.chi)
+                    self.columnIDs = random.sample(range(self.shape.blockSize), self.chi)
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)
 
@@ -86,7 +92,12 @@ class Validator:
         # Set uplink bandwidth. In segments (~560 bytes) per timestep (50ms?)
         # 1 Mbps ~= 1e6 / 20 / 8 / 560 ~= 11
         # TODO: this should be a parameter
-        self.bwUplink = shape.bwUplink if not self.amIproposer else 2200 # approx. 10Mbps and 200Mbps
+        if self.amIproposer:
+            self.bwUplink = shape.bwUplinkProd
+        elif self.ID <= shape.numberValidators * shape.class1ratio:
+            self.bwUplink = shape.bwUplink1
+        else:
+            self.bwUplink = shape.bwUplink2
 
         self.repairOnTheFly = True
         self.sendLineUntil = (self.shape.blockSize + 1) // 2 # stop sending on a p2p link if at least this amount of samples passed
