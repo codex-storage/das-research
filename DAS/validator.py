@@ -55,17 +55,17 @@ class Validator:
         self.sendQueue = deque()
         self.amIproposer = amIproposer
         self.logger = logger
-        if self.shape.chi1 < 1 or self.shape.chi2 < 1:
+        if self.shape.chi < 1:
             self.logger.error("Chi has to be greater than 0", extra=self.format)
-        elif self.shape.chi1 > self.shape.blockSize or self.shape.chi2 > self.shape.blockSize:
-            self.logger.error("Chi has to be smaller than %d" % blockSize, extra=self.format)
+        elif self.shape.chi > self.shape.blockSize:
+            self.logger.error("Chi has to be smaller than %d" % self.shape.blockSize, extra=self.format)
         else:
             if self.amIproposer:
                 self.chi = 1 # not used
             elif self.ID <= shape.numberValidators * shape.class1ratio:
-                self.chi = shape.chi1
+                self.chi = shape.chi * shape.vpn1
             else:
-                self.chi = shape.chi2
+                self.chi = shape.chi * shape.vpn2 # TODO: union of random subsets vpn2 times
             if amIproposer:
                 self.rowIDs = range(shape.blockSize)
                 self.columnIDs = range(shape.blockSize)

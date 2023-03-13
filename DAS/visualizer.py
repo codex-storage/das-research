@@ -13,7 +13,7 @@ class Visualizer:
         self.execID = execID
         self.folderPath = "results/"+self.execID
         self.parameters = ['run', 'blockSize', 'failureRate', 'numberValidators', 'netDegree',
-                           'chi1', 'chi2', 'bwUplinkProd', 'bwUplink1', 'bwUplink2']
+                           'chi', 'vpn1', 'vpn2', 'bwUplinkProd', 'bwUplink1', 'bwUplink2']
         self.minimumDataPoints = 2
 
     def plottingData(self):
@@ -30,8 +30,9 @@ class Visualizer:
                 failureRate = int(root.find('failureRate').text)
                 numberValidators = int(root.find('numberValidators').text)
                 netDegree = int(root.find('netDegree').text)
-                chi1 = int(root.find('chi1').text)
-                chi2 = int(root.find('chi2').text)
+                chi = int(root.find('chi').text)
+                vpn1 = int(root.find('vpn1').text)
+                vpn2 = int(root.find('vpn2').text)
                 bwUplinkProd = int(root.find('bwUplinkProd').text)
                 bwUplink1 = int(root.find('bwUplink1').text)
                 bwUplink2 = int(root.find('bwUplink2').text)
@@ -41,7 +42,7 @@ class Visualizer:
                 for combination in combinations(self.parameters, 4):
                     # Get the indices and values of the parameters in the combination
                     indices = [self.parameters.index(element) for element in combination]
-                    selectedValues = [run, blockSize, failureRate, numberValidators, netDegree, chi1, chi2, bwUplinkProd, bwUplink1, bwUplink2]
+                    selectedValues = [run, blockSize, failureRate, numberValidators, netDegree, chi, vpn1, vpn2, bwUplinkProd, bwUplink1, bwUplink2]
                     values = [selectedValues[index] for index in indices]
                     names = [self.parameters[i] for i in indices]
                     keyComponents = [f"{name}_{value}" for name, value in zip(names, values)]

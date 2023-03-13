@@ -40,7 +40,7 @@ def study():
             print("You need to pass a configuration file in parameter")
             exit(1)
 
-    shape = Shape(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    shape = Shape(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     sim = Simulator(shape, config)
     sim.initLogger()
     results = []
