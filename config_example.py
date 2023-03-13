@@ -20,6 +20,10 @@ dumpXML = 1
 visualization = 1
 logLevel = logging.INFO
 
+# number of parallel workers. -1: all cores; 1: sequential
+# for more details, see joblib.Parallel
+numJobs = 3
+
 # Number of simulation runs with the same parameters for statistical relevance
 runs = range(10)
 

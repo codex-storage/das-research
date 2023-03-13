@@ -50,7 +50,8 @@ def study():
     sim.logger.info("Starting simulations:", extra=sim.format)
     start = time.time()
 
-    results = Parallel(-1)(delayed(runOnce)(sim, config, shape) for shape in config.nextShape())
+    results = Parallel(config.numJobs)(delayed(runOnce)(sim, config, shape) for shape in config.nextShape())
+
 
     end = time.time()
     sim.logger.info("A total of %d simulations ran in %d seconds" % (len(results), end-start), extra=sim.format)
