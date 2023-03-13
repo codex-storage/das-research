@@ -58,8 +58,8 @@ validatorsPerNode2 = [2, 4, 8, 16, 32]
 # Set uplink bandwidth. In segments (~560 bytes) per timestep (50ms?)
 # 1 Mbps ~= 1e6 / 20 / 8 / 560 ~= 11
 bwUplinksProd = [2200]
-bwUplinks1 = [2200]
-bwUplinks2 = [110]
+bwUplinks1 = [110]
+bwUplinks2 = [2200]
 
 # Set to True if you want your run to be deterministic, False if not
 deterministic = False
