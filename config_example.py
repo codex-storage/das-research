@@ -34,7 +34,7 @@ evenLineDistribution = False
 runs = range(10)
 
 # Number of validators
-numberValidators = range(256, 513, 128)
+numberNodes = range(256, 513, 128)
 
 # Percentage of block not released by producer
 failureRates = range(10, 91, 40)
@@ -68,9 +68,9 @@ deterministic = False
 randomSeed = "DAS"
 
 def nextShape():
-    for run, fr, class1ratio, chi, vpn1, vpn2, blockSize, nv, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
-        runs, failureRates, class1ratios, chis, validatorsPerNode1, validatorsPerNode2, blockSizes, numberValidators, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
+    for run, fr, class1ratio, chi, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
+        runs, failureRates, class1ratios, chis, validatorsPerNode1, validatorsPerNode2, blockSizes, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
         # Network Degree has to be an even number
         if netDegree % 2 == 0:
-            shape = Shape(blockSize, nv, fr, class1ratio, chi, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
+            shape = Shape(blockSize, nn, fr, class1ratio, chi, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
             yield shape

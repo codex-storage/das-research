@@ -30,11 +30,11 @@ class Simulator:
         self.glob.reset()
         self.validators = []
         if self.config.evenLineDistribution:
-            rows = list(range(self.shape.blockSize)) * int(self.shape.chi*self.shape.numberValidators/self.shape.blockSize)
-            columns = list(range(self.shape.blockSize)) * int(self.shape.chi*self.shape.numberValidators/self.shape.blockSize)
+            rows = list(range(self.shape.blockSize)) * int(self.shape.chi*self.shape.numberNodes/self.shape.blockSize)
+            columns = list(range(self.shape.blockSize)) * int(self.shape.chi*self.shape.numberNodes/self.shape.blockSize)
             random.shuffle(rows)
             random.shuffle(columns)
-        for i in range(self.shape.numberValidators):
+        for i in range(self.shape.numberNodes):
             if self.config.evenLineDistribution:
                 val = Validator(i, int(not i!=0), self.logger, self.shape,
                             rows[(i*self.shape.chi):((i+1)*self.shape.chi)],
@@ -104,7 +104,7 @@ class Simulator:
                         v.columnNeighbors[id].update({vi.ID : Neighbor(vi, 1, self.shape.blockSize)})
 
         if self.logger.isEnabledFor(logging.DEBUG):
-            for i in range(0, self.shape.numberValidators):
+            for i in range(0, self.shape.numberNodes):
                 self.logger.debug("Val %d : rowN %s", i, self.validators[i].rowNeighbors, extra=self.format)
                 self.logger.debug("Val %d : colN %s", i, self.validators[i].columnNeighbors, extra=self.format)
 
@@ -155,17 +155,17 @@ class Simulator:
             missingVector.append(missingSamples)
             oldMissingSamples = missingSamples
             self.logger.debug("PHASE SEND %d" % steps, extra=self.format)
-            for i in range(0,self.shape.numberValidators):
+            for i in range(0,self.shape.numberNodes):
                 self.validators[i].send()
             self.logger.debug("PHASE RECEIVE %d" % steps, extra=self.format)
-            for i in range(1,self.shape.numberValidators):
+            for i in range(1,self.shape.numberNodes):
                 self.validators[i].receiveRowsColumns()
             self.logger.debug("PHASE RESTORE %d" % steps, extra=self.format)
-            for i in range(1,self.shape.numberValidators):
+            for i in range(1,self.shape.numberNodes):
                 self.validators[i].restoreRows()
                 self.validators[i].restoreColumns()
             self.logger.debug("PHASE LOG %d" % steps, extra=self.format)
-            for i in range(0,self.shape.numberValidators):
+            for i in range(0,self.shape.numberNodes):
                 self.validators[i].logRows()
                 self.validators[i].logColumns()
 
@@ -176,7 +176,7 @@ class Simulator:
                 (steps, statsTxInSlot[0], statsRxInSlot[0],
                  mean(statsTxInSlot[1:]), max(statsTxInSlot[1:]),
                  mean(statsRxInSlot[1:]), max(statsRxInSlot[1:])), extra=self.format)
-            for i in range(0,self.shape.numberValidators):
+            for i in range(0,self.shape.numberNodes):
                 self.validators[i].updateStats()
 
             arrived, expected = self.glob.checkStatus(self.validators)

@@ -62,7 +62,7 @@ class Validator:
         else:
             if self.amIproposer:
                 self.chi = 1 # not used
-            elif self.ID <= shape.numberValidators * shape.class1ratio:
+            elif self.ID <= shape.numberNodes * shape.class1ratio:
                 self.chi = shape.chi * shape.vpn1
             else:
                 self.chi = shape.chi * shape.vpn2 # TODO: union of random subsets vpn2 times
@@ -94,7 +94,7 @@ class Validator:
         # TODO: this should be a parameter
         if self.amIproposer:
             self.bwUplink = shape.bwUplinkProd
-        elif self.ID <= shape.numberValidators * shape.class1ratio:
+        elif self.ID <= shape.numberNodes * shape.class1ratio:
             self.bwUplink = shape.bwUplink1
         else:
             self.bwUplink = shape.bwUplink2
