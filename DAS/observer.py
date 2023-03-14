@@ -10,14 +10,6 @@ class Observer:
         self.config = config
         self.format = {"entity": "Observer"}
         self.logger = logger
-        self.block = []
-        self.rows = []
-        self.columns = []
-        self.broadcasted = []
-
-
-    def reset(self):
-        """It resets all the gathered data to zeros."""
         self.block = [0] * self.config.blockSize * self.config.blockSize
         self.rows = [0] * self.config.blockSize
         self.columns = [0] * self.config.blockSize
