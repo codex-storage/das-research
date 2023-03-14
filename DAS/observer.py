@@ -44,9 +44,12 @@ class Observer:
         """It checks the status of how many expected and arrived samples globally."""
         arrived = 0
         expected = 0
+        validated = 0
         for val in validators:
             if val.amIproposer == 0:
                 (a, e) = val.checkStatus()
                 arrived += a
                 expected += e
-        return (arrived, expected)
+                if a == e:
+                    validated += 1
+        return (arrived, expected, validated)
