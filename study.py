@@ -27,17 +27,16 @@ def study():
     simCnt = 0
 
     now = datetime.now()
+    if config.deterministic:
+        random.seed("DASsimulator")
+    else:
+        random.seed(str(now).split(".")[1])
     execID = now.strftime("%Y-%m-%d_%H-%M-%S_")+str(random.randint(100,999))
 
     sim.logger.info("Starting simulations:", extra=sim.format)
     start = time.time()
 
     for shape in config.nextShape():
-        if config.deterministic:
-            random.seed("DASsimulator")
-        else:
-            random.seed(random.randint(0, 100))
-
 
         sim.resetShape(shape)
         sim.initValidators()
