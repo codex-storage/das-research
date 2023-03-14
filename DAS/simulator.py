@@ -55,7 +55,6 @@ class Simulator:
                 val = Validator(i, int(not i!=0), self.logger, self.shape)
             if i == self.proposerID:
                 val.initBlock()
-                self.glob.setGoldenData(val.block)
             else:
                 val.logIDs()
             self.validators.append(val)
