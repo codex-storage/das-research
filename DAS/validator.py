@@ -155,12 +155,12 @@ class Validator:
             if src in self.columnNeighbors[cID]:
                 self.columnNeighbors[cID][src].receiving[rID] = 1
         if not self.receivedBlock.getSegment(rID, cID):
-            self.logger.debug("Recv new: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
+            self.logger.trace("Recv new: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
             self.receivedBlock.setSegment(rID, cID)
             if self.perNodeQueue or self.perNeighborQueue:
                 self.receivedQueue.append((rID, cID))
         else:
-            self.logger.debug("Recv DUP: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
+            self.logger.trace("Recv DUP: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
         #     self.statsRxDuplicateInSlot += 1
         self.statsRxInSlot += 1
 
@@ -183,7 +183,7 @@ class Validator:
         if self.amIproposer == 1:
             self.logger.error("I am a block proposer", extra=self.format)
         else:
-            self.logger.debug("Receiving the data...", extra=self.format)
+            self.logger.trace("Receiving the data...", extra=self.format)
             #self.logger.debug("%s -> %s", self.block.data, self.receivedBlock.data, extra=self.format)
 
             self.block.merge(self.receivedBlock)
@@ -219,7 +219,7 @@ class Validator:
 
     def sendSegmentToNeigh(self, rID, cID, neigh):
         """Send segment to a neighbor (without checks)."""
-        self.logger.debug("sending %d/%d to %d", rID, cID, neigh.node.ID, extra=self.format)
+        self.logger.trace("sending %d/%d to %d", rID, cID, neigh.node.ID, extra=self.format)
         i = rID if neigh.dim else cID
         neigh.sent[i] = 1
         neigh.node.receiveSegment(rID, cID, self.ID)
@@ -454,7 +454,7 @@ class Validator:
             # be queued after successful repair.
             for i in range(len(rep)):
                 if rep[i]:
-                    self.logger.debug("Rep: %d,%d", id, i, extra=self.format)
+                    self.logger.trace("Rep: %d,%d", id, i, extra=self.format)
                     self.addToSendQueue(id, i)
             # self.statsRepairInSlot += rep.count(1)
 
@@ -472,7 +472,7 @@ class Validator:
             # be queued after successful repair.
             for i in range(len(rep)):
                 if rep[i]:
-                    self.logger.debug("Rep: %d,%d", i, id, extra=self.format)
+                    self.logger.trace("Rep: %d,%d", i, id, extra=self.format)
                     self.addToSendQueue(i, id)
             # self.statsRepairInSlot += rep.count(1)
 
