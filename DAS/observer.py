@@ -13,17 +13,16 @@ class Observer:
         self.block = []
         self.rows = []
         self.columns = []
-        self.goldenData = []
         self.broadcasted = []
 
 
     def reset(self):
         """It resets all the gathered data to zeros."""
         self.block = [0] * self.config.blockSize * self.config.blockSize
-        self.goldenData = [0] * self.config.blockSize * self.config.blockSize
         self.rows = [0] * self.config.blockSize
         self.columns = [0] * self.config.blockSize
         self.broadcasted = Block(self.config.blockSize)
+
 
     def checkRowsColumns(self, validators):
         """It checks how many validators have been assigned to each row and column."""
@@ -38,11 +37,6 @@ class Observer:
             self.logger.debug("Row/Column %d have %d and %d validators assigned." % (i, self.rows[i], self.columns[i]), extra=self.format)
             if self.rows[i] == 0 or self.columns[i] == 0:
                 self.logger.warning("There is a row/column that has not been assigned", extra=self.format)
-
-    def setGoldenData(self, block):
-        """Stores the original real data to compare it with future situations."""
-        for i in range(self.config.blockSize*self.config.blockSize):
-            self.goldenData[i] = block.data[i]
 
     def checkBroadcasted(self):
         """It checks how many broadcasted samples are still missing in the network."""
