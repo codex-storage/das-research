@@ -33,8 +33,11 @@ def study():
     start = time.time()
 
     for shape in config.nextShape():
-        if not config.deterministic:
-            random.seed(datetime.now())
+        if config.deterministic:
+            random.seed("DASsimulator")
+        else:
+            random.seed(random.randint(0, 100))
+
 
         sim.resetShape(shape)
         sim.initValidators()
