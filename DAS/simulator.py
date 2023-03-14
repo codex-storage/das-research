@@ -27,7 +27,6 @@ class Simulator:
     def initValidators(self):
         """It initializes all the validators in the network."""
         self.glob = Observer(self.logger, self.shape)
-        self.glob.reset()
         self.validators = []
         if self.config.evenLineDistribution:
             rows = list(range(self.shape.blockSize)) * int(self.shape.chi*self.shape.numberNodes/self.shape.blockSize)
