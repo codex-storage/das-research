@@ -79,3 +79,9 @@ def sampleLine(line, limit):
                         r[i] = 1
                         limit -= 1
                 return r
+
+def unionOfSamples(population, sampleSize, times):
+    selected = set()
+    for t in range(times):
+        selected |= set(random.sample(population, sampleSize))
+    return selected
