@@ -2,6 +2,7 @@
 
 import networkx as nx
 import logging, random
+from functools import partial, partialmethod
 from datetime import datetime
 from statistics import mean
 from DAS.tools import *
@@ -135,6 +136,11 @@ class Simulator:
 
     def initLogger(self):
         """It initializes the logger."""
+        logging.TRACE = 5
+        logging.addLevelName(logging.TRACE, 'TRACE')
+        logging.Logger.trace = partialmethod(logging.Logger.log, logging.TRACE)
+        logging.trace = partial(logging.log, logging.TRACE)
+
         logger = logging.getLogger("DAS")
         if len(logger.handlers) == 0:
             logger.setLevel(self.logLevel)
@@ -143,7 +149,6 @@ class Simulator:
             ch.setFormatter(CustomFormatter())
             logger.addHandler(ch)
         self.logger = logger
-
 
     def resetShape(self, shape):
         """It resets the parameters of the simulation."""
