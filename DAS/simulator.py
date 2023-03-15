@@ -104,11 +104,12 @@ class Simulator:
     def initLogger(self):
         """It initializes the logger."""
         logger = logging.getLogger("DAS")
-        logger.setLevel(self.logLevel)
-        ch = logging.StreamHandler()
-        ch.setLevel(self.logLevel)
-        ch.setFormatter(CustomFormatter())
-        logger.addHandler(ch)
+        if len(logger.handlers) == 0:
+            logger.setLevel(self.logLevel)
+            ch = logging.StreamHandler()
+            ch.setLevel(self.logLevel)
+            ch.setFormatter(CustomFormatter())
+            logger.addHandler(ch)
         self.logger = logger
 
 
