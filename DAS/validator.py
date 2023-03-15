@@ -60,21 +60,15 @@ class Validator:
         elif self.shape.chi > self.shape.blockSize:
             self.logger.error("Chi has to be smaller than %d" % self.shape.blockSize, extra=self.format)
         else:
-            self.chi = shape.chi
             if amIproposer:
                 self.rowIDs = range(shape.blockSize)
                 self.columnIDs = range(shape.blockSize)
             else:
                 #if shape.deterministic:
                 #    random.seed(self.ID)
-                if rows:
-                    self.rowIDs = rows
-                else:
-                    self.rowIDs = unionOfSamples(range(self.shape.blockSize), self.chi, self.shape.vpn1)
-                if columns:
-                    self.columnIDs = columns
-                else:
-                    self.columnIDs = unionOfSamples(range(self.shape.blockSize), self.chi, self.shape.vpn1)
+                vpn = self.shape.vpn1 if (self.ID <= shape.numberNodes * shape.class1ratio) else self.shape.vpn2
+                self.rowIDs = rows if rows else unionOfSamples(range(self.shape.blockSize), self.shape.chi, vpn)
+                self.columnIDs = columns if columns else unionOfSamples(range(self.shape.blockSize), self.shape.chi, vpn)
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)
 
