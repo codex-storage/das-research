@@ -13,8 +13,9 @@ from DAS import *
 # and https://github.com/joblib/joblib/issues/1017
 
 def runOnce(sim, config, shape):
-    if not config.deterministic:
-        random.seed(datetime.now())
+    if config.deterministic:
+        shape.setSeed(config.randomSeed+"-"+str(shape))
+        random.seed(shape.randomSeed)
 
     sim.initLogger()
     sim.resetShape(shape)
@@ -49,10 +50,7 @@ def study():
 
     sim.logger.info("Starting simulations:", extra=sim.format)
     start = time.time()
-
     results = Parallel(config.numJobs)(delayed(runOnce)(sim, config, shape) for shape in config.nextShape())
-
-
     end = time.time()
     sim.logger.info("A total of %d simulations ran in %d seconds" % (len(results), end-start), extra=sim.format)
 
@@ -61,8 +59,7 @@ def study():
             res.dump(execID)
         sim.logger.info("Results dumped into results/%s/" % (execID), extra=sim.format)
 
-    visualization = 1
-    if visualization:
+    if config.visualization:
         vis = Visualizer(execID)
         vis.plotHeatmaps()
 

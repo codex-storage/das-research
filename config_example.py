@@ -39,10 +39,14 @@ blockSizes = range(32,65,16)
 # Per-topic mesh neighborhood size
 netDegrees = range(6, 9, 2)
 
-# number of rows and columns a validator is interested in
+# Number of rows and columns a validator is interested in
 chis = range(4, 9, 2)
 
+# Set to True if you want your run to be deterministic, False if not
 deterministic = False
+
+# If your run is deterministic you can decide the random seed. This is ignore otherwise.
+randomSeed = "DAS"
 
 def nextShape():
     for run in runs:
