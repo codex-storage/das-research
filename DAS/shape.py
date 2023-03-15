@@ -11,6 +11,7 @@ class Shape:
         self.failureRate = failureRate
         self.netDegree = netDegree
         self.chi = chi
+        self.randomSeed = ""
 
     def __repr__(self):
         """Returns a printable representation of the shape"""
@@ -21,6 +22,9 @@ class Shape:
         shastr += "-chi-"+str(self.chi)
         shastr += "-nd-"+str(self.netDegree)
         shastr += "-r-"+str(self.run)
-        return repr(shastr)
+        return shastr
 
+    def setSeed(self, seed):
+        """Adds the random seed to the shape"""
+        self.randomSeed = seed
 

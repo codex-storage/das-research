@@ -39,11 +39,6 @@ class Result:
         resXml = dicttoxml(resd1)
         xmlstr = minidom.parseString(resXml)
         xmlPretty = xmlstr.toprettyxml()
-        filePath = "results/"+execID+"/nbv-"+str(self.shape.numberValidators)+\
-                "-bs-"+str(self.shape.blockSize)+\
-                "-nd-"+str(self.shape.netDegree)+\
-                "-fr-"+str(self.shape.failureRate)+\
-                "-chi-"+str(self.shape.chi)+\
-                "-r-"+str(self.shape.run)+".xml"
+        filePath = "results/"+execID+"/"+str(self.shape)+".xml"
         with open(filePath, "w") as f:
             f.write(xmlPretty)
