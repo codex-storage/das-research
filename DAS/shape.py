@@ -12,6 +12,15 @@ class Shape:
         self.netDegree = netDegree
         self.chi = chi
 
-
+    def __repr__(self):
+        """Returns a printable representation of the shape"""
+        shastr = ""
+        shastr += "bs-"+str(self.blockSize)
+        shastr += "-nbv-"+str(self.numberValidators)
+        shastr += "-fr-"+str(self.failureRate)
+        shastr += "-chi-"+str(self.chi)
+        shastr += "-nd-"+str(self.netDegree)
+        shastr += "-r-"+str(self.run)
+        return repr(shastr)
 
 

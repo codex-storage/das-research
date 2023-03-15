@@ -2,8 +2,27 @@
 
 import time, sys, random, copy
 import importlib
+from joblib import Parallel, delayed
 from DAS import *
 
+# Parallel execution:
+# The code currently uses 'joblib' to execute on multiple cores. For other options such as 'ray', see
+# https://stackoverflow.com/questions/9786102/how-do-i-parallelize-a-simple-python-loop
+# For fixing logging issues in parallel execution, see
+# https://stackoverflow.com/questions/58026381/logging-nested-functions-using-joblib-parallel-and-delayed-calls
+# and https://github.com/joblib/joblib/issues/1017
+
+def runOnce(sim, config, shape):
+    if config.deterministic:
+        random.seed(repr(shape))
+
+    sim.initLogger()
+    sim.resetShape(shape)
+    sim.initValidators()
+    sim.initNetwork()
+    result = sim.run()
+    sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
+    return result
 
 def study():
     if len(sys.argv) < 2:
@@ -24,30 +43,18 @@ def study():
     sim = Simulator(shape, config)
     sim.initLogger()
     results = []
-    simCnt = 0
 
     now = datetime.now()
-    if config.deterministic:
-        random.seed("DASsimulator")
-    else:
-        random.seed(str(now).split(".")[1])
     execID = now.strftime("%Y-%m-%d_%H-%M-%S_")+str(random.randint(100,999))
 
     sim.logger.info("Starting simulations:", extra=sim.format)
     start = time.time()
 
-    for shape in config.nextShape():
+    results = Parallel(config.numJobs)(delayed(runOnce)(sim, config, shape) for shape in config.nextShape())
 
-        sim.resetShape(shape)
-        sim.initValidators()
-        sim.initNetwork()
-        result = sim.run()
-        sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
-        results.append(copy.deepcopy(result))
-        simCnt += 1
 
     end = time.time()
-    sim.logger.info("A total of %d simulations ran in %d seconds" % (simCnt, end-start), extra=sim.format)
+    sim.logger.info("A total of %d simulations ran in %d seconds" % (len(results), end-start), extra=sim.format)
 
     if config.dumpXML:
         for res in results:
