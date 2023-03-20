@@ -166,7 +166,7 @@ class Simulator:
         """It runs the main simulation until the block is available or it gets stucked."""
         self.glob.checkRowsColumns(self.validators)
         self.validators[self.proposerID].broadcastBlock()
-        arrived, expected, validated = self.glob.checkStatus(self.validators)
+        arrived, expected, ready, validated = self.glob.checkStatus(self.validators)
         missingSamples = expected - arrived
         missingVector = []
         steps = 0
@@ -198,12 +198,9 @@ class Simulator:
             for i in range(0,self.shape.numberNodes):
                 self.validators[i].updateStats()
 
-            arrived, expected, validated = self.glob.checkStatus(self.validators)
-            missingSamples = expected - arrived
-            missingRate = missingSamples*100/expected
-            self.logger.debug("step %d, missing %d of %d (%0.02f %%), validated (%0.02f %%)" 
-                              % (steps, missingSamples, expected, missingRate,
-                                 validated/(len(self.validators)-1)*100), extra=self.format)
+            missingSamples, sampleProgress, nodeProgress, validatorProgress = self.glob.getProgress(self.validators)
+            self.logger.debug("step %d, arrived %0.02f %%, ready %0.02f %%, validated %0.02f %%" 
+                              % (steps, sampleProgress*100, nodeProgress*100, validatorProgress*100), extra=self.format)
             if missingSamples == oldMissingSamples:
                 self.logger.debug("The block cannot be recovered, failure rate %d!" % self.shape.failureRate, extra=self.format)
                 missingVector.append(missingSamples)
