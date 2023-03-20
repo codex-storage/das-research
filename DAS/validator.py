@@ -77,6 +77,8 @@ class Validator:
         self.statsTxPerSlot = []
         self.statsRxInSlot = 0
         self.statsRxPerSlot = []
+        self.statsRxDupInSlot = 0
+        self.statsRxDupPerSlot = []
 
         # Set uplink bandwidth. In segments (~560 bytes) per timestep (50ms?)
         # 1 Mbps ~= 1e6 / 20 / 8 / 560 ~= 11
@@ -161,7 +163,7 @@ class Validator:
                 self.receivedQueue.append((rID, cID))
         else:
             self.logger.trace("Recv DUP: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
-        #     self.statsRxDuplicateInSlot += 1
+            self.statsRxDupInSlot += 1
         self.statsRxInSlot += 1
 
     def addToSendQueue(self, rID, cID):
@@ -203,8 +205,10 @@ class Validator:
         """It updates the stats related to sent and received data."""
         self.logger.debug("Stats: tx %d, rx %d", self.statsTxInSlot, self.statsRxInSlot, extra=self.format)
         self.statsRxPerSlot.append(self.statsRxInSlot)
+        self.statsRxDupPerSlot.append(self.statsRxDupInSlot)
         self.statsTxPerSlot.append(self.statsTxInSlot)
         self.statsRxInSlot = 0
+        self.statsRxDupInSlot = 0
         self.statsTxInSlot = 0
 
     def checkSegmentToNeigh(self, rID, cID, neigh):
