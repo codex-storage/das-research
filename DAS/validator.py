@@ -4,7 +4,7 @@ import random
 import collections
 import logging
 from DAS.block import *
-from DAS.tools import shuffled, shuffledDict
+from DAS.tools import shuffled, shuffledDict, unionOfSamples
 from bitarray.util import zeros
 from collections import deque
 from itertools import chain
@@ -38,8 +38,13 @@ class Validator:
         """It returns the validator ID."""
         return str(self.ID)
 
-    def __init__(self, ID, amIproposer, logger, shape, rows, columns):
-        """It initializes the validator with the logger, shape and assigned rows/columns."""
+    def __init__(self, ID, amIproposer, logger, shape, rows = None, columns = None):
+        """It initializes the validator with the logger shape and rows/columns.
+
+            If rows/columns are specified these are observed, otherwise (default)
+            chi rows and columns are selected randomly.
+        """
+
         self.shape = shape
         FORMAT = "%(levelname)s : %(entity)s : %(message)s"
         self.ID = ID
@@ -53,18 +58,17 @@ class Validator:
         if self.shape.chi < 1:
             self.logger.error("Chi has to be greater than 0", extra=self.format)
         elif self.shape.chi > self.shape.blockSize:
-            self.logger.error("Chi has to be smaller than %d" % blockSize, extra=self.format)
+            self.logger.error("Chi has to be smaller than %d" % self.shape.blockSize, extra=self.format)
         else:
             if amIproposer:
                 self.rowIDs = range(shape.blockSize)
                 self.columnIDs = range(shape.blockSize)
             else:
-                self.rowIDs = rows[(self.ID*self.shape.chi):(self.ID*self.shape.chi + self.shape.chi)]
-                self.columnIDs = columns[(self.ID*self.shape.chi):(self.ID*self.shape.chi + self.shape.chi)]
                 #if shape.deterministic:
                 #    random.seed(self.ID)
-                #self.rowIDs = random.sample(range(self.shape.blockSize), self.shape.chi)
-                #self.columnIDs = random.sample(range(self.shape.blockSize), self.shape.chi)
+                vpn = self.shape.vpn1 if (self.ID <= shape.numberNodes * shape.class1ratio) else self.shape.vpn2
+                self.rowIDs = rows if rows else unionOfSamples(range(self.shape.blockSize), self.shape.chi, vpn)
+                self.columnIDs = columns if columns else unionOfSamples(range(self.shape.blockSize), self.shape.chi, vpn)
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)
 
@@ -77,7 +81,12 @@ class Validator:
         # Set uplink bandwidth. In segments (~560 bytes) per timestep (50ms?)
         # 1 Mbps ~= 1e6 / 20 / 8 / 560 ~= 11
         # TODO: this should be a parameter
-        self.bwUplink = 110 if not self.amIproposer else 2200 # approx. 10Mbps and 200Mbps
+        if self.amIproposer:
+            self.bwUplink = shape.bwUplinkProd
+        elif self.ID <= shape.numberNodes * shape.class1ratio:
+            self.bwUplink = shape.bwUplink1
+        else:
+            self.bwUplink = shape.bwUplink2
 
         self.repairOnTheFly = True
         self.sendLineUntil = (self.shape.blockSize + 1) // 2 # stop sending on a p2p link if at least this amount of samples passed

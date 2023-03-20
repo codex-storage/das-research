@@ -14,6 +14,8 @@ if needed.
 """
 
 import logging
+import itertools
+import numpy as np
 from DAS.shape import Shape
 
 dumpXML = 1
@@ -24,11 +26,15 @@ logLevel = logging.INFO
 # for more details, see joblib.Parallel
 numJobs = 3
 
+# distribute rows/columns evenly between validators (True)
+# or generate it using local randomness (False)
+evenLineDistribution = False
+
 # Number of simulation runs with the same parameters for statistical relevance
 runs = range(10)
 
 # Number of validators
-numberValidators = range(256, 513, 128)
+numberNodes = range(256, 513, 128)
 
 # Percentage of block not released by producer
 failureRates = range(10, 91, 40)
@@ -39,8 +45,21 @@ blockSizes = range(32,65,16)
 # Per-topic mesh neighborhood size
 netDegrees = range(6, 9, 2)
 
-# Number of rows and columns a validator is interested in
-chis = range(4, 9, 2)
+# number of rows and columns a validator is interested in
+chis = range(1, 5, 2)
+
+# ratio of class1 nodes (see below for parameters per class)
+class1ratios = np.arange(0, 1, .2)
+
+# Number of validators per beacon node
+validatorsPerNode1 = [1]
+validatorsPerNode2 = [2, 4, 8, 16, 32]
+
+# Set uplink bandwidth. In segments (~560 bytes) per timestep (50ms?)
+# 1 Mbps ~= 1e6 / 20 / 8 / 560 ~= 11
+bwUplinksProd = [2200]
+bwUplinks1 = [110]
+bwUplinks2 = [2200]
 
 # Set to True if you want your run to be deterministic, False if not
 deterministic = False
@@ -49,13 +68,9 @@ deterministic = False
 randomSeed = "DAS"
 
 def nextShape():
-    for run in runs:
-        for fr in failureRates:
-            for chi in chis:
-                for blockSize in blockSizes:
-                    for nv in numberValidators:
-                        for netDegree in netDegrees:
-                            # Network Degree has to be an even number
-                            if netDegree % 2 == 0:
-                                shape = Shape(blockSize, nv, fr, chi, netDegree, run)
-                                yield shape
+    for run, fr, class1ratio, chi, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
+        runs, failureRates, class1ratios, chis, validatorsPerNode1, validatorsPerNode2, blockSizes, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
+        # Network Degree has to be an even number
+        if netDegree % 2 == 0:
+            shape = Shape(blockSize, nn, fr, class1ratio, chi, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
+            yield shape
