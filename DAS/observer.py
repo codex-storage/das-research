@@ -1,5 +1,6 @@
 #!/bin/python3
 
+from statistics import mean
 from DAS.block import *
 
 class Observer:
@@ -65,3 +66,15 @@ class Observer:
             validatorProgress = validated / validatorCnt
 
             return missingSamples, sampleProgress, nodeProgress, validatorProgress
+
+    def getTrafficStats(self, validators):
+            statsTxInSlot = [v.statsTxInSlot for v in validators]
+            statsRxInSlot = [v.statsRxInSlot for v in validators]
+            TX_prod = statsTxInSlot[0]
+            RX_prod = statsRxInSlot[0]
+            TX_avg = mean(statsTxInSlot[1:])
+            TX_max = max(statsTxInSlot[1:])
+            Rx_avg = mean(statsRxInSlot[1:])
+            Rx_max = max(statsRxInSlot[1:])
+
+            return (TX_prod, RX_prod, TX_avg, TX_max, Rx_avg, Rx_max)
