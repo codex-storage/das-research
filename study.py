@@ -24,14 +24,12 @@ def initLogger(config):
 
 def runOnce(config, shape):
 
-    sim = Simulator(shape, config)
-
     if config.deterministic:
         shape.setSeed(config.randomSeed+"-"+str(shape))
         random.seed(shape.randomSeed)
 
+    sim = Simulator(shape, config)
     sim.initLogger()
-    sim.resetShape(shape)
     sim.initValidators()
     sim.initNetwork()
     result = sim.run()
