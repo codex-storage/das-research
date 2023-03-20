@@ -44,6 +44,7 @@ class Observer:
         """It checks the status of how many expected and arrived samples globally."""
         arrived = 0
         expected = 0
+        ready = 0
         validated = 0
         for val in validators:
             if val.amIproposer == 0:
@@ -51,5 +52,16 @@ class Observer:
                 arrived += a
                 expected += e
                 if a == e:
-                    validated += 1
-        return (arrived, expected, validated)
+                    ready += 1
+                    validated += val.vpn
+        return (arrived, expected, ready, validated)
+
+    def getProgress(self, validators):
+            arrived, expected, ready, validated = self.checkStatus(validators)
+            missingSamples = expected - arrived
+            sampleProgress = arrived / expected
+            nodeProgress = ready / (len(validators)-1)
+            validatorCnt = sum([v.vpn for v in validators[1:]])
+            validatorProgress = validated / validatorCnt
+
+            return missingSamples, sampleProgress, nodeProgress, validatorProgress
