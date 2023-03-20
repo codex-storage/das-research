@@ -70,11 +70,14 @@ class Observer:
     def getTrafficStats(self, validators):
             statsTxInSlot = [v.statsTxInSlot for v in validators]
             statsRxInSlot = [v.statsRxInSlot for v in validators]
+            statsRxDupInSlot = [v.statsRxDupInSlot for v in validators]
             TX_prod = statsTxInSlot[0]
             RX_prod = statsRxInSlot[0]
             TX_avg = mean(statsTxInSlot[1:])
             TX_max = max(statsTxInSlot[1:])
             Rx_avg = mean(statsRxInSlot[1:])
             Rx_max = max(statsRxInSlot[1:])
+            RxDup_avg = mean(statsRxDupInSlot[1:])
+            RxDup_max = max(statsRxDupInSlot[1:])
 
-            return (TX_prod, RX_prod, TX_avg, TX_max, Rx_avg, Rx_max)
+            return (TX_prod, RX_prod, TX_avg, TX_max, Rx_avg, Rx_max, RxDup_avg, RxDup_max)

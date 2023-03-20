@@ -188,9 +188,9 @@ class Simulator:
                 self.validators[i].logColumns()
 
             # log TX and RX statistics
-            TX_prod, RX_prod, TX_avg, TX_max, Rx_avg, Rx_max = self.glob.getTrafficStats(self.validators)
-            self.logger.debug("step %d: TX_prod=%.1f, RX_prod=%.1f, TX_avg=%.1f, TX_max=%.1f, Rx_avg=%.1f, Rx_max=%.1f" % 
-                (steps, TX_prod, RX_prod, TX_avg, TX_max, Rx_avg, Rx_max), extra=self.format)
+            TX_prod, RX_prod, TX_avg, TX_max, Rx_avg, Rx_max, RxDup_avg, RxDup_max = self.glob.getTrafficStats(self.validators)
+            self.logger.info("step %d: TX_prod=%.1f, RX_prod=%.1f, TX_avg=%.1f, TX_max=%.1f, Rx_avg=%.1f, Rx_max=%.1f, RxDup_avg=%.1f, RxDup_max=%.1f" % 
+                (steps, TX_prod, RX_prod, TX_avg, TX_max, Rx_avg, Rx_max ,RxDup_avg, RxDup_max), extra=self.format)
             for i in range(0,self.shape.numberNodes):
                 self.validators[i].updateStats()
 
