@@ -64,7 +64,10 @@ class Simulator:
             # If the number of nodes in a channel is smaller or equal to the
             # requested degree, a fully connected graph is used. For n>d, a random
             # d-regular graph is set up. (For n=d+1, the two are the same.)
-            if (len(rowChannels[id]) <= self.shape.netDegree):
+            if not rowChannels[id]:
+                self.logger.error("No nodes for row %d !" % id, extra=self.format)
+                continue
+            elif (len(rowChannels[id]) <= self.shape.netDegree):
                 self.logger.debug("Graph fully connected with degree %d !" % (len(rowChannels[id]) - 1), extra=self.format)
                 G = nx.complete_graph(len(rowChannels[id]))
             else:
@@ -77,7 +80,10 @@ class Simulator:
                 val1.rowNeighbors[id].update({val2.ID : Neighbor(val2, 0, self.shape.blockSize)})
                 val2.rowNeighbors[id].update({val1.ID : Neighbor(val1, 0, self.shape.blockSize)})
 
-            if (len(columnChannels[id]) <= self.shape.netDegree):
+            if not columnChannels[id]:
+                self.logger.error("No nodes for column %d !" % id, extra=self.format)
+                continue
+            elif (len(columnChannels[id]) <= self.shape.netDegree):
                 self.logger.debug("Graph fully connected with degree %d !" % (len(columnChannels[id]) - 1), extra=self.format)
                 G = nx.complete_graph(len(columnChannels[id]))
             else:
