@@ -38,15 +38,15 @@ class Visualizer:
                 bwUplink2 = int(root.find('bwUplink2').text)
                 tta = int(root.find('tta').text)
 
-                # Loop over all possible combinations of length 4 of the parameters
-                for combination in combinations(self.parameters, 4):
+                # Loop over all possible combinations of of the parameters minus two
+                for combination in combinations(self.parameters, len(self.parameters)-2):
                     # Get the indices and values of the parameters in the combination
                     indices = [self.parameters.index(element) for element in combination]
                     selectedValues = [run, blockSize, failureRate, numberNodes, netDegree, chi, vpn1, vpn2, bwUplinkProd, bwUplink1, bwUplink2]
                     values = [selectedValues[index] for index in indices]
                     names = [self.parameters[i] for i in indices]
                     keyComponents = [f"{name}_{value}" for name, value in zip(names, values)]
-                    key = tuple(keyComponents[:4])
+                    key = tuple(keyComponents[:len(self.parameters)-2])
                     #Get the names of the other 2 parameters that are not included in the key
                     otherParams = [self.parameters[i] for i in range(len(self.parameters)) if i not in indices]
                     #Append the values of the other 2 parameters and the ttas to the lists for the key
@@ -92,7 +92,7 @@ class Visualizer:
         #Label formatting for the figures
         result = ''.join([f" {char}" if char.isupper() else char for char in label])
         return result.title()
-    
+
     def formatTitle(self, key):
         #Title formatting for the figures
         name = ''.join([f" {char}" if char.isupper() else char for char in key.split('_')[0]])
@@ -104,7 +104,7 @@ class Visualizer:
         data = self.plottingData()
         filteredKeys = self.similarKeys(data)
         print("Plotting heatmaps...")
-        
+
         #Create the directory if it doesn't exist already
         heatmapsFolder = self.folderPath + '/heatmaps'
         if not os.path.exists(heatmapsFolder):
