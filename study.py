@@ -22,7 +22,7 @@ def initLogger(config):
     logger.addHandler(ch)
     return logger
 
-def runOnce(config, shape):
+def runOnce(config, shape, execID):
 
     if config.deterministic:
         shape.setSeed(config.randomSeed+"-"+str(shape))
@@ -34,6 +34,10 @@ def runOnce(config, shape):
     sim.initNetwork()
     result = sim.run()
     sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
+
+    if config.dumpXML:
+        result.dump(execID)
+
     return result
 
 def study():
@@ -61,14 +65,9 @@ def study():
 
     logger.info("Starting simulations:", extra=format)
     start = time.time()
-    results = Parallel(config.numJobs)(delayed(runOnce)(config, shape) for shape in config.nextShape())
+    results = Parallel(config.numJobs)(delayed(runOnce)(config, shape ,execID) for shape in config.nextShape())
     end = time.time()
     logger.info("A total of %d simulations ran in %d seconds" % (len(results), end-start), extra=format)
-
-    if config.dumpXML:
-        for res in results:
-            res.dump(execID)
-        logger.info("Results dumped into results/%s/" % (execID), extra=format)
 
     if config.visualization:
         vis = Visualizer(execID)
