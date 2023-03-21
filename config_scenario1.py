@@ -52,6 +52,8 @@ bwUplinks1 = [110]
 bwUplinks2 = [2200]
 
 deterministic = True
+# If your run is deterministic you can decide the random seed. This is ignore otherwise.
+randomSeed = "DAS"
 
 def nextShape():
     for run, fr, class1ratio, chi, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
