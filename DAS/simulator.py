@@ -30,15 +30,27 @@ class Simulator:
         self.glob.reset()
         self.validators = []
         if self.config.evenLineDistribution:
-            rows = list(range(self.shape.blockSize)) * int(self.shape.chi*self.shape.numberNodes/self.shape.blockSize)
-            columns = list(range(self.shape.blockSize)) * int(self.shape.chi*self.shape.numberNodes/self.shape.blockSize)
+
+            lightVal = int(self.shape.numberNodes * self.shape.class1ratio * self.shape.vpn1)
+            heavyVal = int(self.shape.numberNodes * (1-self.shape.class1ratio) * self.shape.vpn2)
+            totalValidators = lightVal + heavyVal
+            rows =    list(range(self.shape.blockSize)) * (int(totalValidators/self.shape.blockSize)+1)
+            columns = list(range(self.shape.blockSize)) * (int(totalValidators/self.shape.blockSize)+1)
+            offset = heavyVal*self.shape.chi
             random.shuffle(rows)
             random.shuffle(columns)
         for i in range(self.shape.numberNodes):
             if self.config.evenLineDistribution:
-                val = Validator(i, int(not i!=0), self.logger, self.shape,
-                            rows[(i*self.shape.chi):((i+1)*self.shape.chi)],
-                            columns[(i*self.shape.chi):((i+1)*self.shape.chi)])
+                if i < int(heavyVal/self.shape.vpn2):  # First start with the heavy nodes
+                    start =   i  *self.shape.chi*self.shape.vpn2
+                    end   = (i+1)*self.shape.chi*self.shape.vpn2
+                else:               # Then the solo stakers
+                    j = i - int(heavyVal/self.shape.vpn2)
+                    start = offset+(  j  *self.shape.chi)
+                    end   = offset+((j+1)*self.shape.chi)
+                r =    rows[start:end]
+                c = columns[start:end]
+                val = Validator(i, int(not i!=0), self.logger, self.shape, r, c, self.config.evenLineDistribution)
             else:
                 val = Validator(i, int(not i!=0), self.logger, self.shape)
             if i == self.proposerID:
@@ -47,6 +59,7 @@ class Simulator:
             else:
                 val.logIDs()
             self.validators.append(val)
+        self.logger.debug("Validators initialized.", extra=self.format)
 
     def initNetwork(self):
         """It initializes the simulated network."""
@@ -58,6 +71,14 @@ class Simulator:
                     rowChannels[id].append(v)
                 for id in v.columnIDs:
                     columnChannels[id].append(v)
+
+        # Check rows/columns distribution
+        #totalR = 0
+        #totalC = 0
+        #for r in rowChannels:
+        #    totalR += len(r)
+        #for c in columnChannels:
+        #    totalC += len(c)
 
         for id in range(self.shape.blockSize):
 
@@ -178,7 +199,7 @@ class Simulator:
             # log TX and RX statistics
             statsTxInSlot = [v.statsTxInSlot for v in self.validators]
             statsRxInSlot = [v.statsRxInSlot for v in self.validators]
-            self.logger.debug("step %d: TX_prod=%.1f, RX_prod=%.1f, TX_avg=%.1f, TX_max=%.1f, Rx_avg=%.1f, Rx_max=%.1f" % 
+            self.logger.debug("step %d: TX_prod=%.1f, RX_prod=%.1f, TX_avg=%.1f, TX_max=%.1f, Rx_avg=%.1f, Rx_max=%.1f" %
                 (steps, statsTxInSlot[0], statsRxInSlot[0],
                  mean(statsTxInSlot[1:]), max(statsTxInSlot[1:]),
                  mean(statsRxInSlot[1:]), max(statsRxInSlot[1:])), extra=self.format)
