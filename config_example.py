@@ -19,6 +19,7 @@ import numpy as np
 from DAS.shape import Shape
 
 dumpXML = 1
+plotProgress = 1
 visualization = 1
 logLevel = logging.INFO
 

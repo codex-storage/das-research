@@ -28,7 +28,7 @@ def runOnce(config, shape, execID):
         shape.setSeed(config.randomSeed+"-"+str(shape))
         random.seed(shape.randomSeed)
 
-    sim = Simulator(shape, config)
+    sim = Simulator(shape, config, execID)
     sim.initLogger()
     sim.initValidators()
     sim.initNetwork()

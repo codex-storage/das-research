@@ -14,7 +14,7 @@ from DAS.validator import *
 class Simulator:
     """This class implements the main DAS simulator."""
 
-    def __init__(self, shape, config):
+    def __init__(self, shape, config, execID):
         """It initializes the simulation with a set of parameters (shape)."""
         self.shape = shape
         self.config = config
@@ -25,6 +25,7 @@ class Simulator:
         self.logLevel = config.logLevel
         self.proposerID = 0
         self.glob = []
+        self.execID = execID
 
         # In GossipSub the initiator might push messages without participating in the mesh.
         # proposerPublishOnly regulates this behavior. If set to true, the proposer is not
@@ -217,10 +218,16 @@ class Simulator:
             else:
                 steps += 1
 
-        progress = pd.DataFrame(progressVector)
-        progress.plot.line(subplots = [[cnS, cnN, cnV], [cnT0], [cnT1, cnR1, cnD1], [cnT2, cnR2, cnD2]],
-                           title = str(self.shape))
-        matplotlib.pyplot.pause(30)
+        if self.config.plotProgress:
+            progress = pd.DataFrame(progressVector)
+            progress.plot.line(subplots = [[cnS, cnN, cnV], [cnT0], [cnT1, cnR1, cnD1], [cnT2, cnR2, cnD2]],
+                            title = str(self.shape))
+            if not os.path.exists("results"):
+                os.makedirs("results")
+            if not os.path.exists("results/"+self.execID):
+                os.makedirs("results/"+self.execID)
+            filePath = "results/"+self.execID+"/"+str(self.shape)+".png"
+            matplotlib.pyplot.savefig(filePath)
 
         self.result.populate(self.shape, missingVector)
         self.result.addMetric("trafficStats", trafficStatsVector)
