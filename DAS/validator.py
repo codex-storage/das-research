@@ -61,12 +61,14 @@ class Validator:
             self.logger.error("Chi has to be smaller than %d" % self.shape.blockSize, extra=self.format)
         else:
             if amIproposer:
+                self.nodeClass = 0
                 self.rowIDs = range(shape.blockSize)
                 self.columnIDs = range(shape.blockSize)
             else:
                 #if shape.deterministic:
                 #    random.seed(self.ID)
-                self.vpn = self.shape.vpn1 if (self.ID <= shape.numberNodes * shape.class1ratio) else self.shape.vpn2
+                self.nodeClass = 1 if (self.ID <= shape.numberNodes * shape.class1ratio) else 2
+                self.vpn = self.shape.vpn1 if (self.nodeClass == 1) else self.shape.vpn2
                 self.rowIDs = rows if rows else unionOfSamples(range(self.shape.blockSize), self.shape.chi, self.vpn)
                 self.columnIDs = columns if columns else unionOfSamples(range(self.shape.blockSize), self.shape.chi, self.vpn)
         self.rowNeighbors = collections.defaultdict(dict)
@@ -85,7 +87,7 @@ class Validator:
         # TODO: this should be a parameter
         if self.amIproposer:
             self.bwUplink = shape.bwUplinkProd
-        elif self.ID <= shape.numberNodes * shape.class1ratio:
+        elif self.nodeClass == 1:
             self.bwUplink = shape.bwUplink1
         else:
             self.bwUplink = shape.bwUplink2
