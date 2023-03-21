@@ -21,35 +21,35 @@ numJobs = -1
 evenLineDistribution = False
 
 # Number of simulation runs with the same parameters for statistical relevance
-runs = range(10)
+runs = range(1)
 
 # Number of validators
-numberNodes = [5000]
+numberNodes = [8000]
 
 # Percentage of block not released by producer
-failureRates = range(0, 25, 5)
+failureRates = [0]
 
 # Block size in one dimension in segments. Block is blockSizes * blockSizes segments.
 blockSizes = [512]
 
 # Per-topic mesh neighborhood size
-netDegrees = range(4, 7, 2)
+netDegrees = [6]
 
 # number of rows and columns a validator is interested in
-chis = range(1, 5, 1)
+chis = [2]
 
 # ratio of class1 nodes (see below for parameters per class)
-class1ratios = [0.9]
+class1ratios = [0.8]
 
 # number of validators per beacon node
 validatorsPerNode1 = [1]
-validatorsPerNode2 = [16, 32, 64]
+validatorsPerNode2 = [100]
 
 # Set uplink bandwidth. In segments (~560 bytes) per timestep (50ms?)
 # 1 Mbps ~= 1e6 / 20 / 8 / 560 ~= 11
-bwUplinksProd = [2200]
+bwUplinksProd = [11000]
 bwUplinks1 = [110]
-bwUplinks2 = [2200]
+bwUplinks2 = [11000]
 
 deterministic = True
 # If your run is deterministic you can decide the random seed. This is ignore otherwise.
