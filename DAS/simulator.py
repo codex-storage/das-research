@@ -2,6 +2,8 @@
 
 import networkx as nx
 import logging, random
+import pandas as pd
+import matplotlib
 from functools import partial, partialmethod
 from datetime import datetime
 from DAS.tools import *
@@ -147,6 +149,7 @@ class Simulator:
         arrived, expected, ready, validated = self.glob.checkStatus(self.validators)
         missingSamples = expected - arrived
         missingVector = []
+        progressVector = []
         trafficStatsVector = []
         steps = 0
         while(True):
@@ -178,6 +181,31 @@ class Simulator:
             missingSamples, sampleProgress, nodeProgress, validatorProgress = self.glob.getProgress(self.validators)
             self.logger.debug("step %d, arrived %0.02f %%, ready %0.02f %%, validated %0.02f %%" 
                               % (steps, sampleProgress*100, nodeProgress*100, validatorProgress*100), extra=self.format)
+
+            cnS = "samples received"
+            cnN = "nodes ready"
+            cnV = "validators ready"
+            cnT0 = "TX builder mean"
+            cnT1 = "TX class1 mean"
+            cnT2 = "TX class2 mean"
+            cnR1 = "RX class1 mean"
+            cnR2 = "RX class2 mean"
+            cnD1 = "Dup class1 mean"
+            cnD2 = "Dup class2 mean"
+
+            progressVector.append({
+                cnS:sampleProgress,
+                cnN:nodeProgress,
+                cnV:validatorProgress,
+                cnT0: trafficStats[0]["Tx"]["mean"],
+                cnT1: trafficStats[1]["Tx"]["mean"],
+                cnT2: trafficStats[2]["Tx"]["mean"],
+                cnR1: trafficStats[1]["Rx"]["mean"],
+                cnR2: trafficStats[2]["Rx"]["mean"],
+                cnD1: trafficStats[1]["RxDup"]["mean"],
+                cnD2: trafficStats[2]["RxDup"]["mean"],
+                })
+
             if missingSamples == oldMissingSamples:
                 self.logger.debug("The block cannot be recovered, failure rate %d!" % self.shape.failureRate, extra=self.format)
                 missingVector.append(missingSamples)
@@ -188,6 +216,11 @@ class Simulator:
                 break
             else:
                 steps += 1
+
+        progress = pd.DataFrame(progressVector)
+        progress.plot.line(subplots = [[cnS, cnN, cnV], [cnT0], [cnT1, cnR1, cnD1], [cnT2, cnR2, cnD2]],
+                           title = str(self.shape))
+        matplotlib.pyplot.pause(30)
 
         self.result.populate(self.shape, missingVector)
         self.result.addMetric("trafficStats", trafficStatsVector)
