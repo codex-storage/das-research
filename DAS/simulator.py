@@ -147,6 +147,7 @@ class Simulator:
         arrived, expected, ready, validated = self.glob.checkStatus(self.validators)
         missingSamples = expected - arrived
         missingVector = []
+        trafficStatsVector = []
         steps = 0
         while(True):
             missingVector.append(missingSamples)
@@ -167,11 +168,12 @@ class Simulator:
                 self.validators[i].logColumns()
 
             # log TX and RX statistics
-            TX_prod, RX_prod, TX_avg, TX_max, Rx_avg, Rx_max, RxDup_avg, RxDup_max = self.glob.getTrafficStats(self.validators)
-            self.logger.info("step %d: TX_prod=%.1f, RX_prod=%.1f, TX_avg=%.1f, TX_max=%.1f, Rx_avg=%.1f, Rx_max=%.1f, RxDup_avg=%.1f, RxDup_max=%.1f" % 
-                (steps, TX_prod, RX_prod, TX_avg, TX_max, Rx_avg, Rx_max ,RxDup_avg, RxDup_max), extra=self.format)
+            trafficStats = self.glob.getTrafficStats(self.validators)
+            self.logger.debug("step %d: %s" % 
+                (steps, trafficStats), extra=self.format)
             for i in range(0,self.shape.numberNodes):
                 self.validators[i].updateStats()
+            trafficStatsVector.append(trafficStats)
 
             missingSamples, sampleProgress, nodeProgress, validatorProgress = self.glob.getProgress(self.validators)
             self.logger.debug("step %d, arrived %0.02f %%, ready %0.02f %%, validated %0.02f %%" 
@@ -188,5 +190,6 @@ class Simulator:
                 steps += 1
 
         self.result.populate(self.shape, missingVector)
+        self.result.addMetric("trafficStats", trafficStatsVector)
         return self.result
 

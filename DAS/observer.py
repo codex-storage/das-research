@@ -1,6 +1,6 @@
 #!/bin/python3
 
-from statistics import mean
+import numpy as np
 from DAS.block import *
 
 class Observer:
@@ -68,16 +68,18 @@ class Observer:
             return missingSamples, sampleProgress, nodeProgress, validatorProgress
 
     def getTrafficStats(self, validators):
-            statsTxInSlot = [v.statsTxInSlot for v in validators]
-            statsRxInSlot = [v.statsRxInSlot for v in validators]
-            statsRxDupInSlot = [v.statsRxDupInSlot for v in validators]
-            TX_prod = statsTxInSlot[0]
-            RX_prod = statsRxInSlot[0]
-            TX_avg = mean(statsTxInSlot[1:])
-            TX_max = max(statsTxInSlot[1:])
-            Rx_avg = mean(statsRxInSlot[1:])
-            Rx_max = max(statsRxInSlot[1:])
-            RxDup_avg = mean(statsRxDupInSlot[1:])
-            RxDup_max = max(statsRxDupInSlot[1:])
+            def maxOrNan(l):
+                return np.max(l) if l else np.NaN
 
-            return (TX_prod, RX_prod, TX_avg, TX_max, Rx_avg, Rx_max, RxDup_avg, RxDup_max)
+            trafficStats = {}
+            for cl in range(0,3):
+                Tx = [v.statsTxInSlot for v in validators if v.nodeClass == cl]
+                Rx = [v.statsRxInSlot for v in validators if v.nodeClass == cl]
+                RxDup = [v.statsRxDupInSlot for v in validators if v.nodeClass == cl]
+                trafficStats[cl] = {
+                    "Tx": {"mean": np.mean(Tx), "max": maxOrNan(Tx)},
+                    "Rx": {"mean": np.mean(Rx), "max": maxOrNan(Rx)},
+                    "RxDup": {"mean": np.mean(RxDup), "max": maxOrNan(RxDup)},
+                    }
+
+            return trafficStats
