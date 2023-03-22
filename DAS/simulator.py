@@ -230,6 +230,6 @@ class Simulator:
             matplotlib.pyplot.savefig(filePath)
 
         self.result.populate(self.shape, missingVector)
-        self.result.addMetric("trafficStats", trafficStatsVector)
+        self.result.addMetric("progress", progress.to_dict(orient='list'))
         return self.result
 
