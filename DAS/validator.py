@@ -49,8 +49,6 @@ class Validator:
         FORMAT = "%(levelname)s : %(entity)s : %(message)s"
         self.ID = ID
         self.format = {"entity": "Val "+str(self.ID)}
-        self.block = Block(self.shape.blockSize)
-        self.receivedBlock = Block(self.shape.blockSize)
         self.receivedQueue = deque()
         self.sendQueue = deque()
         self.amIproposer = amIproposer
@@ -73,6 +71,8 @@ class Validator:
                 self.columnIDs = columns if columns else unionOfSamples(range(self.shape.blockSize), self.shape.chi, self.vpn)
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)
+        self.block = SparseBlock(shape.blockSize, self.rowIDs, self.columnIDs)
+        self.receivedBlock = SparseBlock(shape.blockSize, self.rowIDs, self.columnIDs)
 
         #statistics
         self.statsTxInSlot = 0
