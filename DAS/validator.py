@@ -159,12 +159,14 @@ class Validator:
             if src in self.columnNeighbors[cID]:
                 self.columnNeighbors[cID][src].receiving[rID] = 1
         if not self.receivedBlock.getSegment(rID, cID):
-            self.logger.trace("Recv new: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
+            if self.logger.isEnabledFor(logging.TRACE):
+                self.logger.trace("Recv new: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
             self.receivedBlock.setSegment(rID, cID)
             if self.perNodeQueue or self.perNeighborQueue:
                 self.receivedQueue.append((rID, cID))
         else:
-            self.logger.trace("Recv DUP: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
+            if self.logger.isEnabledFor(logging.TRACE):
+                self.logger.trace("Recv DUP: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
             self.statsRxDupInSlot += 1
         self.statsRxInSlot += 1
 
@@ -225,7 +227,8 @@ class Validator:
 
     def sendSegmentToNeigh(self, rID, cID, neigh):
         """Send segment to a neighbor (without checks)."""
-        self.logger.trace("sending %d/%d to %d", rID, cID, neigh.node.ID, extra=self.format)
+        if self.logger.isEnabledFor(logging.TRACE):
+            self.logger.trace("sending %d/%d to %d", rID, cID, neigh.node.ID, extra=self.format)
         i = rID if neigh.dim else cID
         neigh.sent[i] = 1
         neigh.node.receiveSegment(rID, cID, self.ID)
