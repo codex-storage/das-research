@@ -38,7 +38,7 @@ class Validator:
         """It returns the validator ID."""
         return str(self.ID)
 
-    def __init__(self, ID, amIproposer, logger, shape, rows = None, columns = None, globalRandomness = True):
+    def __init__(self, ID, amIproposer, logger, shape, rows = None, columns = None):
         """It initializes the validator with the logger shape and rows/columns.
 
             If rows/columns are specified these are observed, otherwise (default)
@@ -66,13 +66,9 @@ class Validator:
             else:
                 #if shape.deterministic:
                 #    random.seed(self.ID)
-                if globalRandomness:
-                    self.rowIDs = rows
-                    self.columnIDs = columns
-                else:
-                    vpn = self.shape.vpn1 if (self.ID <= shape.numberNodes * shape.class1ratio) else self.shape.vpn2
-                    self.rowIDs = rows if rows else unionOfSamples(range(self.shape.blockSize), self.shape.chi, vpn)
-                    self.columnIDs = columns if columns else unionOfSamples(range(self.shape.blockSize), self.shape.chi, vpn)
+                vpn = self.shape.vpn1 if (self.ID <= shape.numberNodes * shape.class1ratio) else self.shape.vpn2
+                self.rowIDs = rows if rows else unionOfSamples(range(self.shape.blockSize), self.shape.chi, vpn)
+                self.columnIDs = columns if columns else unionOfSamples(range(self.shape.blockSize), self.shape.chi, vpn)
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)
 

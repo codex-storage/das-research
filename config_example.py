@@ -28,7 +28,7 @@ numJobs = 3
 
 # distribute rows/columns evenly between validators (True)
 # or generate it using local randomness (False)
-evenLineDistribution = False
+evenLineDistribution = True
 
 # Number of simulation runs with the same parameters for statistical relevance
 runs = range(10)

@@ -50,7 +50,7 @@ class Simulator:
                     end   = offset+((j+1)*self.shape.chi)
                 r =    rows[start:end]
                 c = columns[start:end]
-                val = Validator(i, int(not i!=0), self.logger, self.shape, r, c, self.config.evenLineDistribution)
+                val = Validator(i, int(not i!=0), self.logger, self.shape, r, c)
             else:
                 val = Validator(i, int(not i!=0), self.logger, self.shape)
             if i == self.proposerID:
