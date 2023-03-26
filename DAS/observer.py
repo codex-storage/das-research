@@ -3,21 +3,22 @@
 from DAS.block import *
 
 class Observer:
-
-    block = []
-    rows = []
-    columns = []
-    goldenData = []
-    broadcasted = []
-    config = []
-    logger = []
+    """This class gathers global data from the simulation, like an 'all-seen god'."""
 
     def __init__(self, logger, config):
+        """It initializes the observer with a logger and given configuration."""
         self.config = config
         self.format = {"entity": "Observer"}
         self.logger = logger
+        self.block = []
+        self.rows = []
+        self.columns = []
+        self.goldenData = []
+        self.broadcasted = []
+
 
     def reset(self):
+        """It resets all the gathered data to zeros."""
         self.block = [0] * self.config.blockSize * self.config.blockSize
         self.goldenData = [0] * self.config.blockSize * self.config.blockSize
         self.rows = [0] * self.config.blockSize
@@ -25,6 +26,7 @@ class Observer:
         self.broadcasted = Block(self.config.blockSize)
 
     def checkRowsColumns(self, validators):
+        """It checks how many validators have been assigned to each row and column."""
         for val in validators:
             if val.amIproposer == 0:
                 for r in val.rowIDs:
@@ -38,10 +40,12 @@ class Observer:
                 self.logger.warning("There is a row/column that has not been assigned", extra=self.format)
 
     def setGoldenData(self, block):
+        """Stores the original real data to compare it with future situations."""
         for i in range(self.config.blockSize*self.config.blockSize):
             self.goldenData[i] = block.data[i]
 
     def checkBroadcasted(self):
+        """It checks how many broadcasted samples are still missing in the network."""
         zeros = 0
         for i in range(self.blockSize * self.blockSize):
             if self.broadcasted.data[i] == 0:
@@ -51,6 +55,7 @@ class Observer:
         return zeros
 
     def checkStatus(self, validators):
+        """It checks the status of how many expected and arrived samples globally."""
         arrived = 0
         expected = 0
         for val in validators:

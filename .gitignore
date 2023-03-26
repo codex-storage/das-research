@@ -1,5 +1,7 @@
 *.swp
 *.pyc
 results/*
+myenv
+doc/_build
 !results/plots.py
 Frontend/
