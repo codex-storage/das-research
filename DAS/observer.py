@@ -70,6 +70,8 @@ class Observer:
     def getTrafficStats(self, validators):
             def maxOrNan(l):
                 return np.max(l) if l else np.NaN
+            def meanOrNan(l):
+                return np.mean(l) if l else np.NaN
 
             trafficStats = {}
             for cl in range(0,3):
@@ -77,9 +79,9 @@ class Observer:
                 Rx = [v.statsRxInSlot for v in validators if v.nodeClass == cl]
                 RxDup = [v.statsRxDupInSlot for v in validators if v.nodeClass == cl]
                 trafficStats[cl] = {
-                    "Tx": {"mean": np.mean(Tx), "max": maxOrNan(Tx)},
-                    "Rx": {"mean": np.mean(Rx), "max": maxOrNan(Rx)},
-                    "RxDup": {"mean": np.mean(RxDup), "max": maxOrNan(RxDup)},
+                    "Tx": {"mean": meanOrNan(Tx), "max": maxOrNan(Tx)},
+                    "Rx": {"mean": meanOrNan(Rx), "max": maxOrNan(Rx)},
+                    "RxDup": {"mean": meanOrNan(RxDup), "max": maxOrNan(RxDup)},
                     }
 
             return trafficStats
