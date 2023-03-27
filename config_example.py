@@ -24,14 +24,14 @@ logLevel = logging.INFO
 
 # number of parallel workers. -1: all cores; 1: sequential
 # for more details, see joblib.Parallel
-numJobs = 3
+numJobs = -1
 
 # distribute rows/columns evenly between validators (True)
 # or generate it using local randomness (False)
 evenLineDistribution = True
 
 # Number of simulation runs with the same parameters for statistical relevance
-runs = range(10)
+runs = range(2)
 
 # Number of validators
 numberNodes = range(256, 513, 128)
@@ -46,14 +46,14 @@ blockSizes = range(32,65,16)
 netDegrees = range(6, 9, 2)
 
 # number of rows and columns a validator is interested in
-chis = range(1, 5, 2)
+chis = range(2, 5, 2)
 
 # ratio of class1 nodes (see below for parameters per class)
-class1ratios = np.arange(0, 1, .2)
+class1ratios = [0.8, 0.9]
 
 # Number of validators per beacon node
 validatorsPerNode1 = [1]
-validatorsPerNode2 = [2, 4, 8, 16, 32]
+validatorsPerNode2 = [500]
 
 # Set uplink bandwidth. In segments (~560 bytes) per timestep (50ms?)
 # 1 Mbps ~= 1e6 / 20 / 8 / 560 ~= 11
@@ -61,8 +61,11 @@ bwUplinksProd = [2200]
 bwUplinks1 = [110]
 bwUplinks2 = [2200]
 
+# Step duration in miliseconds (Classic RTT is about 100ms)
+stepDuration = 50
+
 # Set to True if you want your run to be deterministic, False if not
-deterministic = False
+deterministic = True
 
 # If your run is deterministic you can decide the random seed. This is ignore otherwise.
 randomSeed = "DAS"

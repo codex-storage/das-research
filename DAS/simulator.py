@@ -13,12 +13,13 @@ from DAS.validator import *
 class Simulator:
     """This class implements the main DAS simulator."""
 
-    def __init__(self, shape, config):
+    def __init__(self, shape, config, execID):
         """It initializes the simulation with a set of parameters (shape)."""
         self.shape = shape
         self.config = config
         self.format = {"entity": "Simulator"}
-        self.result = Result(self.shape)
+        self.execID = execID
+        self.result = Result(self.shape, self.execID)
         self.validators = []
         self.logger = []
         self.logLevel = config.logLevel
@@ -207,12 +208,12 @@ class Simulator:
                 missingVector.append(missingSamples)
                 break
             elif missingSamples == 0:
-                #self.logger.info("The entire block is available at step %d, with failure rate %d !" % (steps, self.shape.failureRate), extra=self.format)
+                self.logger.debug("The entire block is available at step %d, with failure rate %d !" % (steps, self.shape.failureRate), extra=self.format)
                 missingVector.append(missingSamples)
                 break
             else:
                 steps += 1
 
-        self.result.populate(self.shape, missingVector)
+        self.result.populate(self.shape, self.config, missingVector)
         return self.result
 
