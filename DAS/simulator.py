@@ -255,6 +255,7 @@ class Simulator:
                 os.makedirs("results/"+self.execID)
             filePath = "results/"+self.execID+"/"+str(self.shape)+".png"
             matplotlib.pyplot.savefig(filePath)
+            matplotlib.pyplot.close()
 
         self.result.populate(self.shape, self.config, missingVector)
         return self.result
