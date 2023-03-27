@@ -16,10 +16,16 @@ class Result:
         self.missingVector = []
         self.metrics = {}
 
-    def populate(self, shape, config, missingVector):
+    def populate(self, shape, config, missingVector, bandwidthVector):
         """It populates part of the result data inside a vector."""
         self.shape = shape
         self.missingVector = missingVector
+        self.proTx = bandwidthVector[0]
+        self.proRx = bandwidthVector[1]
+        self.aveTx = bandwidthVector[2]
+        self.maxTx = bandwidthVector[3]
+        self.aveRx = bandwidthVector[4]
+        self.maxRx = bandwidthVector[5]
         missingSamples = missingVector[-1]
         if missingSamples == 0:
             self.blockAvailable = 1
