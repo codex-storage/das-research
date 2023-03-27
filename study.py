@@ -28,7 +28,7 @@ def runOnce(config, shape, execID):
         shape.setSeed(config.randomSeed+"-"+str(shape))
         random.seed(shape.randomSeed)
 
-    sim = Simulator(shape, config)
+    sim = Simulator(shape, config, execID)
     sim.initLogger()
     sim.initValidators()
     sim.initNetwork()
@@ -36,7 +36,7 @@ def runOnce(config, shape, execID):
     sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
 
     if config.dumpXML:
-        result.dump(execID)
+        result.dump()
 
     return result
 
