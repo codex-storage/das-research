@@ -170,6 +170,12 @@ class Simulator:
         arrived, expected = self.glob.checkStatus(self.validators)
         missingSamples = expected - arrived
         missingVector = []
+        proTxVector = []
+        proRxVector = []
+        aveTxVector = []
+        maxTxVector = []
+        aveRxVector = []
+        maxRxVector = []
         steps = 0
         while(True):
             missingVector.append(missingSamples)
@@ -192,10 +198,21 @@ class Simulator:
             # log TX and RX statistics
             statsTxInSlot = [v.statsTxInSlot for v in self.validators]
             statsRxInSlot = [v.statsRxInSlot for v in self.validators]
+            proTx = statsTxInSlot[0]
+            proRx = statsRxInSlot[0]
+            aveTx = mean(statsTxInSlot[1:])
+            maxTx = max(statsTxInSlot[1:])
+            aveRx = mean(statsRxInSlot[1:])
+            maxRx = max(statsRxInSlot[1:])
             self.logger.debug("step %d: TX_prod=%.1f, RX_prod=%.1f, TX_avg=%.1f, TX_max=%.1f, Rx_avg=%.1f, Rx_max=%.1f" %
-                (steps, statsTxInSlot[0], statsRxInSlot[0],
-                 mean(statsTxInSlot[1:]), max(statsTxInSlot[1:]),
-                 mean(statsRxInSlot[1:]), max(statsRxInSlot[1:])), extra=self.format)
+                (steps, proTx, proRx, aveTx, maxTx, aveRx, maxRx), extra=self.format)
+            proTxVector.append(proTx)
+            proRxVector.append(proRx)
+            aveTxVector.append(aveTx)
+            maxTxVector.append(maxTx)
+            aveRxVector.append(aveRx)
+            maxRxVector.append(maxRx)
+
             for i in range(0,self.shape.numberNodes):
                 self.validators[i].updateStats()
 
@@ -214,6 +231,9 @@ class Simulator:
             else:
                 steps += 1
 
-        self.result.populate(self.shape, self.config, missingVector)
+        bandwidthVector = [sum(proTxVector), sum(proRxVector),
+                 mean(aveTxVector), max(maxTxVector),
+                 mean(aveRxVector), max(maxRxVector)]
+        self.result.populate(self.shape, self.config, missingVector, bandwidthVector)
         return self.result
 
