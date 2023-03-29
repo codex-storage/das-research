@@ -28,6 +28,7 @@ class Result:
             self.tta = -1
 
     def addMetric(self, name, metric):
+        """Generic function to add a metric to the results."""
         self.metrics[name] = metric
 
     def dump(self, execID):
