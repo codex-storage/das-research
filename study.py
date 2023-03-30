@@ -36,7 +36,7 @@ def runOnce(config, shape, execID):
     sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
 
     if config.dumpXML:
-        result.dump()
+        result.dump(execID)
 
     return result
 

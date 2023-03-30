@@ -241,6 +241,6 @@ class Simulator:
         progress = pd.DataFrame(progressVector)
         if self.config.saveProgress:
             self.result.addMetric("progress", progress.to_dict(orient='list'))
-        self.result.populate(self.shape, missingVector)
+        self.result.populate(self.shape, self.config, missingVector)
         return self.result
 
