@@ -3,7 +3,6 @@
 import networkx as nx
 import logging, random
 import pandas as pd
-import matplotlib
 from functools import partial, partialmethod
 from datetime import datetime
 from DAS.tools import *
