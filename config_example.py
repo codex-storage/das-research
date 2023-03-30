@@ -77,9 +77,6 @@ randomSeed = "DAS"
 # If True, print diagnostics when the block is not available
 diagnostics = False
 
-# Number of steps without progress to stop simulation
-steps4StopCondition = 7
-
 def nextShape():
     for run, fr, class1ratio, chi, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
         runs, failureRates, class1ratios, chis, validatorsPerNode1, validatorsPerNode2, blockSizes, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
