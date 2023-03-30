@@ -13,12 +13,13 @@ from DAS.validator import *
 class Simulator:
     """This class implements the main DAS simulator."""
 
-    def __init__(self, shape, config):
+    def __init__(self, shape, config, execID):
         """It initializes the simulation with a set of parameters (shape)."""
         self.shape = shape
         self.config = config
         self.format = {"entity": "Simulator"}
-        self.result = Result(self.shape)
+        self.execID = execID
+        self.result = Result(self.shape, self.execID)
         self.validators = []
         self.logger = []
         self.logLevel = config.logLevel
@@ -192,14 +193,14 @@ class Simulator:
 
             # log TX and RX statistics
             trafficStats = self.glob.getTrafficStats(self.validators)
-            self.logger.debug("step %d: %s" % 
+            self.logger.debug("step %d: %s" %
                 (steps, trafficStats), extra=self.format)
             for i in range(0,self.shape.numberNodes):
                 self.validators[i].updateStats()
             trafficStatsVector.append(trafficStats)
 
             missingSamples, sampleProgress, nodeProgress, validatorProgress = self.glob.getProgress(self.validators)
-            self.logger.debug("step %d, arrived %0.02f %%, ready %0.02f %%, validated %0.02f %%" 
+            self.logger.debug("step %d, arrived %0.02f %%, ready %0.02f %%, validated %0.02f %%"
                               % (steps, sampleProgress*100, nodeProgress*100, validatorProgress*100), extra=self.format)
 
             cnS = "samples received"
@@ -231,7 +232,7 @@ class Simulator:
                 missingVector.append(missingSamples)
                 break
             elif missingSamples == 0:
-                #self.logger.info("The entire block is available at step %d, with failure rate %d !" % (steps, self.shape.failureRate), extra=self.format)
+                self.logger.debug("The entire block is available at step %d, with failure rate %d !" % (steps, self.shape.failureRate), extra=self.format)
                 missingVector.append(missingSamples)
                 break
             else:
@@ -240,6 +241,6 @@ class Simulator:
         progress = pd.DataFrame(progressVector)
         if self.config.saveProgress:
             self.result.addMetric("progress", progress.to_dict(orient='list'))
-        self.result.populate(self.shape, missingVector)
+        self.result.populate(self.shape, self.config, missingVector)
         return self.result
 

@@ -36,7 +36,7 @@ class Visualizer:
                 bwUplinkProd = int(root.find('bwUplinkProd').text)
                 bwUplink1 = int(root.find('bwUplink1').text)
                 bwUplink2 = int(root.find('bwUplink2').text)
-                tta = int(root.find('tta').text)
+                tta = float(root.find('tta').text)
 
                 # Loop over all possible combinations of of the parameters minus two
                 for combination in combinations(self.parameters, len(self.parameters)-2):
@@ -120,7 +120,7 @@ class Visualizer:
                 hist, xedges, yedges = np.histogram2d(data[key][labels[0]], data[key][labels[1]], bins=(len(xlabels), len(ylabels)), weights=data[key]['ttas'])
                 hist = hist.T
                 fig, ax = plt.subplots(figsize=(10, 6))
-                sns.heatmap(hist, xticklabels=xlabels, yticklabels=ylabels, cmap='Purples', cbar_kws={'label': 'Time to block availability'}, linecolor='black', linewidths=0.3, annot=True, fmt=".2f", ax=ax)
+                sns.heatmap(hist, xticklabels=xlabels, yticklabels=ylabels, cmap='Purples', cbar_kws={'label': 'Time to block availability (ms)'}, linecolor='black', linewidths=0.3, annot=True, fmt=".2f", ax=ax)
                 plt.xlabel(self.formatLabel(labels[0]))
                 plt.ylabel(self.formatLabel(labels[1]))
                 filename = ""
@@ -131,6 +131,8 @@ class Visualizer:
                         filename += f"{key[paramValueCnt]}"
                         formattedTitle = self.formatTitle(key[paramValueCnt])
                         title += formattedTitle
+                        if (paramValueCnt+1) % 5 == 0:
+                            title += "\n"
                         paramValueCnt += 1
                 title_obj = plt.title(title)
                 font_size = 16 * fig.get_size_inches()[0] / 10
