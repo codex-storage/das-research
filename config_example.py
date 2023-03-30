@@ -19,6 +19,9 @@ import numpy as np
 from DAS.shape import Shape
 
 dumpXML = 1
+
+# save progress vectors to XML
+saveProgress = 1
 visualization = 1
 logLevel = logging.INFO
 

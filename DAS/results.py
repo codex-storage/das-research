@@ -14,6 +14,7 @@ class Result:
         self.blockAvailable = -1
         self.tta = -1
         self.missingVector = []
+        self.metrics = {}
 
     def populate(self, shape, config, missingVector):
         """It populates part of the result data inside a vector."""
@@ -27,7 +28,11 @@ class Result:
             self.blockAvailable = 0
             self.tta = -1
 
-    def dump(self):
+    def addMetric(self, name, metric):
+        """Generic function to add a metric to the results."""
+        self.metrics[name] = metric
+
+    def dump(self, execID):
         """It dumps the results of the simulation in an XML file."""
         if not os.path.exists("results"):
             os.makedirs("results")
