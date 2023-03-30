@@ -61,10 +61,8 @@ class Simulator:
                     j = i - int(heavyVal/self.shape.vpn2)
                     start = offset+(  j  *self.shape.chi)
                     end   = offset+((j+1)*self.shape.chi)
-                r = list(set(rows[start:end]))
-                c = list(set(columns[start:end]))
-                r.sort()
-                c.sort()
+                r = set(rows[start:end])
+                c = set(columns[start:end])
                 val = Validator(i, int(not i!=0), self.logger, self.shape, r, c)
             else:
                 val = Validator(i, int(not i!=0), self.logger, self.shape)
