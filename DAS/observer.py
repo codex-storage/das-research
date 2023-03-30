@@ -58,6 +58,17 @@ class Observer:
         return (arrived, expected, ready, validated)
 
     def getProgress(self, validators):
+            """Calculate current simulation progress with different metrics.
+
+            Returns:
+            - missingSamples: overall number of sample instances missing in nodes.
+            Sample are counted on both rows and columns, so intersections of interest are counted twice.
+            - sampleProgress: previous expressed as progress ratio
+            - nodeProgress: ratio of nodes having all segments interested in
+            - validatorProgress: same as above, but vpn weighted average. I.e. it counts per validator,
+            but counts a validator only if its support node's all validators see all interesting segments
+            TODO: add real per validator progress counter
+            """
             arrived, expected, ready, validated = self.checkStatus(validators)
             missingSamples = expected - arrived
             sampleProgress = arrived / expected
@@ -68,6 +79,7 @@ class Observer:
             return missingSamples, sampleProgress, nodeProgress, validatorProgress
 
     def getTrafficStats(self, validators):
+            """Summary statistics of traffic measurements in a timestep."""
             def maxOrNan(l):
                 return np.max(l) if l else np.NaN
             def meanOrNan(l):

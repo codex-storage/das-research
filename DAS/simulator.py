@@ -19,7 +19,8 @@ class Simulator:
         self.shape = shape
         self.config = config
         self.format = {"entity": "Simulator"}
-        self.result = Result(self.shape)
+        self.execID = execID
+        self.result = Result(self.shape, self.execID)
         self.validators = []
         self.logger = []
         self.logLevel = config.logLevel
@@ -279,7 +280,7 @@ class Simulator:
                 missingVector.append(missingSamples)
                 break
             elif missingSamples == 0:
-                #self.logger.info("The entire block is available at step %d, with failure rate %d !" % (steps, self.shape.failureRate), extra=self.format)
+                self.logger.debug("The entire block is available at step %d, with failure rate %d !" % (steps, self.shape.failureRate), extra=self.format)
                 missingVector.append(missingSamples)
                 break
             else:
@@ -288,17 +289,6 @@ class Simulator:
         progress = pd.DataFrame(progressVector)
         if self.config.saveProgress:
             self.result.addMetric("progress", progress.to_dict(orient='list'))
-        if self.config.plotProgress:
-            progress.plot.line(subplots = [[cnS, cnN, cnV], [cnT0], [cnT1, cnR1, cnD1], [cnT2, cnR2, cnD2]],
-                            title = str(self.shape))
-            if not os.path.exists("results"):
-                os.makedirs("results")
-            if not os.path.exists("results/"+self.execID):
-                os.makedirs("results/"+self.execID)
-            filePath = "results/"+self.execID+"/"+str(self.shape)+".png"
-            matplotlib.pyplot.savefig(filePath)
-            matplotlib.pyplot.close()
-
-        self.result.populate(self.shape, missingVector)
+        self.result.populate(self.shape, self.config, missingVector)
         return self.result
 
