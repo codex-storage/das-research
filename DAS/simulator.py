@@ -229,9 +229,11 @@ class Simulator:
                 })
 
             if missingSamples == oldMissingSamples:
-                self.logger.debug("The block cannot be recovered, failure rate %d!" % self.shape.failureRate, extra=self.format)
+                if len(missingVector) > self.config.steps4StopCondition:
+                    if missingSamples == missingVector[-self.config.steps4StopCondition]:
+                        self.logger.debug("The block cannot be recovered, failure rate %d!" % self.shape.failureRate, extra=self.format)
+                        break
                 missingVector.append(missingSamples)
-                break
             elif missingSamples == 0:
                 self.logger.debug("The entire block is available at step %d, with failure rate %d !" % (steps, self.shape.failureRate), extra=self.format)
                 missingVector.append(missingSamples)
