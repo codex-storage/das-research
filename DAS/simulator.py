@@ -47,8 +47,9 @@ class Simulator:
             lightVal = int(self.shape.numberNodes * self.shape.class1ratio * self.shape.vpn1)
             heavyVal = int(self.shape.numberNodes * (1-self.shape.class1ratio) * self.shape.vpn2)
             totalValidators = lightVal + heavyVal
-            rows =    list(range(self.shape.blockSize)) * (int(totalValidators/self.shape.blockSize)+1)
-            columns = list(range(self.shape.blockSize)) * (int(totalValidators/self.shape.blockSize)+1)
+            totalRows = totalValidators * self.shape.chi
+            rows =    list(range(self.shape.blockSize)) * (int(totalRows/self.shape.blockSize)+1)
+            columns = list(range(self.shape.blockSize)) * (int(totalRows/self.shape.blockSize)+1)
             offset = heavyVal*self.shape.chi
             random.shuffle(rows)
             random.shuffle(columns)
@@ -61,8 +62,8 @@ class Simulator:
                     j = i - int(heavyVal/self.shape.vpn2)
                     start = offset+(  j  *self.shape.chi)
                     end   = offset+((j+1)*self.shape.chi)
-                r =    rows[start:end]
-                c = columns[start:end]
+                r = set(rows[start:end])
+                c = set(columns[start:end])
                 val = Validator(i, int(not i!=0), self.logger, self.shape, r, c)
             else:
                 val = Validator(i, int(not i!=0), self.logger, self.shape)
