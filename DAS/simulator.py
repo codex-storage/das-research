@@ -59,8 +59,8 @@ class Simulator:
             self.logger.debug("Shuffled rows: %s" % str(rows), extra=self.format)
             self.logger.debug("Shuffled columns: %s" % str(columns), extra=self.format)
 
-        assignatedRows = []
-        assignatedCols = []
+        assignedRows = []
+        assignedCols = []
         for i in range(self.shape.numberNodes):
             if self.config.evenLineDistribution:
                 if i < int(heavyVal/self.shape.vpn2):  # First start with the heavy nodes
@@ -71,15 +71,13 @@ class Simulator:
                     start = offset+(  j  *self.shape.chi)
                     end   = offset+((j+1)*self.shape.chi)
                 # Remove duplicates
-                r = list(dict.fromkeys(rows[start:end]))
-                c = list(dict.fromkeys(columns[start:end]))
-                r.sort()
-                c.sort()
+                r = set(rows[start:end])
+                c = set(columns[start:end])
                 val = Validator(i, int(not i!=0), self.logger, self.shape, r, c)
                 self.logger.debug("Validators %d row IDs: %s" % (val.ID, val.rowIDs), extra=self.format)
                 self.logger.debug("Validators %d column IDs: %s" % (val.ID, val.columnIDs), extra=self.format)
-                assignatedRows = assignatedRows + r
-                assignatedCols = assignatedCols + c
+                assignedRows = assignedRows + list(r)
+                assignedCols = assignedCols + list(c)
 
             else:
                 val = Validator(i, int(not i!=0), self.logger, self.shape)
@@ -89,10 +87,10 @@ class Simulator:
                 val.logIDs()
             self.validators.append(val)
 
-        assignatedRows.sort()
-        assignatedCols.sort()
-        self.logger.debug("Rows assignated: %s" % str(assignatedRows), extra=self.format)
-        self.logger.debug("Columns assignated: %s" % str(assignatedCols), extra=self.format)
+        assignedRows.sort()
+        assignedCols.sort()
+        self.logger.debug("Rows assigned: %s" % str(assignedRows), extra=self.format)
+        self.logger.debug("Columns assigned: %s" % str(assignedCols), extra=self.format)
         self.logger.debug("Validators initialized.", extra=self.format)
 
     def initNetwork(self):
