@@ -69,8 +69,8 @@ class Validator:
                 #    random.seed(self.ID)
                 self.nodeClass = 1 if (self.ID <= shape.numberNodes * shape.class1ratio) else 2
                 self.vpn = self.shape.vpn1 if (self.nodeClass == 1) else self.shape.vpn2
-                self.rowIDs = set(rows) if rows else unionOfSamples(range(self.shape.blockSize), self.shape.chi, self.vpn)
-                self.columnIDs = set(columns) if columns else unionOfSamples(range(self.shape.blockSize), self.shape.chi, self.vpn)
+                self.rowIDs = rows if rows else unionOfSamples(range(self.shape.blockSize), self.shape.chi, self.vpn)
+                self.columnIDs = columns if columns else unionOfSamples(range(self.shape.blockSize), self.shape.chi, self.vpn)
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)
 
