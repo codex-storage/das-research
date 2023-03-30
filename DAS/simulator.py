@@ -71,7 +71,6 @@ class Simulator:
                     j = i - int(heavyVal/self.shape.vpn2)
                     start = offset+(  j  *self.shape.chi)
                     end   = offset+((j+1)*self.shape.chi)
-                # Remove duplicates
                 r = set(rows[start:end])
                 c = set(columns[start:end])
                 val = Validator(i, int(not i!=0), self.logger, self.shape, r, c)

@@ -23,7 +23,7 @@ class Result:
         missingSamples = missingVector[-1]
         if missingSamples == 0:
             self.blockAvailable = 1
-            self.tta = len(missingVector) * (1000/config.stepDuration)
+            self.tta = len(missingVector) * (config.stepDuration)
         else:
             self.blockAvailable = 0
             self.tta = -1
