@@ -6,19 +6,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from itertools import combinations
+from config_example import runs
 
 class Visualizer:
 
     def __init__(self, execID):
         self.execID = execID
         self.folderPath = "results/"+self.execID
-        self.parameters = ['run', 'blockSize', 'failureRate', 'numberNodes', 'netDegree',
-                           'chi', 'vpn1', 'vpn2', 'bwUplinkProd', 'bwUplink1', 'bwUplink2']
+        self.parameters = ['run', 'blockSize', 'failureRate', 'numberNodes', 'netDegree', 'chi', 'vpn1', 'vpn2', 'class1ratio', 'bwUplinkProd', 'bwUplink1', 'bwUplink2']
         self.minimumDataPoints = 2
+        self.maxTTA = 999
 
     def plottingData(self):
         """Store data with a unique key for each params combination"""
         data = {}
+        bw = []
         """Loop over the xml files in the folder"""
         for filename in os.listdir(self.folderPath):
             """Loop over the xmls and store the data in variables"""
@@ -29,6 +31,7 @@ class Visualizer:
                 blockSize = int(root.find('blockSize').text)
                 failureRate = int(root.find('failureRate').text)
                 numberNodes = int(root.find('numberNodes').text)
+                class1ratio = float(root.find('class1ratio').text)
                 netDegree = int(root.find('netDegree').text)
                 chi = int(root.find('chi').text)
                 vpn1 = int(root.find('vpn1').text)
@@ -38,25 +41,31 @@ class Visualizer:
                 bwUplink2 = int(root.find('bwUplink2').text)
                 tta = int(root.find('tta').text)
 
-                """Loop over all possible combinations of length 4 of the parameters"""
+                # if tta == -1:
+                #     tta = self.maxTTA
+
+                """Store BW"""
+                bw.append(bwUplinkProd)
+
+                """Loop over all possible combinations of length of the parameters minus x, y params"""
                 for combination in combinations(self.parameters, len(self.parameters)-2):
                     # Get the indices and values of the parameters in the combination
 
                     indices = [self.parameters.index(element) for element in combination]
-                    selectedValues = [run, blockSize, failureRate, numberNodes, netDegree, chi, vpn1, vpn2, bwUplinkProd, bwUplink1, bwUplink2]
+                    selectedValues = [run, blockSize, failureRate, numberNodes, netDegree, chi, vpn1, vpn2, class1ratio, bwUplinkProd, bwUplink1, bwUplink2]
                     values = [selectedValues[index] for index in indices]
                     names = [self.parameters[i] for i in indices]
                     keyComponents = [f"{name}_{value}" for name, value in zip(names, values)]
                     key = tuple(keyComponents[:len(self.parameters)-2])
-                    """Get the names of the other 2 parameters that are not included in the key"""
+                    """Get the names of the other parameters that are not included in the key"""
                     otherParams = [self.parameters[i] for i in range(len(self.parameters)) if i not in indices]
-                    """Append the values of the other 2 parameters and the ttas to the lists for the key"""
+                    """Append the values of the other parameters and the ttas to the lists for the key"""
                     otherIndices = [i for i in range(len(self.parameters)) if i not in indices]
 
                     """Initialize the dictionary for the key if it doesn't exist yet"""
                     if key not in data:
                         data[key] = {}
-                        """Initialize lists for the other 2 parameters and the ttas with the key"""
+                        """Initialize lists for the other parameters and the ttas with the key"""
                         data[key][otherParams[0]] = []
                         data[key][otherParams[1]] = []
                         data[key]['ttas'] = []
@@ -73,14 +82,14 @@ class Visualizer:
         print("Getting data from the folder...")
         return data
     
-    def averageRuns(self, data):
+    def averageRuns(self, data, runs):
         """Get the average of run 0 and run 1 for each key"""
         newData = {}
         for key, value in data.items():
             runExists = False
             """Check if the key contains 'run_' with a numerical value"""
             for item in key:
-                if item.startswith('run_0'):
+                if item.startswith('run_'):
                     runExists = True
                     break
             if runExists:
@@ -88,20 +97,20 @@ class Visualizer:
                     """Create a new key with the other items in the tuple"""
                     if item.startswith('run_'):
                         newKey = tuple([x for x in key if x != item])
-                        key0 = ('run_0',) + newKey
-                        data0 = data[key0]
-                        key1 = ('run_1',) + newKey
-                        data1 = data[key1]
+                        """Average the similar key values"""
+                        total = [0] * len(data[key]['ttas'])
+                        for i in range(runs):
+                            key0 = (f'run_{i}',) + newKey
+                            for cnt, tta in enumerate(data[key0]['ttas']):
+                                total[cnt] += tta
+                        for i in range(len(total)):
+                            total[i] = total[i]/runs
                         averages = {}
-                        for key in data0.keys():
-                            if key in data1:
-                                values = []
-                                for i in range(len(data0[key])):
-                                    value = (data0[key][i] + data1[key][i]) / 2.0
-                                    if isinstance(data0[key][i], int) and isinstance(data1[key][i], int) and key != 'ttas':
-                                        value = int(value)
-                                    values.append(value)
-                                averages[key] = values
+                        for subkey in data[key].keys():
+                            if subkey == 'ttas':
+                                averages[subkey] = total
+                            else:
+                                averages[subkey] = data[key][subkey]
                         newData[newKey] = averages
         print("Getting the average of the runs...")
         return newData
@@ -135,9 +144,12 @@ class Visualizer:
 
     def plotHeatmaps(self):
         """Plot and store the 2D heatmaps in subfolders"""
-        data = self.plottingData()
-        data = self.averageRuns(data)
+        data= self.plottingData()
+        """Average the runs if needed"""
+        if(len(runs) > 1):
+            data = self.averageRuns(data, len(runs))
         filteredKeys = self.similarKeys(data)
+        vmin, vmax = 0, self.maxTTA
         print("Plotting heatmaps...")
    
         """Create the directory if it doesn't exist already"""
@@ -152,10 +164,10 @@ class Visualizer:
                 ylabels = np.sort(np.unique(data[key][labels[1]]))
                 if len(xlabels) < self.minimumDataPoints or len(ylabels) < self.minimumDataPoints:
                     continue
-                hist, xedges, yedges = np.histogram2d(data[key][labels[0]], data[key][labels[1]], bins=(len(xlabels), len(ylabels)), weights=data[key]['ttas'])
+                hist, xedges, yedges = np.histogram2d(data[key][labels[0]], data[key][labels[1]], bins=(len(xlabels), len(ylabels)), weights=data[key]['ttas'], normed=False)
                 hist = hist.T
                 fig, ax = plt.subplots(figsize=(10, 6))
-                sns.heatmap(hist, xticklabels=xlabels, yticklabels=ylabels, cmap='Purples', cbar_kws={'label': 'Time to block availability'}, linecolor='black', linewidths=0.3, annot=True, fmt=".2f", ax=ax)
+                sns.heatmap(hist, xticklabels=xlabels, yticklabels=ylabels, cmap='Purples', cbar_kws={'label': 'Time to block availability'}, linecolor='black', linewidths=0.3, annot=True, fmt=".2f", ax=ax, vmin=vmin, vmax=vmax)
                 plt.xlabel(self.formatLabel(labels[0]))
                 plt.ylabel(self.formatLabel(labels[1]))
                 filename = ""
@@ -177,3 +189,18 @@ class Visualizer:
                 plt.savefig(os.path.join(targetFolder, filename))
                 plt.close()
                 plt.clf()
+    
+    def plotHist(self, bandwidth):
+        """Plot Bandwidth Frequency Histogram"""
+        plt.hist(bandwidth, bins=5)
+        plt.xlabel('Bandwidth')
+        plt.ylabel('Frequency')
+        plt.title('Bandwidth Histogram')
+
+        """Create the directory if it doesn't exist already"""
+        histogramFolder = self.folderPath + '/histogram'
+        if not os.path.exists(histogramFolder):
+            os.makedirs(histogramFolder)
+        filename = os.path.join(histogramFolder, 'histogram.png')
+        plt.savefig(filename)
+        plt.clf()
