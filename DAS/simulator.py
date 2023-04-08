@@ -210,7 +210,6 @@ class Simulator:
     def run(self):
         """It runs the main simulation until the block is available or it gets stucked."""
         self.glob.checkRowsColumns(self.validators)
-        self.validators[self.proposerID].broadcastBlock()
         arrived, expected, ready, validated = self.glob.checkStatus(self.validators)
         missingSamples = expected - arrived
         missingVector = []
