@@ -39,6 +39,9 @@ runs = range(2)
 # Number of validators
 numberNodes = range(256, 513, 128)
 
+# select failure model between: "random, sequential, MEP, MEP+1, DEP, DEP+1, MREP, MREP-1"
+failureModels = ["random"]
+
 # Percentage of block not released by producer
 failureRates = range(10, 91, 40)
 

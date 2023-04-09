@@ -122,10 +122,54 @@ class Validator:
             self.logger.warning("I am not a block proposer", extra=self.format)
         else:
             self.logger.debug("Creating block...", extra=self.format)
-            order = [i for i in range(self.shape.blockSize * self.shape.blockSize)]
-            order = random.sample(order, int((1 - self.shape.failureRate/100) * len(order)))
-            for i in order:
-                self.block.data[i] = 1
+            if self.shape.failureModel == "random":
+                order = [i for i in range(self.shape.blockSize * self.shape.blockSize)]
+                order = random.sample(order, int((1 - self.shape.failureRate/100) * len(order)))
+                for i in order:
+                    self.block.data[i] = 1
+            elif self.shape.failureModel == "sequential":
+                order = order[:int((1 - self.shape.failureRate/100) * len(order))]
+                for i in order:
+                    self.block.data[i] = 1
+            elif self.shape.failureModel == "MEP": # Minimal size non-recoverable Erasure Pattern
+                for r in range(self.shape.blockSize):
+                    for c in range(self.shape.blockSize):
+                        k = self.shape.blockSize/2
+                        if r > k or c > k:
+                            self.block.setSegment(r,c)
+            elif self.shape.failureModel == "MEP+1": # MEP +1 segment to make it recoverable
+                for r in range(self.shape.blockSize):
+                    for c in range(self.shape.blockSize):
+                        k = self.shape.blockSize/2
+                        if r > k or c > k:
+                            self.block.setSegment(r,c)
+                self.block.setSegment(0, 0)
+            elif self.shape.failureModel == "DEP":
+                for r in range(self.shape.blockSize):
+                    for c in range(self.shape.blockSize):
+                        k = self.shape.blockSize/2
+                        if (r+c) % self.shape.blockSize > k:
+                            self.block.setSegment(r,c)
+            elif self.shape.failureModel == "DEP+1":
+                for r in range(self.shape.blockSize):
+                    for c in range(self.shape.blockSize):
+                        k = self.shape.blockSize/2
+                        if (r+c) % self.shape.blockSize > k:
+                            self.block.setSegment(r,c)
+                self.block.setSegment(0, 0)
+            elif self.shape.failureModel == "MREP": # Minimum size Recoverable Erasure Pattern
+                for r in range(self.shape.blockSize):
+                    for c in range(self.shape.blockSize):
+                        k = self.shape.blockSize/2
+                        if r < k and c < k:
+                            self.block.setSegment(r,c)
+            elif self.shape.failureModel == "MREP-1": # make MREP non-recoverable
+                for r in range(self.shape.blockSize):
+                    for c in range(self.shape.blockSize):
+                        k = self.shape.blockSize/2
+                        if r < k and c < k:
+                            self.block.setSegment(r,c)
+                self.block.setSegment(0, 0, 0)
 
             nbFailures = self.block.data.count(0)
             measuredFailureRate = nbFailures * 100 / (self.shape.blockSize * self.shape.blockSize)
