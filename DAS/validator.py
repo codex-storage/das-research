@@ -69,8 +69,13 @@ class Validator:
                 #    random.seed(self.ID)
                 self.nodeClass = 1 if (self.ID <= shape.numberNodes * shape.class1ratio) else 2
                 self.vpn = self.shape.vpn1 if (self.nodeClass == 1) else self.shape.vpn2
-                self.rowIDs = rows if rows else unionOfSamples(range(self.shape.blockSize), self.shape.chi, self.vpn)
-                self.columnIDs = columns if columns else unionOfSamples(range(self.shape.blockSize), self.shape.chi, self.vpn)
+                self.vRowIDs = []
+                self.vColumnIDs = []
+                for i in range(self.vpn):
+                    self.vRowIDs.append(set(rows[i*self.shape.chi:(i+1)*self.shape.chi]) if rows else set(random.sample(range(self.shape.blockSize), self.shape.chi)))
+                    self.vColumnIDs.append(set(columns[i*self.shape.chi:(i+1)*self.shape.chi]) if columns else set(random.sample(range(self.shape.blockSize), self.shape.chi)))
+                self.rowIDs = set.union(*self.vRowIDs)
+                self.columnIDs = set.union(*self.vColumnIDs)
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)
 
@@ -469,16 +474,27 @@ class Validator:
 
     def checkStatus(self):
         """It checks how many expected/arrived samples are for each assigned row/column."""
-        arrived = 0
-        expected = 0
-        for id in self.columnIDs:
-            line = self.getColumn(id)
-            arrived += line.count(1)
-            expected += len(line)
-        for id in self.rowIDs:
-            line = self.getRow(id)
-            arrived += line.count(1)
-            expected += len(line)
+
+        def checkStatus(columnIDs, rowIDs):
+            arrived = 0
+            expected = 0
+            for id in columnIDs:
+                line = self.getColumn(id)
+                arrived += line.count(1)
+                expected += len(line)
+            for id in rowIDs:
+                line = self.getRow(id)
+                arrived += line.count(1)
+                expected += len(line)
+            return arrived, expected
+
+        arrived, expected = checkStatus(self.columnIDs, self.rowIDs)
         self.logger.debug("status: %d / %d", arrived, expected, extra=self.format)
 
-        return (arrived, expected)
+        validated = 0
+        for i in range(self.vpn):
+            a, e = checkStatus(self.vColumnIDs[i], self.vRowIDs[i])
+            if a == e:
+                validated+=1
+
+        return arrived, expected, validated
