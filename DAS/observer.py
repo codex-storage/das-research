@@ -46,16 +46,18 @@ class Observer:
         arrived = 0
         expected = 0
         ready = 0
+        validatedall = 0
         validated = 0
         for val in validators:
             if val.amIproposer == 0:
-                (a, e) = val.checkStatus()
+                (a, e, v) = val.checkStatus()
                 arrived += a
                 expected += e
                 if a == e:
                     ready += 1
-                    validated += val.vpn
-        return (arrived, expected, ready, validated)
+                    validatedall += val.vpn
+                validated += v
+        return (arrived, expected, ready, validatedall, validated)
 
     def getProgress(self, validators):
             """Calculate current simulation progress with different metrics.
@@ -69,14 +71,15 @@ class Observer:
             but counts a validator only if its support node's all validators see all interesting segments
             TODO: add real per validator progress counter
             """
-            arrived, expected, ready, validated = self.checkStatus(validators)
+            arrived, expected, ready, validatedall, validated = self.checkStatus(validators)
             missingSamples = expected - arrived
             sampleProgress = arrived / expected
             nodeProgress = ready / (len(validators)-1)
             validatorCnt = sum([v.vpn for v in validators[1:]])
+            validatorAllProgress = validatedall / validatorCnt
             validatorProgress = validated / validatorCnt
 
-            return missingSamples, sampleProgress, nodeProgress, validatorProgress
+            return missingSamples, sampleProgress, nodeProgress, validatorAllProgress, validatorProgress
 
     def getTrafficStats(self, validators):
             """Summary statistics of traffic measurements in a timestep."""
