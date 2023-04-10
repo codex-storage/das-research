@@ -283,8 +283,7 @@ class Simulator:
                 self.logger.debug("The entire block is available at step %d, with failure rate %d !" % (steps, self.shape.failureRate), extra=self.format)
                 missingVector.append(missingSamples)
                 break
-            else:
-                steps += 1
+            steps += 1
 
         progress = pd.DataFrame(progressVector)
         if self.config.saveProgress:
