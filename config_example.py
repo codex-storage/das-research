@@ -48,6 +48,9 @@ blockSizes = range(32,65,16)
 # Per-topic mesh neighborhood size
 netDegrees = range(6, 9, 2)
 
+# percentage of GossipSub mesh link failures
+gsEdgeFailureRate = 0
+
 # number of rows and columns a validator is interested in
 chis = range(2, 5, 2)
 

@@ -129,6 +129,8 @@ class Simulator:
             if not nx.is_connected(G):
                 self.logger.error("Graph not connected for row %d !" % id, extra=self.format)
             for u, v in G.edges:
+                if (random.randint(0,99) < self.config.gsEdgeFailureRate):
+                    continue
                 val1=rowChannels[id][u]
                 val2=rowChannels[id][v]
                 val1.rowNeighbors[id].update({val2.ID : Neighbor(val2, 0, self.shape.blockSize)})
@@ -145,6 +147,8 @@ class Simulator:
             if not nx.is_connected(G):
                 self.logger.error("Graph not connected for column %d !" % id, extra=self.format)
             for u, v in G.edges:
+                if (random.randint(0,99) < self.config.gsEdgeFailureRate):
+                    continue
                 val1=columnChannels[id][u]
                 val2=columnChannels[id][v]
                 val1.columnNeighbors[id].update({val2.ID : Neighbor(val2, 1, self.shape.blockSize)})
