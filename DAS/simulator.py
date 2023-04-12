@@ -66,9 +66,9 @@ class Simulator:
                     end   = offset+((j+1)*self.shape.chi)
                 r = set(rows[start:end])
                 c = set(columns[start:end])
-                val = Validator(i, int(not i!=0), self.logger, self.shape, r, c)
+                val = Validator(i, int(not i!=0), self.logger, self.shape, self.config, r, c)
             else:
-                val = Validator(i, int(not i!=0), self.logger, self.shape)
+                val = Validator(i, int(not i!=0), self.logger, self.shape, self.config)
             if i == self.proposerID:
                 val.initBlock()
             else:
