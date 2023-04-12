@@ -3,6 +3,7 @@
 import networkx as nx
 import logging, random
 import pandas as pd
+import matplotlib
 from functools import partial, partialmethod
 from datetime import datetime
 from DAS.tools import *
@@ -25,6 +26,7 @@ class Simulator:
         self.logLevel = config.logLevel
         self.proposerID = 0
         self.glob = []
+        self.execID = execID
 
         # In GossipSub the initiator might push messages without participating in the mesh.
         # proposerPublishOnly regulates this behavior. If set to true, the proposer is not
@@ -242,6 +244,17 @@ class Simulator:
         progress = pd.DataFrame(progressVector)
         if self.config.saveProgress:
             self.result.addMetric("progress", progress.to_dict(orient='list'))
+        if self.config.plotProgress:
+            progress.plot.line(subplots = [[cnS, cnN, cnV], [cnT0], [cnT1, cnR1, cnD1], [cnT2, cnR2, cnD2]],
+                            title = str(self.shape))
+            if not os.path.exists("results"):
+                os.makedirs("results")
+            if not os.path.exists("results/"+self.execID):
+                os.makedirs("results/"+self.execID)
+            filePath = "results/"+self.execID+"/"+str(self.shape)+".png"
+            matplotlib.pyplot.savefig(filePath)
+            matplotlib.pyplot.close()
+
         self.result.populate(self.shape, self.config, missingVector)
         return self.result
 

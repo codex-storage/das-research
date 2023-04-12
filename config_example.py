@@ -22,6 +22,10 @@ dumpXML = 1
 
 # save progress vectors to XML
 saveProgress = 1
+
+# plot progress for each run to PNG
+plotProgress = 1
+
 visualization = 1
 logLevel = logging.INFO
 
