@@ -128,6 +128,7 @@ class Validator:
                 for i in order:
                     self.block.data[i] = 1
             elif self.shape.failureModel == "sequential":
+                order = [i for i in range(self.shape.blockSize * self.shape.blockSize)]
                 order = order[:int((1 - self.shape.failureRate/100) * len(order))]
                 for i in order:
                     self.block.data[i] = 1
