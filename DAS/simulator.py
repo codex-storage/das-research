@@ -242,6 +242,8 @@ class Simulator:
             steps += 1
 
         progress = pd.DataFrame(progressVector)
+        progress['time [s]'] = [self.config.stepDuration / 1000 * i for i in range(len(progressVector))]
+        progress = progress.set_index('time [s]')
         if self.config.saveProgress:
             self.result.addMetric("progress", progress.to_dict(orient='list'))
         if self.config.plotProgress:
