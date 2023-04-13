@@ -40,15 +40,16 @@ evenLineDistribution = False
 runs = range(1)
 
 # Number of validators
-numberNodes = [1000]
+numberNodes = [8000]
 
-failureModels = ["random", "sequential", "MEP", "MEP+1", "DEP", "DEP+1", "MREP", "MREP-1"]
+#failureModels = ["random", "sequential", "MEP", "MEP+1", "DEP", "DEP+1", "MREP", "MREP-1"]
+failureModels = ["random"]
 
 # Percentage of block not released by producer
-failureRates = [50]
+failureRates = [0]
 
 # Block size in one dimension in segments. Block is blockSizes * blockSizes segments.
-blockSizes = [256]
+blockSizes = [512]
 
 # Per-topic mesh neighborhood size
 netDegrees = [4]
@@ -57,7 +58,7 @@ gsChannelFailureRate = 0
 gsEdgeFailureRate = 0
 
 # number of rows and columns a validator is interested in
-chis = [1,2,3]
+chis = [2]
 
 # ratio of class1 nodes (see below for parameters per class)
 class1ratios = [0.8]
@@ -68,9 +69,9 @@ validatorsPerNode2 = [100]
 
 # Set uplink bandwidth. In segments (~560 bytes) per timestep (50ms?)
 # 1 Mbps ~= 1e6 / 20 / 8 / 560 ~= 11
-bwUplinksProd = [200]
-bwUplinks1 = [10]
-bwUplinks2 = [200]
+bwUplinksProd = [1000]
+bwUplinks1 = [50]
+bwUplinks2 = [1000]
 
 # Step duration in milliseconds (Classic RTT is about 100ms)
 stepDuration = 50
