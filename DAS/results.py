@@ -1,6 +1,7 @@
 #!/bin/python3
 
 import os
+import bisect
 from xml.dom import minidom
 from dicttoxml import dicttoxml
 
@@ -20,12 +21,11 @@ class Result:
         """It populates part of the result data inside a vector."""
         self.shape = shape
         self.missingVector = missingVector
-        missingSamples = missingVector[-1]
-        validatorsReady = self.metrics["progress"]["validators ready"][-1]
-        #print("There are %05.3f%% validators ready" % (validatorsReady*100))
-        if validatorsReady > config.successCondition:
+        v = self.metrics["progress"]["validators ready"]
+        tta = bisect.bisect(v, config.successCondition)
+        if tta != len(v):
             self.blockAvailable = 1
-            self.tta = len(missingVector) * (config.stepDuration)
+            self.tta = tta * (config.stepDuration)
         else:
             self.blockAvailable = 0
             self.tta = -1
