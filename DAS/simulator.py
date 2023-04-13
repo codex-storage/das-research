@@ -38,7 +38,7 @@ class Simulator:
         # pushed out by the proposer.
         # 1: the data is sent out exactly once on rows and once on columns (2 copies in total)
         # self.shape.netDegree: default behavior similar (but not same) to previous code
-        self.proposerPublishTo = self.shape.netDegree
+        self.proposerPublishTo = 1
 
     def initValidators(self):
         """It initializes all the validators in the network."""
