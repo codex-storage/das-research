@@ -76,6 +76,9 @@ randomSeed = "DAS"
 # Number of steps without progress to stop simulation
 steps4StopCondition = 7
 
+# Number of validators ready to asume block is available
+successCondition = 0.9
+
 # If True, print diagnostics when the block is not available
 diagnostics = False
 

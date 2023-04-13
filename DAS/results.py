@@ -21,7 +21,9 @@ class Result:
         self.shape = shape
         self.missingVector = missingVector
         missingSamples = missingVector[-1]
-        if missingSamples == 0:
+        validatorsReady = self.metrics["progress"]["validators ready"][-1]
+        #print("There are %05.3f%% validators ready" % (validatorsReady*100))
+        if validatorsReady > config.successCondition:
             self.blockAvailable = 1
             self.tta = len(missingVector) * (config.stepDuration)
         else:
