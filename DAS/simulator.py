@@ -249,8 +249,10 @@ class Simulator:
         if self.config.saveProgress:
             self.result.addMetric("progress", progress.to_dict(orient='list'))
         if self.config.plotProgress:
-            progress.plot.line(subplots = [[cnS, cnN, cnV], [cnT0], [cnT1, cnR1, cnD1], [cnT2, cnR2, cnD2]],
-                            title = str(self.shape))
+            axs = progress.plot.line(
+                subplots = [[cnS, cnN, cnV], [cnT0], [cnT1, cnR1, cnD1], [cnT2, cnR2, cnD2]],
+                title = str(self.shape),
+                figsize=(6,6))
             axs[0].set_ylabel("progress")
             axs[1].set_ylabel("throughput [mbps]")
             axs[2].set_ylabel("throughput [mbps]")
