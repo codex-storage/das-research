@@ -205,7 +205,7 @@ class Simulator:
             self.logger.info("step %d, arrived %0.02f %%, ready %0.02f %%, validatedall %0.02f %%, , validated %0.02f %%"
                               % (steps, sampleProgress*100, nodeProgress*100, validatorAllProgress*100, validatorProgress*100), extra=self.format)
 
-            cnS = "samples received"
+            cnS = "segments received"
             cnN = "nodes ready"
             cnV = "validators ready"
             cnT0 = "TX builder mean"
