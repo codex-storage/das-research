@@ -32,7 +32,7 @@ class Result:
         """Generic function to add a metric to the results."""
         self.metrics[name] = metric
 
-    def dump(self, execID):
+    def dump(self):
         """It dumps the results of the simulation in an XML file."""
         if not os.path.exists("results"):
             os.makedirs("results")

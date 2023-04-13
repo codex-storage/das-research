@@ -25,6 +25,7 @@ class Simulator:
         self.logLevel = config.logLevel
         self.proposerID = 0
         self.glob = []
+        self.execID = execID
 
         # In GossipSub the initiator might push messages without participating in the mesh.
         # proposerPublishOnly regulates this behavior. If set to true, the proposer is not
@@ -53,6 +54,13 @@ class Simulator:
             offset = heavyVal*self.shape.chi
             random.shuffle(rows)
             random.shuffle(columns)
+            self.logger.debug("There is a total of %d validators" % totalValidators, extra=self.format)
+            self.logger.debug("Shuffling a total of %d rows/columns" % len(rows), extra=self.format)
+            self.logger.debug("Shuffled rows: %s" % str(rows), extra=self.format)
+            self.logger.debug("Shuffled columns: %s" % str(columns), extra=self.format)
+
+        assignedRows = []
+        assignedCols = []
         for i in range(self.shape.numberNodes):
             if self.config.evenLineDistribution:
                 if i < int(heavyVal/self.shape.vpn2):  # First start with the heavy nodes
@@ -65,6 +73,11 @@ class Simulator:
                 r = set(rows[start:end])
                 c = set(columns[start:end])
                 val = Validator(i, int(not i!=0), self.logger, self.shape, r, c)
+                self.logger.debug("Validators %d row IDs: %s" % (val.ID, val.rowIDs), extra=self.format)
+                self.logger.debug("Validators %d column IDs: %s" % (val.ID, val.columnIDs), extra=self.format)
+                assignedRows = assignedRows + list(r)
+                assignedCols = assignedCols + list(c)
+
             else:
                 val = Validator(i, int(not i!=0), self.logger, self.shape)
             if i == self.proposerID:
@@ -72,6 +85,11 @@ class Simulator:
             else:
                 val.logIDs()
             self.validators.append(val)
+
+        assignedRows.sort()
+        assignedCols.sort()
+        self.logger.debug("Rows assigned: %s" % str(assignedRows), extra=self.format)
+        self.logger.debug("Columns assigned: %s" % str(assignedCols), extra=self.format)
         self.logger.debug("Validators initialized.", extra=self.format)
 
     def initNetwork(self):
@@ -86,12 +104,14 @@ class Simulator:
                     columnChannels[id].append(v)
 
         # Check rows/columns distribution
-        #totalR = 0
-        #totalC = 0
-        #for r in rowChannels:
-        #    totalR += len(r)
-        #for c in columnChannels:
-        #    totalC += len(c)
+        distR = []
+        distC = []
+        for r in rowChannels:
+            distR.append(len(r))
+        for c in columnChannels:
+            distC.append(len(c))
+        self.logger.debug("Number of validators per row; Min: %d, Max: %d" % (min(distR), max(distR)), extra=self.format)
+        self.logger.debug("Number of validators per column; Min: %d, Max: %d" % (min(distC), max(distC)), extra=self.format)
 
         for id in range(self.shape.blockSize):
 
@@ -164,6 +184,29 @@ class Simulator:
             logger.addHandler(ch)
         self.logger = logger
 
+    def printDiagnostics(self):
+        """Print all required diagnostics to check when a block does not become available"""
+        for val in self.validators:
+            (a, e) = val.checkStatus()
+            if e-a > 0 and val.ID != 0:
+                self.logger.warning("Node %d is missing %d samples" % (val.ID, e-a), extra=self.format)
+                for r in val.rowIDs:
+                    row = val.getRow(r)
+                    if row.count() < len(row):
+                        self.logger.debug("Row %d: %s" % (r, str(row)), extra=self.format)
+                        neiR = val.rowNeighbors[r]
+                        for nr in neiR:
+                            self.logger.debug("Row %d, Neighbor %d sent: %s" % (r, val.rowNeighbors[r][nr].node.ID, val.rowNeighbors[r][nr].received), extra=self.format)
+                            self.logger.debug("Row %d, Neighbor %d has: %s" % (r, val.rowNeighbors[r][nr].node.ID, self.validators[val.rowNeighbors[r][nr].node.ID].getRow(r)), extra=self.format)
+                for c in val.columnIDs:
+                    col = val.getColumn(c)
+                    if col.count() < len(col):
+                        self.logger.debug("Column %d: %s" % (c, str(col)), extra=self.format)
+                        neiC = val.columnNeighbors[c]
+                        for nc in neiC:
+                            self.logger.debug("Column %d, Neighbor %d sent: %s" % (c, val.columnNeighbors[c][nc].node.ID, val.columnNeighbors[c][nc].received), extra=self.format)
+                            self.logger.debug("Column %d, Neighbor %d has: %s" % (c, val.columnNeighbors[c][nc].node.ID, self.validators[val.columnNeighbors[c][nc].node.ID].getColumn(c)), extra=self.format)
+
     def run(self):
         """It runs the main simulation until the block is available or it gets stucked."""
         self.glob.checkRowsColumns(self.validators)
@@ -232,6 +275,8 @@ class Simulator:
                 if len(missingVector) > self.config.steps4StopCondition:
                     if missingSamples == missingVector[-self.config.steps4StopCondition]:
                         self.logger.debug("The block cannot be recovered, failure rate %d!" % self.shape.failureRate, extra=self.format)
+                        if self.config.diagnostics:
+                            self.printDiagnostics()
                         break
                 missingVector.append(missingSamples)
             elif missingSamples == 0:
