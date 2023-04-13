@@ -2,6 +2,7 @@
 
 import time, sys, random, copy
 import importlib
+import subprocess
 from joblib import Parallel, delayed
 from DAS import *
 
@@ -62,6 +63,18 @@ def study():
 
     now = datetime.now()
     execID = now.strftime("%Y-%m-%d_%H-%M-%S_")+str(random.randint(100,999))
+
+    # save config and code state for reproducibility
+    if not os.path.exists("results"):
+        os.makedirs("results")
+    dir = "results/"+execID
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    with open(dir+"/git.diff", 'w') as f:
+        subprocess.run(["git", "diff"], stdout=f)
+    with open(dir+"/git.describe", 'w') as f:
+        subprocess.run(["git", "describe", "--always"], stdout=f)
+    subprocess.run(["cp", sys.argv[1], dir+"/"])
 
     logger.info("Starting simulations:", extra=format)
     start = time.time()
