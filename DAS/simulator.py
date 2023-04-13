@@ -220,13 +220,13 @@ class Simulator:
                 cnS:sampleProgress,
                 cnN:nodeProgress,
                 cnV:validatorProgress,
-                cnT0: trafficStats[0]["Tx"]["mean"],
-                cnT1: trafficStats[1]["Tx"]["mean"],
-                cnT2: trafficStats[2]["Tx"]["mean"],
-                cnR1: trafficStats[1]["Rx"]["mean"],
-                cnR2: trafficStats[2]["Rx"]["mean"],
-                cnD1: trafficStats[1]["RxDup"]["mean"],
-                cnD2: trafficStats[2]["RxDup"]["mean"],
+                cnT0: trafficStats[0]["Tx"]["mean"] / 1e3 * 8 / self.config.stepDuration * self.config.segmentSize,
+                cnT1: trafficStats[1]["Tx"]["mean"] / 1e3 * 8 / self.config.stepDuration * self.config.segmentSize,
+                cnT2: trafficStats[2]["Tx"]["mean"] / 1e3 * 8 / self.config.stepDuration * self.config.segmentSize,
+                cnR1: trafficStats[1]["Rx"]["mean"] / 1e3 * 8 / self.config.stepDuration * self.config.segmentSize,
+                cnR2: trafficStats[2]["Rx"]["mean"] / 1e3 * 8 / self.config.stepDuration * self.config.segmentSize,
+                cnD1: trafficStats[1]["RxDup"]["mean"] / 1e3 * 8 / self.config.stepDuration * self.config.segmentSize,
+                cnD2: trafficStats[2]["RxDup"]["mean"] / 1e3 * 8 / self.config.stepDuration * self.config.segmentSize,
                 })
 
             if missingSamples == oldMissingSamples:
@@ -249,6 +249,10 @@ class Simulator:
         if self.config.plotProgress:
             progress.plot.line(subplots = [[cnS, cnN, cnV], [cnT0], [cnT1, cnR1, cnD1], [cnT2, cnR2, cnD2]],
                             title = str(self.shape))
+            axs[0].set_ylabel("progress")
+            axs[1].set_ylabel("throughput [mbps]")
+            axs[2].set_ylabel("throughput [mbps]")
+            axs[3].set_ylabel("throughput [mbps]")
             if not os.path.exists("results"):
                 os.makedirs("results")
             if not os.path.exists("results/"+self.execID):
