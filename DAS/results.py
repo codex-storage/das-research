@@ -23,7 +23,7 @@ class Result:
         self.missingVector = missingVector
         v = self.metrics["progress"]["validators ready"]
         tta = bisect.bisect(v, config.successCondition)
-        if tta != len(v):
+        if v[-1] >= config.successCondition:
             self.blockAvailable = 1
             self.tta = tta * (config.stepDuration)
         else:
