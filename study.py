@@ -70,10 +70,11 @@ def study():
     dir = "results/"+execID
     if not os.path.exists(dir):
         os.makedirs(dir)
-    with open(dir+"/git.diff", 'w') as f:
-        subprocess.run(["git", "diff"], stdout=f)
-    with open(dir+"/git.describe", 'w') as f:
-        subprocess.run(["git", "describe", "--always"], stdout=f)
+    if config.saveGit:
+       with open(dir+"/git.diff", 'w') as f:
+           subprocess.run(["git", "diff"], stdout=f)
+       with open(dir+"/git.describe", 'w') as f:
+           subprocess.run(["git", "describe", "--always"], stdout=f)
     subprocess.run(["cp", sys.argv[1], dir+"/"])
 
     logger.info("Starting simulations:", extra=format)
