@@ -91,10 +91,6 @@ class Simulator:
 
             else:
                 val = Validator(i, int(not i!=0), self.logger, self.shape)
-            if i == self.proposerID:
-                val.initBlock()
-            else:
-                val.logIDs()
             self.validators.append(val)
 
         assignedRows.sort()
@@ -219,6 +215,11 @@ class Simulator:
     def run(self):
         """It runs the main simulation until the block is available or it gets stucked."""
         self.glob.checkRowsColumns(self.validators)
+        for i in range(0,self.shape.numberNodes):
+            if i == self.proposerID:
+                self.validators[i].initBlock()
+            else:
+                self.validators[i].logIDs()
         arrived, expected, ready, validatedall, validated = self.glob.checkStatus(self.validators)
         missingSamples = expected - arrived
         missingVector = []
