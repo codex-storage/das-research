@@ -51,7 +51,7 @@ class Simulator:
             totalRows = totalValidators * self.shape.chi
             rows =    list(range(self.shape.blockSize)) * (int(totalRows/self.shape.blockSize)+1)
             columns = list(range(self.shape.blockSize)) * (int(totalRows/self.shape.blockSize)+1)
-            offset = heavyVal*self.shape.chi
+            offset = lightVal*self.shape.chi
             random.shuffle(rows)
             random.shuffle(columns)
             self.logger.debug("There is a total of %d validators" % totalValidators, extra=self.format)
@@ -63,15 +63,15 @@ class Simulator:
         assignedCols = []
         for i in range(self.shape.numberNodes):
             if self.config.evenLineDistribution:
-                if i < int(heavyVal/self.shape.vpn2):  # First start with the heavy nodes
-                    start =   i  *self.shape.chi*self.shape.vpn2
-                    end   = (i+1)*self.shape.chi*self.shape.vpn2
-                else:               # Then the solo stakers
-                    j = i - int(heavyVal/self.shape.vpn2)
-                    start = offset+(  j  *self.shape.chi)
-                    end   = offset+((j+1)*self.shape.chi)
-                r = set(rows[start:end])
-                c = set(columns[start:end])
+                if i < int(lightVal/self.shape.vpn1):  # First start with the light nodes
+                    start =   i  *self.shape.chi*self.shape.vpn1
+                    end   = (i+1)*self.shape.chi*self.shape.vpn1
+                else:
+                    j = i - int(lightVal/self.shape.vpn1)
+                    start = offset+(  j  *self.shape.chi*self.shape.vpn2)
+                    end   = offset+((j+1)*self.shape.chi*self.shape.vpn2)
+                r = rows[start:end]
+                c = columns[start:end]
                 val = Validator(i, int(not i!=0), self.logger, self.shape, r, c)
                 self.logger.debug("Validators %d row IDs: %s" % (val.ID, val.rowIDs), extra=self.format)
                 self.logger.debug("Validators %d column IDs: %s" % (val.ID, val.columnIDs), extra=self.format)
