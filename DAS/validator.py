@@ -113,33 +113,18 @@ class Validator:
 
     def initBlock(self):
         """It initializes the block for the proposer."""
-        if self.amIproposer == 1:
-            self.logger.debug("I am a block proposer.", extra=self.format)
-            self.block = Block(self.shape.blockSize)
-            self.block.fill()
-            #self.block.print()
-        else:
-            self.logger.warning("I am not a block proposer."% self.ID)
-
-    def broadcastBlock(self):
-        """The block proposer broadcasts the block to all validators."""
         if self.amIproposer == 0:
             self.logger.warning("I am not a block proposer", extra=self.format)
         else:
-            self.logger.debug("Broadcasting my block...", extra=self.format)
+            self.logger.debug("Creating block...", extra=self.format)
             order = [i for i in range(self.shape.blockSize * self.shape.blockSize)]
-            random.shuffle(order)
-            while(order):
-                i = order.pop()
-                if (random.randint(0,99) >= self.shape.failureRate):
-                    self.block.data[i] = 1
-                else:
-                    self.block.data[i] = 0
+            order = random.sample(order, int((1 - self.shape.failureRate/100) * len(order)))
+            for i in order:
+                self.block.data[i] = 1
 
             nbFailures = self.block.data.count(0)
             measuredFailureRate = nbFailures * 100 / (self.shape.blockSize * self.shape.blockSize)
             self.logger.debug("Number of failures: %d (%0.02f %%)", nbFailures, measuredFailureRate, extra=self.format)
-            #broadcasted.print()
 
     def getColumn(self, index):
         """It returns a given column."""
