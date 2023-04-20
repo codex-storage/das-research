@@ -20,8 +20,9 @@ from DAS.shape import Shape
 
 dumpXML = 1
 
-# save progress vectors to XML
+# save progress and row/column distribution vectors to XML
 saveProgress = 1
+saveRCdist = 1
 visualization = 1
 logLevel = logging.INFO
 

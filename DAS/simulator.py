@@ -26,6 +26,10 @@ class Simulator:
         self.proposerID = 0
         self.glob = []
         self.execID = execID
+        self.distR = []
+        self.distC = []
+        self.nodeRows = []
+        self.nodeColumns = []
 
         # In GossipSub the initiator might push messages without participating in the mesh.
         # proposerPublishOnly regulates this behavior. If set to true, the proposer is not
@@ -45,17 +49,22 @@ class Simulator:
         self.validators = []
         if self.config.evenLineDistribution:
 
-            lightVal = int(self.shape.numberNodes * self.shape.class1ratio * self.shape.vpn1)
-            heavyVal = int(self.shape.numberNodes * (1-self.shape.class1ratio) * self.shape.vpn2)
+            lightNodes = int(self.shape.numberNodes * self.shape.class1ratio)
+            heavyNodes = self.shape.numberNodes - lightNodes
+            lightVal = lightNodes * self.shape.vpn1
+            heavyVal = heavyNodes * self.shape.vpn2
             totalValidators = lightVal + heavyVal
             totalRows = totalValidators * self.shape.chi
             rows =    list(range(self.shape.blockSize)) * (int(totalRows/self.shape.blockSize)+1)
             columns = list(range(self.shape.blockSize)) * (int(totalRows/self.shape.blockSize)+1)
-            offset = lightVal*self.shape.chi
+            rows =    rows[0:totalRows]
+            columns = columns[0:totalRows]
             random.shuffle(rows)
             random.shuffle(columns)
-            self.logger.debug("There is a total of %d validators" % totalValidators, extra=self.format)
-            self.logger.debug("Shuffling a total of %d rows/columns" % len(rows), extra=self.format)
+            offset = lightVal*self.shape.chi
+            self.logger.debug("There is a total of %d nodes, %d light and %d heavy." % (self.shape.numberNodes, lightNodes, heavyNodes), extra=self.format)
+            self.logger.debug("There is a total of %d validators, %d in light nodes and %d in heavy nodes" % (totalValidators, lightVal, heavyVal), extra=self.format)
+            self.logger.debug("Shuffling a total of %d rows/columns to be assigned (X=%d)" % (len(rows), self.shape.chi), extra=self.format)
             self.logger.debug("Shuffled rows: %s" % str(rows), extra=self.format)
             self.logger.debug("Shuffled columns: %s" % str(columns), extra=self.format)
 
@@ -73,10 +82,12 @@ class Simulator:
                 r = rows[start:end]
                 c = columns[start:end]
                 val = Validator(i, int(not i!=0), self.logger, self.shape, r, c)
-                self.logger.debug("Validators %d row IDs: %s" % (val.ID, val.rowIDs), extra=self.format)
-                self.logger.debug("Validators %d column IDs: %s" % (val.ID, val.columnIDs), extra=self.format)
+                self.logger.debug("Node %d has row IDs: %s" % (val.ID, val.rowIDs), extra=self.format)
+                self.logger.debug("Node %d has column IDs: %s" % (val.ID, val.columnIDs), extra=self.format)
                 assignedRows = assignedRows + list(r)
                 assignedCols = assignedCols + list(c)
+                self.nodeRows.append(val.rowIDs)
+                self.nodeColumns.append(val.columnIDs)
 
             else:
                 val = Validator(i, int(not i!=0), self.logger, self.shape)
@@ -104,14 +115,12 @@ class Simulator:
                     columnChannels[id].append(v)
 
         # Check rows/columns distribution
-        distR = []
-        distC = []
         for r in rowChannels:
-            distR.append(len(r))
+            self.distR.append(len(r))
         for c in columnChannels:
-            distC.append(len(c))
-        self.logger.debug("Number of validators per row; Min: %d, Max: %d" % (min(distR), max(distR)), extra=self.format)
-        self.logger.debug("Number of validators per column; Min: %d, Max: %d" % (min(distC), max(distC)), extra=self.format)
+            self.distC.append(len(c))
+        self.logger.debug("Number of validators per row; Min: %d, Max: %d" % (min(self.distR), max(self.distR)), extra=self.format)
+        self.logger.debug("Number of validators per column; Min: %d, Max: %d" % (min(self.distC), max(self.distC)), extra=self.format)
 
         for id in range(self.shape.blockSize):
 
@@ -243,7 +252,7 @@ class Simulator:
             trafficStatsVector.append(trafficStats)
 
             missingSamples, sampleProgress, nodeProgress, validatorAllProgress, validatorProgress = self.glob.getProgress(self.validators)
-            self.logger.info("step %d, arrived %0.02f %%, ready %0.02f %%, validatedall %0.02f %%, , validated %0.02f %%"
+            self.logger.debug("step %d, arrived %0.02f %%, ready %0.02f %%, validatedall %0.02f %%, , validated %0.02f %%"
                               % (steps, sampleProgress*100, nodeProgress*100, validatorAllProgress*100, validatorProgress*100), extra=self.format)
 
             cnS = "samples received"
@@ -286,6 +295,9 @@ class Simulator:
                 steps += 1
 
         progress = pd.DataFrame(progressVector)
+        if self.config.saveRCdist:
+            self.result.addMetric("rowDist", self.distR)
+            self.result.addMetric("columnDist", self.distC)
         if self.config.saveProgress:
             self.result.addMetric("progress", progress.to_dict(orient='list'))
         self.result.populate(self.shape, self.config, missingVector)
