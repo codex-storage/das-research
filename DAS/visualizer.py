@@ -85,6 +85,8 @@ class Visualizer:
     def averageRuns(self, data, runs):
         """Get the average of run 0 and run 1 for each key"""
         newData = {}
+        allTta = []
+        print("Getting the average of the runs...")
         for key, value in data.items():
             runExists = False
             """Check if the key contains 'run_' with a numerical value"""
@@ -97,12 +99,15 @@ class Visualizer:
                     """Create a new key with the other items in the tuple"""
                     if item.startswith('run_'):
                         newKey = tuple([x for x in key if x != item])
+                        print(newKey)
                         """Average the similar key values"""
                         total = [0] * len(data[key]['ttas'])
                         for i in range(runs):
                             key0 = (f'run_{i}',) + newKey
                             for cnt, tta in enumerate(data[key0]['ttas']):
                                 total[cnt] += tta
+                                allTta.append(tta)
+                                print(tta)
                         for i in range(len(total)):
                             total[i] = total[i]/runs
                         averages = {}
@@ -112,7 +117,7 @@ class Visualizer:
                             else:
                                 averages[subkey] = data[key][subkey]
                         newData[newKey] = averages
-        print("Getting the average of the runs...")
+        self.maxTTA = max(allTta) + 10
         return newData
 
     def similarKeys(self, data):
