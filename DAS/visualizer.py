@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from itertools import combinations
-from config_example import runs
 
 class Visualizer:
 
-    def __init__(self, execID):
+    def __init__(self, execID, config):
         self.execID = execID
+        self.config = config
         self.folderPath = "results/"+self.execID
         self.parameters = ['run', 'blockSize', 'failureRate', 'numberNodes', 'netDegree', 'chi', 'vpn1', 'vpn2', 'class1ratio', 'bwUplinkProd', 'bwUplink1', 'bwUplink2']
         self.minimumDataPoints = 2
@@ -81,7 +81,7 @@ class Visualizer:
                     data[key]['ttas'].append(tta)
         print("Getting data from the folder...")
         return data
-    
+
     def averageRuns(self, data, runs):
         """Get the average of run 0 and run 1 for each key"""
         newData = {}
@@ -146,12 +146,12 @@ class Visualizer:
         """Plot and store the 2D heatmaps in subfolders"""
         data= self.plottingData()
         """Average the runs if needed"""
-        if(len(runs) > 1):
-            data = self.averageRuns(data, len(runs))
+        if(len(self.config.runs) > 1):
+            data = self.averageRuns(data, len(self.config.runs))
         filteredKeys = self.similarKeys(data)
         vmin, vmax = 0, self.maxTTA
         print("Plotting heatmaps...")
-   
+
         """Create the directory if it doesn't exist already"""
         heatmapsFolder = self.folderPath + '/heatmaps'
         if not os.path.exists(heatmapsFolder):
@@ -189,7 +189,7 @@ class Visualizer:
                 plt.savefig(os.path.join(targetFolder, filename))
                 plt.close()
                 plt.clf()
-    
+
     def plotHist(self, bandwidth):
         """Plot Bandwidth Frequency Histogram"""
         plt.hist(bandwidth, bins=5)
