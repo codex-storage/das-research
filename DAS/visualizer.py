@@ -16,12 +16,13 @@ class Visualizer:
         self.folderPath = "results/"+self.execID
         self.parameters = ['run', 'blockSize', 'failureRate', 'numberNodes', 'netDegree', 'chi', 'vpn1', 'vpn2', 'class1ratio', 'bwUplinkProd', 'bwUplink1', 'bwUplink2']
         self.minimumDataPoints = 2
-        self.maxTTA = 999
+        self.maxTTA = 99
 
     def plottingData(self):
         """Store data with a unique key for each params combination"""
         data = {}
         bw = []
+        print("Getting data from the folder...")
         """Loop over the xml files in the folder"""
         for filename in os.listdir(self.folderPath):
             """Loop over the xmls and store the data in variables"""
@@ -41,9 +42,8 @@ class Visualizer:
                 bwUplink1 = int(root.find('bwUplink1').text)
                 bwUplink2 = int(root.find('bwUplink2').text)
                 tta = int(root.find('tta').text)
-
-                # if tta == -1:
-                #     tta = self.maxTTA
+                if tta == -1:
+                    tta = self.maxTTA
 
                 """Store BW"""
                 bw.append(bwUplinkProd)
@@ -80,7 +80,6 @@ class Visualizer:
                     else:
                         data[key][otherParams[1]] = [selectedValues[otherIndices[1]]]
                     data[key]['ttas'].append(tta)
-        print("Getting data from the folder...")
         return data
 
     def averageRuns(self, data, runs):
@@ -116,7 +115,6 @@ class Visualizer:
                             else:
                                 averages[subkey] = data[key][subkey]
                         newData[newKey] = averages
-        self.maxTTA = max(allTta) + 10
         return newData
 
     def similarKeys(self, data):
@@ -171,7 +169,7 @@ class Visualizer:
                 hist, xedges, yedges = np.histogram2d(data[key][labels[0]], data[key][labels[1]], bins=(len(xlabels), len(ylabels)), weights=data[key]['ttas'], normed=False)
                 hist = hist.T
                 fig, ax = plt.subplots(figsize=(10, 6))
-                sns.heatmap(hist, xticklabels=xlabels, yticklabels=ylabels, cmap='Purples', cbar_kws={'label': 'Time to block availability'}, linecolor='black', linewidths=0.3, annot=True, fmt=".2f", ax=ax, vmin=vmin, vmax=vmax)
+                sns.heatmap(hist, xticklabels=xlabels, yticklabels=ylabels, cmap='hot_r', cbar_kws={'label': 'Time to block availability'}, linecolor='black', linewidths=0.3, annot=True, fmt=".2f", ax=ax, vmin=vmin, vmax=vmax)
                 plt.xlabel(self.formatLabel(labels[0]))
                 plt.ylabel(self.formatLabel(labels[1]))
                 filename = ""
