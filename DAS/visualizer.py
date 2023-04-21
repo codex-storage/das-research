@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from itertools import combinations
+from mplfinance.original_flavor import candlestick_ohlc
 
 class Visualizer:
 
@@ -83,7 +84,7 @@ class Visualizer:
         return data
 
     def averageRuns(self, data, runs):
-        """Get the average of run 0 and run 1 for each key"""
+        """Get the average of all runs for each key"""
         newData = {}
         allTta = []
         print("Getting the average of the runs...")
@@ -207,3 +208,38 @@ class Visualizer:
         filename = os.path.join(histogramFolder, 'histogram.png')
         plt.savefig(filename)
         plt.clf()
+
+    def plotHist(self, bandwidth):
+        """Plot Bandwidth Frequency Histogram"""
+        plt.hist(bandwidth, bins=5)
+        plt.xlabel('Bandwidth')
+        plt.ylabel('Frequency')
+        plt.title('Bandwidth Histogram')
+
+        """Create the directory if it doesn't exist already"""
+        histogramFolder = self.folderPath + '/histogram'
+        if not os.path.exists(histogramFolder):
+            os.makedirs(histogramFolder)
+        filename = os.path.join(histogramFolder, 'histogram.png')
+        plt.savefig(filename)
+        plt.clf()
+
+    def plotCandleStick(self, TX_prod, TX_avg, TX_max):
+        #x-axis corresponding to steps
+        steps = range(len(TX_prod))
+
+        #Plot the candlestick chart
+        ohlc = []
+        for i in range(len(TX_prod)):
+            ohlc.append([steps[i], TX_prod[i], TX_max[i], TX_avg[i]])
+        fig, ax = plt.subplots()
+        candlestick_ohlc(ax, ohlc, width=0.6, colorup='green', colordown='red')
+
+        #Ticks, title and labels
+        plt.xticks(steps, ['run{}'.format(i) for i in steps], rotation=45)
+        plt.title('Candlestick Chart')
+        plt.xlabel('Step')
+        plt.ylabel('Price')
+
+        #Test
+        plt.show()

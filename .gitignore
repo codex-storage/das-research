@@ -5,3 +5,4 @@ myenv
 doc/_build
 !results/plots.py
 Frontend/
+smallConf.py
