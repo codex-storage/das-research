@@ -7,6 +7,8 @@ import numpy as np
 import seaborn as sns
 from itertools import combinations
 from mplfinance.original_flavor import candlestick_ohlc
+import os
+
 
 class Visualizer:
 
@@ -42,8 +44,6 @@ class Visualizer:
                 bwUplink1 = int(root.find('bwUplink1').text)
                 bwUplink2 = int(root.find('bwUplink2').text)
                 tta = int(root.find('tta').text)
-                if tta == -1:
-                    tta = self.maxTTA
 
                 """Store BW"""
                 bw.append(bwUplinkProd)
@@ -83,9 +83,11 @@ class Visualizer:
         return data
 
     def averageRuns(self, data, runs):
+        '''Debugging'''
+        if not os.path.exists('debug'):
+            os.makedirs('debug')
         """Get the average of all runs for each key"""
         newData = {}
-        allTta = []
         print("Getting the average of the runs...")
         for key, value in data.items():
             runExists = False
@@ -101,13 +103,21 @@ class Visualizer:
                         newKey = tuple([x for x in key if x != item])
                         """Average the similar key values"""
                         total = [0] * len(data[key]['ttas'])
+                        with open('debug/debug.txt', 'a') as f:
+                            f.write('TTAs:\n')
                         for i in range(runs):
                             key0 = (f'run_{i}',) + newKey
+                            with open('debug/debug.txt', 'a') as f:
+                                f.write(str(data[key0]['ttas']) + '\n')
                             for cnt, tta in enumerate(data[key0]['ttas']):
                                 total[cnt] += tta
-                                allTta.append(tta)
                         for i in range(len(total)):
                             total[i] = total[i]/runs
+                            if(total[i] == -1):
+                                total[i] = self.maxTTA
+                        with open('debug/debug.txt', 'a') as f:
+                            f.write('Average:\n')
+                            f.write(str(total)+ '\n')
                         averages = {}
                         for subkey in data[key].keys():
                             if subkey == 'ttas':
@@ -166,7 +176,7 @@ class Visualizer:
                 ylabels = np.sort(np.unique(data[key][labels[1]]))
                 if len(xlabels) < self.minimumDataPoints or len(ylabels) < self.minimumDataPoints:
                     continue
-                hist, xedges, yedges = np.histogram2d(data[key][labels[0]], data[key][labels[1]], bins=(len(xlabels), len(ylabels)), weights=data[key]['ttas'], normed=False)
+                hist, xedges, yedges = np.histogram2d(data[key][labels[0]], data[key][labels[1]], bins=(len(xlabels), len(ylabels)), weights=data[key]['ttas'])
                 hist = hist.T
                 fig, ax = plt.subplots(figsize=(10, 6))
                 sns.heatmap(hist, xticklabels=xlabels, yticklabels=ylabels, cmap='hot_r', cbar_kws={'label': 'Time to block availability'}, linecolor='black', linewidths=0.3, annot=True, fmt=".2f", ax=ax, vmin=vmin, vmax=vmax)
