@@ -83,9 +83,6 @@ class Visualizer:
         return data
 
     def averageRuns(self, data, runs):
-        '''Debugging'''
-        if not os.path.exists('debug'):
-            os.makedirs('debug')
         """Get the average of all runs for each key"""
         newData = {}
         print("Getting the average of the runs...")
@@ -97,33 +94,37 @@ class Visualizer:
                     runExists = True
                     break
             if runExists:
+                ps = list(data[key].keys())
                 for item in key:
                     """Create a new key with the other items in the tuple"""
                     if item.startswith('run_'):
                         newKey = tuple([x for x in key if x != item])
                         """Average the similar key values"""
-                        total = [0] * len(data[key]['ttas'])
-                        with open('debug/debug.txt', 'a') as f:
-                            f.write('TTAs:\n')
+                        tta_sums = {}
+                        total = []
+                        p0 = []
+                        p1 = []
                         for i in range(runs):
                             key0 = (f'run_{i}',) + newKey
-                            with open('debug/debug.txt', 'a') as f:
-                                f.write(str(data[key0]['ttas']) + '\n')
-                            for cnt, tta in enumerate(data[key0]['ttas']):
-                                total[cnt] += tta
+                            #Create a dictionary to store the sums of ttas for each unique pair of values in subkeys
+                            for i in range(len(data[key0][ps[0]])):
+                                keyPair = (data[key0][ps[0]][i], data[key0][ps[1]][i])
+                                try:
+                                    tta_sums[keyPair] += data[key0]['ttas'][i]
+                                except KeyError:
+                                    tta_sums[keyPair] = data[key0]['ttas'][i]
+                        for k, tta in tta_sums.items():
+                            p0.append(k[0])
+                            p1.append(k[1])
+                            total.append(tta)
                         for i in range(len(total)):
                             total[i] = total[i]/runs
                             if(total[i] == -1):
                                 total[i] = self.maxTTA
-                        with open('debug/debug.txt', 'a') as f:
-                            f.write('Average:\n')
-                            f.write(str(total)+ '\n')
                         averages = {}
-                        for subkey in data[key].keys():
-                            if subkey == 'ttas':
-                                averages[subkey] = total
-                            else:
-                                averages[subkey] = data[key][subkey]
+                        averages[ps[0]] = p0
+                        averages[ps[1]] = p1
+                        averages['ttas'] = total
                         newData[newKey] = averages
         return newData
 
