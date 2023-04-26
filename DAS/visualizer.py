@@ -18,7 +18,7 @@ class Visualizer:
         self.folderPath = "results/"+self.execID
         self.parameters = ['run', 'blockSize', 'failureRate', 'numberNodes', 'netDegree', 'chi', 'vpn1', 'vpn2', 'class1ratio', 'bwUplinkProd', 'bwUplink1', 'bwUplink2']
         self.minimumDataPoints = 2
-        self.maxTTA = 99
+        self.maxTTA = 50
 
     def plottingData(self):
         """Store data with a unique key for each params combination"""
@@ -101,26 +101,46 @@ class Visualizer:
                         newKey = tuple([x for x in key if x != item])
                         """Average the similar key values"""
                         tta_sums = {}
+                        nbRuns = {}
+                        ttRuns = []
                         total = []
                         p0 = []
                         p1 = []
+                        p2 = []
+                        p3 = []
                         for i in range(runs):
                             key0 = (f'run_{i}',) + newKey
                             #Create a dictionary to store the sums of ttas for each unique pair of values in subkeys
                             for i in range(len(data[key0][ps[0]])):
                                 keyPair = (data[key0][ps[0]][i], data[key0][ps[1]][i])
+                                if data[key0]["ttas"][i] == -1:
+                                    data[key0]["ttas"][i] = self.maxTTA
                                 try:
                                     tta_sums[keyPair] += data[key0]['ttas'][i]
+                                    if data[key0]["ttas"][i] != self.maxTTA:
+                                        nbRuns[keyPair] += 1
                                 except KeyError:
                                     tta_sums[keyPair] = data[key0]['ttas'][i]
+                                    if data[key0]["ttas"][i] != self.maxTTA:
+                                        nbRuns[keyPair] = 1
+                                    else:
+                                        nbRuns[keyPair] = 0
                         for k, tta in tta_sums.items():
                             p0.append(k[0])
                             p1.append(k[1])
                             total.append(tta)
+                        for k, run in nbRuns.items():
+                            p2.append(k[0])
+                            p3.append(k[1])
+                            ttRuns.append(run)
                         for i in range(len(total)):
-                            total[i] = total[i]/runs
-                            if(total[i] == -1):
+                            if(ttRuns[i] == 0):     # All tta = -1
                                 total[i] = self.maxTTA
+                            elif ttRuns[i] < runs:  # Some tta = -1
+                                total[i] -= (runs-ttRuns[i]) * self.maxTTA
+                                total[i] = total[i]/ttRuns[i]
+                            else:                   # No tta = -1
+                                total[i] = total[i]/ttRuns[i]
                         averages = {}
                         averages[ps[0]] = p0
                         averages[ps[1]] = p1
@@ -162,7 +182,7 @@ class Visualizer:
         if(len(self.config.runs) > 1):
             data = self.averageRuns(data, len(self.config.runs))
         filteredKeys = self.similarKeys(data)
-        vmin, vmax = 0, self.maxTTA
+        vmin, vmax = 0, self.maxTTA+10
         print("Plotting heatmaps...")
 
         """Create the directory if it doesn't exist already"""
@@ -189,7 +209,8 @@ class Visualizer:
                 for param in self.parameters:
                     if param != labels[0] and param != labels[1] and param != 'run':
                         filename += f"{key[paramValueCnt]}"
-                        formattedTitle = self.formatTitle(key[paramValueCnt])
+                        #formattedTitle = self.formatTitle(key[paramValueCnt])
+                        formattedTitle = "Time to block availability"
                         title += formattedTitle
                         paramValueCnt += 1
                 title_obj = plt.title(title)
