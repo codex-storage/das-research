@@ -18,6 +18,7 @@ import itertools
 import numpy as np
 from DAS.shape import Shape
 
+# Dump results into XML files
 dumpXML = 1
 
 # save progress vectors to XML
@@ -26,7 +27,13 @@ saveProgress = 1
 # plot progress for each run to PNG
 plotProgress = 1
 
+# Save row and column distributions
+saveRCdist = 1
+
+# Plot all figures
 visualization = 1
+
+# Verbosity level
 logLevel = logging.INFO
 
 # number of parallel workers. -1: all cores; 1: sequential
@@ -59,8 +66,8 @@ chis = range(2, 3, 2)
 class1ratios = [0.8]
 
 # Number of validators per beacon node
-validatorsPerNode1 = [2]
-validatorsPerNode2 = [4]
+validatorsPerNode1 = [1]
+validatorsPerNode2 = [500]
 
 # Set uplink bandwidth. In segments (~560 bytes) per timestep (50ms?)
 # 1 Mbps ~= 1e6 / 20 / 8 / 560 ~= 11
@@ -68,25 +75,26 @@ bwUplinksProd = [2200]
 bwUplinks1 = [110]
 bwUplinks2 = [2200]
 
+# Step duration in miliseconds (Classic RTT is about 100ms)
+stepDuration = 50
+
 # Set to True if you want your run to be deterministic, False if not
 deterministic = True
 
 # If your run is deterministic you can decide the random seed. This is ignore otherwise.
 randomSeed = "DAS"
 
-saveProgress = 1
-saveRCdist = 1
+# Number of steps without progress to stop simulation
+steps4StopCondition = 7
+
+# Number of validators ready to asume block is available
+successCondition = 0.9
 
 # If True, print diagnostics when the block is not available
 diagnostics = False
 
-# Number of steps without progress to stop simulation
-steps4StopCondition = 7
-
+# True to save git diff and git commit
 saveGit = False
-
-successCondition = 0.9
-stepDuration = 50
 
 def nextShape():
     for run, fr, class1ratio, chi, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(

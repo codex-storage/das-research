@@ -61,14 +61,16 @@ class Validator:
             self.logger.error("Chi has to be smaller than %d" % self.shape.blockSize, extra=self.format)
         else:
             if amIproposer:
+                self.nodeClass = 0
                 self.rowIDs = range(shape.blockSize)
                 self.columnIDs = range(shape.blockSize)
             else:
                 #if shape.deterministic:
                 #    random.seed(self.ID)
-                vpn = self.shape.vpn1 if (self.ID <= shape.numberNodes * shape.class1ratio) else self.shape.vpn2
-                self.rowIDs = rows if rows else unionOfSamples(range(self.shape.blockSize), self.shape.chi, vpn)
-                self.columnIDs = columns if columns else unionOfSamples(range(self.shape.blockSize), self.shape.chi, vpn)
+                self.nodeClass = 1 if (self.ID <= shape.numberNodes * shape.class1ratio) else 2
+                self.vpn = self.shape.vpn1 if (self.nodeClass == 1) else self.shape.vpn2
+                self.rowIDs = rows if rows else unionOfSamples(range(self.shape.blockSize), self.shape.chi, self.vpn)
+                self.columnIDs = columns if columns else unionOfSamples(range(self.shape.blockSize), self.shape.chi, self.vpn)
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)
 
@@ -77,13 +79,15 @@ class Validator:
         self.statsTxPerSlot = []
         self.statsRxInSlot = 0
         self.statsRxPerSlot = []
+        self.statsRxDupInSlot = 0
+        self.statsRxDupPerSlot = []
 
         # Set uplink bandwidth. In segments (~560 bytes) per timestep (50ms?)
         # 1 Mbps ~= 1e6 / 20 / 8 / 560 ~= 11
         # TODO: this should be a parameter
         if self.amIproposer:
             self.bwUplink = shape.bwUplinkProd
-        elif self.ID <= shape.numberNodes * shape.class1ratio:
+        elif self.nodeClass == 1:
             self.bwUplink = shape.bwUplink1
         else:
             self.bwUplink = shape.bwUplink2
@@ -109,33 +113,18 @@ class Validator:
 
     def initBlock(self):
         """It initializes the block for the proposer."""
-        if self.amIproposer == 1:
-            self.logger.debug("I am a block proposer.", extra=self.format)
-            self.block = Block(self.shape.blockSize)
-            self.block.fill()
-            #self.block.print()
-        else:
-            self.logger.warning("I am not a block proposer."% self.ID)
-
-    def broadcastBlock(self):
-        """The block proposer broadcasts the block to all validators."""
         if self.amIproposer == 0:
             self.logger.warning("I am not a block proposer", extra=self.format)
         else:
-            self.logger.debug("Broadcasting my block...", extra=self.format)
+            self.logger.debug("Creating block...", extra=self.format)
             order = [i for i in range(self.shape.blockSize * self.shape.blockSize)]
-            random.shuffle(order)
-            while(order):
-                i = order.pop()
-                if (random.randint(0,99) >= self.shape.failureRate):
-                    self.block.data[i] = 1
-                else:
-                    self.block.data[i] = 0
+            order = random.sample(order, int((1 - self.shape.failureRate/100) * len(order)))
+            for i in order:
+                self.block.data[i] = 1
 
             nbFailures = self.block.data.count(0)
             measuredFailureRate = nbFailures * 100 / (self.shape.blockSize * self.shape.blockSize)
             self.logger.debug("Number of failures: %d (%0.02f %%)", nbFailures, measuredFailureRate, extra=self.format)
-            #broadcasted.print()
 
     def getColumn(self, index):
         """It returns a given column."""
@@ -155,13 +144,13 @@ class Validator:
             if src in self.columnNeighbors[cID]:
                 self.columnNeighbors[cID][src].receiving[rID] = 1
         if not self.receivedBlock.getSegment(rID, cID):
-            self.logger.debug("Recv new: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
+            self.logger.trace("Recv new: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
             self.receivedBlock.setSegment(rID, cID)
             if self.perNodeQueue or self.perNeighborQueue:
                 self.receivedQueue.append((rID, cID))
         else:
-            self.logger.debug("Recv DUP: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
-        #     self.statsRxDuplicateInSlot += 1
+            self.logger.trace("Recv DUP: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
+            self.statsRxDupInSlot += 1
         self.statsRxInSlot += 1
 
     def addToSendQueue(self, rID, cID):
@@ -183,7 +172,7 @@ class Validator:
         if self.amIproposer == 1:
             self.logger.error("I am a block proposer", extra=self.format)
         else:
-            self.logger.debug("Receiving the data...", extra=self.format)
+            self.logger.trace("Receiving the data...", extra=self.format)
             #self.logger.debug("%s -> %s", self.block.data, self.receivedBlock.data, extra=self.format)
 
             self.block.merge(self.receivedBlock)
@@ -203,8 +192,10 @@ class Validator:
         """It updates the stats related to sent and received data."""
         self.logger.debug("Stats: tx %d, rx %d", self.statsTxInSlot, self.statsRxInSlot, extra=self.format)
         self.statsRxPerSlot.append(self.statsRxInSlot)
+        self.statsRxDupPerSlot.append(self.statsRxDupInSlot)
         self.statsTxPerSlot.append(self.statsTxInSlot)
         self.statsRxInSlot = 0
+        self.statsRxDupInSlot = 0
         self.statsTxInSlot = 0
 
     def checkSegmentToNeigh(self, rID, cID, neigh):
@@ -219,7 +210,7 @@ class Validator:
 
     def sendSegmentToNeigh(self, rID, cID, neigh):
         """Send segment to a neighbor (without checks)."""
-        self.logger.debug("sending %d/%d to %d", rID, cID, neigh.node.ID, extra=self.format)
+        self.logger.trace("sending %d/%d to %d", rID, cID, neigh.node.ID, extra=self.format)
         i = rID if neigh.dim else cID
         neigh.sent[i] = 1
         neigh.node.receiveSegment(rID, cID, self.ID)
@@ -454,7 +445,7 @@ class Validator:
             # be queued after successful repair.
             for i in range(len(rep)):
                 if rep[i]:
-                    self.logger.debug("Rep: %d,%d", id, i, extra=self.format)
+                    self.logger.trace("Rep: %d,%d", id, i, extra=self.format)
                     self.addToSendQueue(id, i)
             # self.statsRepairInSlot += rep.count(1)
 
@@ -472,7 +463,7 @@ class Validator:
             # be queued after successful repair.
             for i in range(len(rep)):
                 if rep[i]:
-                    self.logger.debug("Rep: %d,%d", i, id, extra=self.format)
+                    self.logger.trace("Rep: %d,%d", i, id, extra=self.format)
                     self.addToSendQueue(i, id)
             # self.statsRepairInSlot += rep.count(1)
 
