@@ -1,6 +1,7 @@
 bitarray==2.6.0
 dicttoxml==1.7.16
 matplotlib==3.6.2
+mplfinance==0.12.9b7
 networkx==3.0
 numpy==1.23.5
 seaborn==0.12.2
