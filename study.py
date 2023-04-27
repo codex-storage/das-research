@@ -1,46 +1,77 @@
 #! /bin/python3
 
-import time, sys
+import time, sys, random, copy
+import importlib
+from joblib import Parallel, delayed
 from DAS import *
 
+# Parallel execution:
+# The code currently uses 'joblib' to execute on multiple cores. For other options such as 'ray', see
+# https://stackoverflow.com/questions/9786102/how-do-i-parallelize-a-simple-python-loop
+# For fixing logging issues in parallel execution, see
+# https://stackoverflow.com/questions/58026381/logging-nested-functions-using-joblib-parallel-and-delayed-calls
+# and https://github.com/joblib/joblib/issues/1017
+
+def initLogger(config):
+    """It initializes the logger."""
+    logger = logging.getLogger("Study")
+    logger.setLevel(config.logLevel)
+    ch = logging.StreamHandler()
+    ch.setLevel(config.logLevel)
+    ch.setFormatter(CustomFormatter())
+    logger.addHandler(ch)
+    return logger
+
+def runOnce(config, shape, execID):
+
+    if config.deterministic:
+        shape.setSeed(config.randomSeed+"-"+str(shape))
+        random.seed(shape.randomSeed)
+
+    sim = Simulator(shape, config, execID)
+    sim.initLogger()
+    sim.initValidators()
+    sim.initNetwork()
+    result = sim.run()
+    sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
+
+    if config.dumpXML:
+        result.dump()
+
+    return result
 
 def study():
     if len(sys.argv) < 2:
         print("You need to pass a configuration file in parameter")
         exit(1)
 
-    config = Configuration(sys.argv[1])
-    sim = Simulator(config)
-    sim.initLogger()
+    try:
+        config = importlib.import_module(sys.argv[1])
+    except ModuleNotFoundError as e:
+        try:
+            config = importlib.import_module(str(sys.argv[1]).replace(".py", ""))
+        except ModuleNotFoundError as e:
+            print(e)
+            print("You need to pass a configuration file in parameter")
+            exit(1)
+
+    logger = initLogger(config)
+    format = {"entity": "Study"}
+
     results = []
-    simCnt = 0
 
-    sim.logger.info("Starting simulations:", extra=sim.format)
+    now = datetime.now()
+    execID = now.strftime("%Y-%m-%d_%H-%M-%S_")+str(random.randint(100,999))
+
+    logger.info("Starting simulations:", extra=format)
     start = time.time()
-
-    for run in range(config.numberRuns):
-        for fr in range(config.failureRateStart, config.failureRateStop+1, config.failureRateStep):
-            for chi in range(config.chiStart, config.chiStop+1, config.chiStep):
-                for blockSize in range(config.blockSizeStart, config.blockSizeStop+1, config.blockSizeStep):
-                    for nv in range(config.nvStart, config.nvStop+1, config.nvStep):
-                        for netDegree in range(config.netDegreeStart, config.netDegreeStop+1, config.netDegreeStep):
-
-                            if not config.deterministic:
-                                random.seed(datetime.now())
-
-                            shape = Shape(blockSize, nv, fr, chi, netDegree)
-                            sim.resetShape(shape)
-                            sim.initValidators()
-                            sim.initNetwork()
-                            result = sim.run()
-                            sim.logger.info("Run %d, FR: %d %%, Chi: %d, BlockSize: %d, Nb.Val: %d, netDegree: %d ... Block Available: %d" % (run, fr, chi, blockSize, nv, netDegree, result.blockAvailable), extra=sim.format)
-                            results.append(result)
-                            simCnt += 1
-
+    results = Parallel(config.numJobs)(delayed(runOnce)(config, shape ,execID) for shape in config.nextShape())
     end = time.time()
-    sim.logger.info("A total of %d simulations ran in %d seconds" % (simCnt, end-start), extra=sim.format)
+    logger.info("A total of %d simulations ran in %d seconds" % (len(results), end-start), extra=format)
 
+    if config.visualization:
+        vis = Visualizer(execID)
+        vis.plotHeatmaps()
 
-
-study()
-
+if __name__ == "__main__":
+    study()
