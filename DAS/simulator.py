@@ -81,7 +81,7 @@ class Simulator:
                     end   = offset+((j+1)*self.shape.chi*self.shape.vpn2)
                 r = rows[start:end]
                 c = columns[start:end]
-                val = Validator(i, int(not i!=0), self.logger, self.shape, r, c)
+                val = Validator(i, int(not i!=0), self.logger, self.shape, self.config, r, c)
                 self.logger.debug("Node %d has row IDs: %s" % (val.ID, val.rowIDs), extra=self.format)
                 self.logger.debug("Node %d has column IDs: %s" % (val.ID, val.columnIDs), extra=self.format)
                 assignedRows = assignedRows + list(r)
@@ -90,7 +90,7 @@ class Simulator:
                 self.nodeColumns.append(val.columnIDs)
 
             else:
-                val = Validator(i, int(not i!=0), self.logger, self.shape)
+                val = Validator(i, int(not i!=0), self.logger, self.shape, self.config)
             if i == self.proposerID:
                 val.initBlock()
             else:
