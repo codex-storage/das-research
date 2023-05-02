@@ -21,7 +21,7 @@ from DAS.shape import Shape
 # Dump results into XML files
 dumpXML = 1
 
-# save progress vectors to XML
+# save progress and row/column distribution vectors to XML
 saveProgress = 1
 
 # plot progress for each run to PNG
