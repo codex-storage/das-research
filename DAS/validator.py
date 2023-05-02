@@ -38,7 +38,7 @@ class Validator:
         """It returns the validator ID."""
         return str(self.ID)
 
-    def __init__(self, ID, amIproposer, logger, shape, rows = None, columns = None):
+    def __init__(self, ID, amIproposer, logger, shape, config, rows = None, columns = None):
         """It initializes the validator with the logger shape and rows/columns.
 
             If rows/columns are specified these are observed, otherwise (default)
@@ -87,15 +87,16 @@ class Validator:
         self.statsRxDupInSlot = 0
         self.statsRxDupPerSlot = []
 
-        # Set uplink bandwidth. In segments (~560 bytes) per timestep (50ms?)
-        # 1 Mbps ~= 1e6 / 20 / 8 / 560 ~= 11
-        # TODO: this should be a parameter
+        # Set uplink bandwidth. 
+        # Assuming segments of ~560 bytes and timesteps of 50ms, we get
+        # 1 Mbps ~= 1e6 mbps * 0.050 s / (560*8) bits ~= 11 segments/timestep
         if self.amIproposer:
             self.bwUplink = shape.bwUplinkProd
         elif self.nodeClass == 1:
             self.bwUplink = shape.bwUplink1
         else:
             self.bwUplink = shape.bwUplink2
+        self.bwUplink *= 1e3 / 8 * config.stepDuration / config.segmentSize
 
         self.repairOnTheFly = True
         self.sendLineUntil = (self.shape.blockSize + 1) // 2 # stop sending on a p2p link if at least this amount of samples passed

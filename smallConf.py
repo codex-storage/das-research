@@ -72,14 +72,16 @@ class1ratios = [0.8]
 validatorsPerNode1 = [1]
 validatorsPerNode2 = [500]
 
-# Set uplink bandwidth. In segments (~560 bytes) per timestep (50ms?)
-# 1 Mbps ~= 1e6 / 20 / 8 / 560 ~= 11
-bwUplinksProd = [2200]
-bwUplinks1 = [110]
-bwUplinks2 = [2200]
+# Set uplink bandwidth in megabits/second
+bwUplinksProd = [200]
+bwUplinks1 = [10]
+bwUplinks2 = [200]
 
 # Step duration in miliseconds (Classic RTT is about 100ms)
 stepDuration = 50
+
+# Segment size in bytes (with proof)
+segmentSize = 560
 
 # Set to True if you want your run to be deterministic, False if not
 deterministic = True
