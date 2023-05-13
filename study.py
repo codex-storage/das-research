@@ -87,5 +87,8 @@ def study():
         vis = Visualizer(execID, config)
         vis.plotHeatmaps()
 
+        visual = Visualizor(execID, config, results)
+        visual.plotAll()
+
 if __name__ == "__main__":
     study()
