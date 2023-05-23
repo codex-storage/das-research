@@ -34,3 +34,15 @@ pip3 install -r DAS/requirements.txt
 ```
 python3 study.py smallConf.py
 ```
+
+## License
+
+Licensed and distributed under either of
+
+* MIT license: [LICENSE-MIT](LICENSE-MIT) or https://opensource.org/licenses/MIT
+
+or
+
+* Apache License, Version 2.0: [LICENSE-APACHEv2](LICENSE-APACHEv2) or https://www.apache.org/licenses/LICENSE-2.0
+
+at your option. Files in this repository may not be copied, modified, or distributed except according to those terms.
