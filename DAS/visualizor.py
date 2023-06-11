@@ -35,6 +35,32 @@ class Visualizor:
         self.results = results
         os.makedirs("results/"+self.execID+"/plots", exist_ok=True)
 
+    def plotHeatmaps(self, x, y):
+        """Plot the heatmap using the parameters given as x axis and y axis"""
+        print("Plotting heatmap "+x+" vs "+y)
+        #Find the location of x in shape
+        #Find the location of y in shape
+        #Find the location od r in shape
+
+        #Loop over all results
+            #Add unique values foir every parameter
+
+        #Find number of runs from r
+        #If number of values for x and y > 3 then plot heatmap, otherwise finish
+
+        #Create a 2D grid with the dimensions of the number of values for x and y
+        #For all values of x
+            #For all values of y
+                # For all values in r
+                    #Fixing all other values to 1 (in the mean time)
+                    #Add/sum TTA into 2D grid
+                    #if last r divide by number of runs
+
+        #Plot 2D grid
+
+
+
+
     def plotAll(self):
         """Plot all the important elements of each result"""
         for result in self.results:
