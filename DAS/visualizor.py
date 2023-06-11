@@ -38,14 +38,16 @@ class Visualizor:
     def plotAll(self):
         """Plot all the important elements of each result"""
         for result in self.results:
-            self.plotMissingSamples(result)
-            self.plotProgress(result)
-            self.plotSentData(result)
-            self.plotRecvData(result)
-            self.plotDupData(result)
-            self.plotRowCol(result)
+            plotPath = "results/"+self.execID+"/plots/"+str(result.shape)
+            os.makedirs(plotPath, exist_ok=True)
+            self.plotMissingSamples(result, plotPath)
+            self.plotProgress(result, plotPath)
+            self.plotSentData(result, plotPath)
+            self.plotRecvData(result, plotPath)
+            self.plotDupData(result, plotPath)
+            self.plotRowCol(result, plotPath)
 
-    def plotMissingSamples(self, result):
+    def plotMissingSamples(self, result, plotPath):
         """Plots the missing samples in the network"""
         conf = {}
         text = str(result.shape).split("-")
@@ -61,7 +63,7 @@ class Visualizor:
         conf["ylabel"] = "Number of Missing Samples"
         conf["data"] = [result.missingVector]
         conf["xdots"] = [x*self.config.stepDuration for x in range(len(result.missingVector))]
-        conf["path"] = "results/"+self.execID+"/plots/missingSamples-"+str(result.shape)+".png"
+        conf["path"] = plotPath+"/missingSamples.png"
         maxi = 0
         for v in conf["data"]:
             if max(v) > maxi:
@@ -70,7 +72,7 @@ class Visualizor:
         plotData(conf)
         print("Plot %s created." % conf["path"])
 
-    def plotProgress(self, result):
+    def plotProgress(self, result, plotPath):
         """Plots the percentage of nodes ready in the network"""
         vector1 = result.metrics["progress"]["nodes ready"]
         vector2 = result.metrics["progress"]["validators ready"]
@@ -89,7 +91,7 @@ class Visualizor:
         conf["ylabel"] = "Percentage (%)"
         conf["data"] = [vector1, vector2, vector3]
         conf["xdots"] = [x*self.config.stepDuration for x in range(len(vector1))]
-        conf["path"] = "results/"+self.execID+"/plots/nodesReady-"+str(result.shape)+".png"
+        conf["path"] = plotPath+"/nodesReady.png"
         maxi = 0
         for v in conf["data"]:
             if max(v) > maxi:
@@ -98,7 +100,7 @@ class Visualizor:
         plotData(conf)
         print("Plot %s created." % conf["path"])
 
-    def plotSentData(self, result):
+    def plotSentData(self, result, plotPath):
         """Plots the percentage of nodes ready in the network"""
         vector1 = result.metrics["progress"]["TX builder mean"]
         vector2 = result.metrics["progress"]["TX class1 mean"]
@@ -121,7 +123,7 @@ class Visualizor:
         conf["ylabel"] = "Bandwidth (MBits/s)"
         conf["data"] = [vector1, vector2, vector3]
         conf["xdots"] = [x*self.config.stepDuration for x in range(len(vector1))]
-        conf["path"] = "results/"+self.execID+"/plots/sentData-"+str(result.shape)+".png"
+        conf["path"] = plotPath+"/sentData.png"
         maxi = 0
         for v in conf["data"]:
             if max(v) > maxi:
@@ -130,7 +132,7 @@ class Visualizor:
         plotData(conf)
         print("Plot %s created." % conf["path"])
 
-    def plotRecvData(self, result):
+    def plotRecvData(self, result, plotPath):
         """Plots the percentage of nodes ready in the network"""
         vector1 = result.metrics["progress"]["RX class1 mean"]
         vector2 = result.metrics["progress"]["RX class2 mean"]
@@ -151,7 +153,7 @@ class Visualizor:
         conf["ylabel"] = "Bandwidth (MBits/s)"
         conf["data"] = [vector1, vector2]
         conf["xdots"] = [x*self.config.stepDuration for x in range(len(vector1))]
-        conf["path"] = "results/"+self.execID+"/plots/recvData-"+str(result.shape)+".png"
+        conf["path"] = plotPath+"/recvData.png"
         maxi = 0
         for v in conf["data"]:
             if max(v) > maxi:
@@ -160,7 +162,7 @@ class Visualizor:
         plotData(conf)
         print("Plot %s created." % conf["path"])
 
-    def plotDupData(self, result):
+    def plotDupData(self, result, plotPath):
         """Plots the percentage of nodes ready in the network"""
         vector1 = result.metrics["progress"]["Dup class1 mean"]
         vector2 = result.metrics["progress"]["Dup class2 mean"]
@@ -181,7 +183,7 @@ class Visualizor:
         conf["ylabel"] = "Bandwidth (MBits/s)"
         conf["data"] = [vector1, vector2]
         conf["xdots"] = [x*self.config.stepDuration for x in range(len(vector1))]
-        conf["path"] = "results/"+self.execID+"/plots/dupData-"+str(result.shape)+".png"
+        conf["path"] = plotPath+"/dupData.png"
         maxi = 0
         for v in conf["data"]:
             if max(v) > maxi:
@@ -190,7 +192,7 @@ class Visualizor:
         plotData(conf)
         print("Plot %s created." % conf["path"])
 
-    def plotRowCol(self, result):
+    def plotRowCol(self, result, plotPath):
         """Plots the percentage of nodes ready in the network"""
         vector1 = result.metrics["rowDist"]
         vector2 = result.metrics["columnDist"]
@@ -208,7 +210,7 @@ class Visualizor:
         conf["ylabel"] = "Validators subscribed"
         conf["data"] = [vector1, vector2]
         conf["xdots"] = range(len(vector1))
-        conf["path"] = "results/"+self.execID+"/plots/RowColDist-"+str(result.shape)+".png"
+        conf["path"] = plotPath+"/RowColDist.png"
         maxi = 0
         for v in conf["data"]:
             if max(v) > maxi:
