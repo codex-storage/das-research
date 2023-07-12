@@ -42,7 +42,7 @@ class Validator:
         """It initializes the validator with the logger shape and rows/columns.
 
             If rows/columns are specified these are observed, otherwise (default)
-            chi rows and columns are selected randomly.
+            chiR rows and chiC columns are selected randomly.
         """
 
         self.shape = shape
@@ -55,12 +55,12 @@ class Validator:
         self.sendQueue = deque()
         self.amIproposer = amIproposer
         self.logger = logger
-        if self.shape.chi < 1:
+        if self.shape.chiR < 1 and self.shape.chiC < 1:
             self.logger.error("Chi has to be greater than 0", extra=self.format)
-        elif self.shape.chi > self.shape.blockSizeR:
-            self.logger.error("Chi has to be smaller than %d" % self.shape.blockSizeR, extra=self.format)
-        elif self.shape.chi > self.shape.blockSizeC:
-            self.logger.error("Chi has to be smaller than %d" % self.shape.blockSizeC, extra=self.format)
+        elif self.shape.chiC > self.shape.blockSizeR:
+            self.logger.error("ChiC has to be smaller than %d" % self.shape.blockSizeR, extra=self.format)
+        elif self.shape.chiR > self.shape.blockSizeC:
+            self.logger.error("ChiR has to be smaller than %d" % self.shape.blockSizeC, extra=self.format)
         else:
             if amIproposer:
                 self.nodeClass = 0
@@ -74,8 +74,8 @@ class Validator:
                 self.vRowIDs = []
                 self.vColumnIDs = []
                 for i in range(self.vpn):
-                    self.vRowIDs.append(set(rows[i*self.shape.chi:(i+1)*self.shape.chi]) if rows else set(random.sample(range(self.shape.blockSizeC), self.shape.chi)))
-                    self.vColumnIDs.append(set(columns[i*self.shape.chi:(i+1)*self.shape.chi]) if columns else set(random.sample(range(self.shape.blockSizeR), self.shape.chi)))
+                    self.vRowIDs.append(set(rows[i*self.shape.chiR:(i+1)*self.shape.chiR]) if rows else set(random.sample(range(self.shape.blockSizeC), self.shape.chiR)))
+                    self.vColumnIDs.append(set(columns[i*self.shape.chiC:(i+1)*self.shape.chiC]) if columns else set(random.sample(range(self.shape.blockSizeR), self.shape.chiC)))
                 self.rowIDs = set.union(*self.vRowIDs)
                 self.columnIDs = set.union(*self.vColumnIDs)
         self.rowNeighbors = collections.defaultdict(dict)
