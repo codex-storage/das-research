@@ -55,8 +55,8 @@ class Simulator:
             heavyVal = heavyNodes * self.shape.vpn2
             totalValidators = lightVal + heavyVal
             totalRows = totalValidators * self.shape.chi
-            rows =    list(range(self.shape.blockSize)) * (int(totalRows/self.shape.blockSize)+1)
-            columns = list(range(self.shape.blockSize)) * (int(totalRows/self.shape.blockSize)+1)
+            rows =    list(range(self.shape.blockSizeC)) * (int(totalRows/self.shape.blockSizeC)+1)
+            columns = list(range(self.shape.blockSizeR)) * (int(totalRows/self.shape.blockSizeR)+1)
             rows =    rows[0:totalRows]
             columns = columns[0:totalRows]
             random.shuffle(rows)
@@ -105,8 +105,8 @@ class Simulator:
 
     def initNetwork(self):
         """It initializes the simulated network."""
-        rowChannels = [[] for i in range(self.shape.blockSize)]
-        columnChannels = [[] for i in range(self.shape.blockSize)]
+        rowChannels = [[] for i in range(self.shape.blockSizeC)]
+        columnChannels = [[] for i in range(self.shape.blockSizeR)]
         for v in self.validators:
             if not (self.proposerPublishOnly and v.amIproposer):
                 for id in v.rowIDs:
@@ -122,7 +122,7 @@ class Simulator:
         self.logger.debug("Number of validators per row; Min: %d, Max: %d" % (min(self.distR), max(self.distR)), extra=self.format)
         self.logger.debug("Number of validators per column; Min: %d, Max: %d" % (min(self.distC), max(self.distC)), extra=self.format)
 
-        for id in range(self.shape.blockSize):
+        for id in range(self.shape.blockSizeC):
 
             # If the number of nodes in a channel is smaller or equal to the
             # requested degree, a fully connected graph is used. For n>d, a random
@@ -140,8 +140,10 @@ class Simulator:
             for u, v in G.edges:
                 val1=rowChannels[id][u]
                 val2=rowChannels[id][v]
-                val1.rowNeighbors[id].update({val2.ID : Neighbor(val2, 0, self.shape.blockSize)})
-                val2.rowNeighbors[id].update({val1.ID : Neighbor(val1, 0, self.shape.blockSize)})
+                val1.rowNeighbors[id].update({val2.ID : Neighbor(val2, 0, self.shape.blockSizeR)})
+                val2.rowNeighbors[id].update({val1.ID : Neighbor(val1, 0, self.shape.blockSizeR)})
+
+        for id in range(self.shape.blockSizeR):
 
             if not columnChannels[id]:
                 self.logger.error("No nodes for column %d !" % id, extra=self.format)
@@ -156,8 +158,8 @@ class Simulator:
             for u, v in G.edges:
                 val1=columnChannels[id][u]
                 val2=columnChannels[id][v]
-                val1.columnNeighbors[id].update({val2.ID : Neighbor(val2, 1, self.shape.blockSize)})
-                val2.columnNeighbors[id].update({val1.ID : Neighbor(val1, 1, self.shape.blockSize)})
+                val1.columnNeighbors[id].update({val2.ID : Neighbor(val2, 1, self.shape.blockSizeC)})
+                val2.columnNeighbors[id].update({val1.ID : Neighbor(val1, 1, self.shape.blockSizeC)})
 
         for v in self.validators:
             if (self.proposerPublishOnly and v.amIproposer):
@@ -165,12 +167,12 @@ class Simulator:
                     count = min(self.proposerPublishTo, len(rowChannels[id]))
                     publishTo = random.sample(rowChannels[id], count)
                     for vi in publishTo:
-                        v.rowNeighbors[id].update({vi.ID : Neighbor(vi, 0, self.shape.blockSize)})
+                        v.rowNeighbors[id].update({vi.ID : Neighbor(vi, 0, self.shape.blockSizeR)})
                 for id in v.columnIDs:
                     count = min(self.proposerPublishTo, len(columnChannels[id]))
                     publishTo = random.sample(columnChannels[id], count)
                     for vi in publishTo:
-                        v.columnNeighbors[id].update({vi.ID : Neighbor(vi, 1, self.shape.blockSize)})
+                        v.columnNeighbors[id].update({vi.ID : Neighbor(vi, 1, self.shape.blockSizeC)})
 
         if self.logger.isEnabledFor(logging.DEBUG):
             for i in range(0, self.shape.numberNodes):

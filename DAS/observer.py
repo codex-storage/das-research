@@ -11,10 +11,10 @@ class Observer:
         self.config = config
         self.format = {"entity": "Observer"}
         self.logger = logger
-        self.block = [0] * self.config.blockSize * self.config.blockSize
-        self.rows = [0] * self.config.blockSize
-        self.columns = [0] * self.config.blockSize
-        self.broadcasted = Block(self.config.blockSize)
+        self.block = [0] * self.config.blockSizeR * self.config.blockSizeC
+        self.rows = [0] * self.config.blockSizeC
+        self.columns = [0] * self.config.blockSizeR
+        self.broadcasted = Block(self.config.blockSizeR, self.config.blockSizeC)
 
 
     def checkRowsColumns(self, validators):
@@ -26,7 +26,7 @@ class Observer:
                 for c in val.columnIDs:
                     self.columns[c] += 1
 
-        for i in range(self.config.blockSize):
+        for i in range(self.config.blockSizeC):
             self.logger.debug("Row/Column %d have %d and %d validators assigned." % (i, self.rows[i], self.columns[i]), extra=self.format)
             if self.rows[i] == 0 or self.columns[i] == 0:
                 self.logger.warning("There is a row/column that has not been assigned", extra=self.format)
@@ -34,7 +34,7 @@ class Observer:
     def checkBroadcasted(self):
         """It checks how many broadcasted samples are still missing in the network."""
         zeros = 0
-        for i in range(self.blockSize * self.blockSize):
+        for i in range(self.blockSizeR * self.blockSizeC):
             if self.broadcasted.data[i] == 0:
                 zeros += 1
         if zeros > 0:
