@@ -198,7 +198,7 @@ class Visualizer:
                 ylabels = np.sort(np.unique(data[key][labels[1]]))
                 if len(xlabels) < self.minimumDataPoints or len(ylabels) < self.minimumDataPoints:
                     continue
-                df = pd.DataFrame.from_dict(data[key]).pivot(labels[0], labels[1], 'ttas')
+                df = pd.DataFrame.from_dict(data[key]).pivot(columns=labels[0], index=labels[1], values='ttas')
                 fig, ax = plt.subplots(figsize=(10, 6))
                 sns.heatmap(df, cmap='hot_r', cbar_kws={'label': 'Time to block availability (ms)'}, linecolor='black', linewidths=0.3, annot=True, fmt=".2f", ax=ax) #vmin=vmin, vmax=vmax
                 plt.xlabel(self.formatLabel(labels[0]))
