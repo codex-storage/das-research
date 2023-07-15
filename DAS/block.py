@@ -7,14 +7,18 @@ from bitarray.util import zeros
 class Block:
     """This class represents a block in the Ethereum blockchain."""
 
-    def __init__(self, blockSizeR, blockSizeC=0):
+    def __init__(self, blockSizeR, blockSizeRK=0, blockSizeC=0, blockSizeCK=0):
         """Initialize the block with a data array of blocksize^2 zeros.
 
         BlockSizeR: row size
+        BlockSizeRK: original row size, before erasure coding to BlocksSizeR
         BlockSizeC: column size (i.e. number of rows)
+        BlockSizeCK: original column size, before erasure coding to BlocksSizeR
         """
         self.blockSizeR = blockSizeR
+        self.blockSizeRK = blockSizeRK if blockSizeRK else blockSizeR/2
         self.blockSizeC = blockSizeC if blockSizeC else blockSizeR
+        self.blockSizeCK = blockSizeCK if blockSizeCK else blockSizeRK
         self.data = zeros(self.blockSizeR*self.blockSizeC)
 
     def fill(self):
@@ -42,12 +46,12 @@ class Block:
         self.data[columnID::self.blockSizeR] |= column
 
     def repairColumn(self, id):
-        """It repairs the entire column if it has at least blockSizeC/2 ones.
+        """It repairs the entire column if it has at least blockSizeCK ones.
             Returns: list of repaired segments
         """
         line = self.data[id::self.blockSizeR]
         success = line.count(1)
-        if success >= self.blockSizeC/2:
+        if success >= self.blockSizeCK:
             ret = ~line
             self.data[id::self.blockSizeR] = 1
         else:
@@ -63,12 +67,12 @@ class Block:
         self.data[rowID*self.blockSizeR:(rowID+1)*self.blockSizeR] |= row
 
     def repairRow(self, id):
-        """It repairs the entire row if it has at least blockSizeR/2 ones.
+        """It repairs the entire row if it has at least blockSizeRK ones.
             Returns: list of repaired segments.
         """
         line = self.data[id*self.blockSizeR:(id+1)*self.blockSizeR]
         success = line.count(1)
-        if success >= self.blockSizeR/2:
+        if success >= self.blockSizeRK:
             ret = ~line
             self.data[id*self.blockSizeR:(id+1)*self.blockSizeR] = 1
         else:
