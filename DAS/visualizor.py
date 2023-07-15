@@ -71,7 +71,8 @@ class Visualizor:
             self.plotSentData(result, plotPath)
             self.plotRecvData(result, plotPath)
             self.plotDupData(result, plotPath)
-            self.plotRowCol(result, plotPath)
+            if self.config.saveRCdist:
+                self.plotRowCol(result, plotPath)
 
     def plotMissingSamples(self, result, plotPath):
         """Plots the missing samples in the network"""
