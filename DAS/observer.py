@@ -14,7 +14,8 @@ class Observer:
         self.block = [0] * self.config.blockSizeR * self.config.blockSizeC
         self.rows = [0] * self.config.blockSizeC
         self.columns = [0] * self.config.blockSizeR
-        self.broadcasted = Block(self.config.blockSizeR, self.config.blockSizeC)
+        self.broadcasted = Block(self.config.blockSizeR, self.config.blockSizeRK,
+                                self.config.blockSizeC,  self.config.blockSizeCK)
 
 
     def checkRowsColumns(self, validators):
