@@ -3,12 +3,15 @@
 class Shape:
     """This class represents a set of parameters for a specific simulation."""
 
-    def __init__(self, blockSizeR, blockSizeC, numberNodes, failureModel, failureRate, class1ratio, chiR, chiC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run):
+    def __init__(self, blockSizeR, blockSizeRK, blockSizeC, blockSizeCK,
+                 numberNodes, failureModel, failureRate, class1ratio, chiR, chiC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run):
         """Initializes the shape with the parameters passed in argument."""
         self.run = run
         self.numberNodes = numberNodes
         self.blockSizeR = blockSizeR
+        self.blockSizeRK = blockSizeRK
         self.blockSizeC = blockSizeC
+        self.blockSizeCK = blockSizeCK
         self.failureModel = failureModel
         self.failureRate = failureRate
         self.netDegree = netDegree
@@ -25,8 +28,10 @@ class Shape:
     def __repr__(self):
         """Returns a printable representation of the shape"""
         shastr = ""
-        shastr += "bsr-"+str(self.blockSizeR)
-        shastr += "bsc-"+str(self.blockSizeC)
+        shastr += "bsrn-"+str(self.blockSizeR)
+        shastr += "bsrk-"+str(self.blockSizeRK)
+        shastr += "bscn-"+str(self.blockSizeC)
+        shastr += "bsck-"+str(self.blockSizeCK)
         shastr += "-nn-"+str(self.numberNodes)
         shastr += "-fm-"+str(self.failureModel)
         shastr += "-fr-"+str(self.failureRate)

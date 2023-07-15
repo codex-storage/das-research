@@ -49,8 +49,8 @@ class Validator:
         FORMAT = "%(levelname)s : %(entity)s : %(message)s"
         self.ID = ID
         self.format = {"entity": "Val "+str(self.ID)}
-        self.block = Block(self.shape.blockSizeR, self.shape.blockSizeC)
-        self.receivedBlock = Block(self.shape.blockSizeR, self.shape.blockSizeC)
+        self.block = Block(self.shape.blockSizeR, self.shape.blockSizeRK, self.shape.blockSizeC,  self.shape.blockSizeCK)
+        self.receivedBlock = Block(self.shape.blockSizeR, self.shape.blockSizeRK, self.shape.blockSizeC,  self.shape.blockSizeCK)
         self.receivedQueue = deque()
         self.sendQueue = deque()
         self.amIproposer = amIproposer
@@ -101,8 +101,8 @@ class Validator:
         self.bwUplink *= 1e3 / 8 * config.stepDuration / config.segmentSize
 
         self.repairOnTheFly = True
-        self.sendLineUntilR = (self.shape.blockSizeR + 1) // 2 # stop sending on a p2p link if at least this amount of samples passed
-        self.sendLineUntilC = (self.shape.blockSizeC + 1) // 2 # stop sending on a p2p link if at least this amount of samples passed
+        self.sendLineUntilR = self.shape.blockSizeRK # stop sending on a p2p link if at least this amount of samples passed
+        self.sendLineUntilC = self.shape.blockSizeCK # stop sending on a p2p link if at least this amount of samples passed
         self.perNeighborQueue = True # queue incoming messages to outgoing connections on arrival (as typical GossipSub impl)
         self.shuffleQueues = True # shuffle the order of picking from active queues of a sender node
         self.perNodeQueue = False # keep a global queue of incoming messages for later sequential dispatch
