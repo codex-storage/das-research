@@ -5,6 +5,7 @@ import collections
 import logging
 from DAS.block import *
 from DAS.tools import shuffled, shuffledDict, unionOfSamples
+from DAS.deque import DequeInt
 from bitarray.util import zeros
 from collections import deque
 from itertools import chain
@@ -28,7 +29,7 @@ class Neighbor:
         self.receiving = zeros(blockSize)
         self.received = zeros(blockSize)
         self.sent = zeros(blockSize)
-        self.sendQueue = deque()
+        self.sendQueue = DequeInt()
 
 
 class Validator:
