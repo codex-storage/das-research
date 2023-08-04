@@ -117,6 +117,14 @@ class Validator:
             self.logger.debug("Selected rows: "+str(self.rowIDs), extra=self.format)
             self.logger.debug("Selected columns: "+str(self.columnIDs), extra=self.format)
 
+    def addDHTClient(self, dhtClient):
+        self.logger.debug("Adding new DHTClient...", extra=self.format)
+        # double check that
+        if dhtClient.ID != self.ID:
+            self.logger.error("Received DHTClient with different ValidatorID: %d", dhtClient.ID, extra=self.format)
+            # TODO: do we want to panic here if the IDs don't match?
+        self.DHTClient = dhtClient
+
     def initBlock(self):
         """It initializes the block for the proposer."""
         if self.amIproposer == 0:

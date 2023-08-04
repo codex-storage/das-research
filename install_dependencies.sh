@@ -17,4 +17,4 @@ git submodule update --init
 # install requirements for DAS and py-dht and install the dht module from py-dht
 pip3 install -r DAS/requirements.txt
 pip3 install -r py-dht/requirements.txt
-pip3 install -e py-dht
+python -m pip install -e py-dht/

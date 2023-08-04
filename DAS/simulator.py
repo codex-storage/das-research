@@ -1,5 +1,5 @@
 #!/bin/python
-
+import time
 import networkx as nx
 import logging, random
 import pandas as pd
@@ -9,6 +9,7 @@ from DAS.tools import *
 from DAS.results import *
 from DAS.observer import *
 from DAS.validator import *
+from dht import DHTNetwork
 
 class Simulator:
     """This class implements the main DAS simulator."""
@@ -177,6 +178,23 @@ class Simulator:
                 self.logger.debug("Val %d : rowN %s", i, self.validators[i].rowNeighbors, extra=self.format)
                 self.logger.debug("Val %d : colN %s", i, self.validators[i].columnNeighbors, extra=self.format)
 
+    def initDHTNetwork(self):
+        """ Compose the DHT network based on the pre-initialized Validators """
+        # compose the DHT networking layer
+        self.logger.info("Initializing DHTNetwork... with %d nodes" % self.shape.numberNodes, extra=self.format)
+        self.DHTNetwork = DHTNetwork(self.execID, self.shape.failureRate, self.config.stepDuration)
+
+        # initialize each of the routing tables
+        startTime = time.time()
+        _ = self.DHTNetwork.init_with_random_peers(self.config.numJobs, self.shape.numberNodes,
+            self.shape.k, self.shape.alpha, self.shape.k, self.config.nilStepsToStopLookup)
+        self.logger.info("DHT fast-init (%d jobs) done in %.2f secs", self.config.numJobs, time.time()-startTime, extra=self.format)
+
+        # add the initialized DHTClient back to the Validator
+        for val in self.validators:
+            val.addDHTClient(self.DHTNetwork.nodestore.get_node(val.ID))
+        # the network should be ready to go :)
+
     def initLogger(self):
         """It initializes the logger."""
         logging.TRACE = 5
@@ -216,7 +234,7 @@ class Simulator:
                             self.logger.debug("Column %d, Neighbor %d sent: %s" % (c, val.columnNeighbors[c][nc].node.ID, val.columnNeighbors[c][nc].received), extra=self.format)
                             self.logger.debug("Column %d, Neighbor %d has: %s" % (c, val.columnNeighbors[c][nc].node.ID, self.validators[val.columnNeighbors[c][nc].node.ID].getColumn(c)), extra=self.format)
 
-    def run(self):
+    def runBlockBroadcasting(self):
         """It runs the main simulation until the block is available or it gets stucked."""
         self.glob.checkRowsColumns(self.validators)
         for i in range(0,self.shape.numberNodes):
@@ -307,3 +325,6 @@ class Simulator:
         self.result.populate(self.shape, self.config, missingVector)
         return self.result
 
+    def runBlockPublicationToDHT(self):
+        """It runs the main DHT simulation, where the block proposer has to send the segments to the XOR close enough nodes."""
+        return

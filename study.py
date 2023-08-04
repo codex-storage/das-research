@@ -33,8 +33,14 @@ def runOnce(config, shape, execID):
     sim.initLogger()
     sim.initValidators()
     sim.initNetwork()
-    result = sim.run()
+    result = sim.runBlockBroadcasting()
     sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
+    if config.dhtSimulation:
+        sim.logger.info("Shape: %s ... Setting up DHT Network" % (str(sim.shape.__dict__)), extra=sim.format)
+        sim.initDHTNetwork()
+        sim.runBlockPublicationToDHT()
+        sim.logger.info("Shape: %s ... Finished up Block propagation on the DHT Network" % (str(sim.shape.__dict__)), extra=sim.format)
+        # TODO: append the DHT results to the previous results
 
     if config.dumpXML:
         result.dump()
@@ -79,7 +85,7 @@ def study():
 
     logger.info("Starting simulations:", extra=format)
     start = time.time()
-    results = Parallel(config.numJobs)(delayed(runOnce)(config, shape ,execID) for shape in config.nextShape())
+    results = Parallel(config.numJobs)(delayed(runOnce)(config, shape, execID) for shape in config.nextShape())
     end = time.time()
     logger.info("A total of %d simulations ran in %d seconds" % (len(results), end-start), extra=format)
 
