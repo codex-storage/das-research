@@ -26,7 +26,7 @@ cd das-research
 ```
 python3 -m venv myenv
 source myenv/bin/activate
-pip3 install -r DAS/requirements.txt
+bash install_dependencies.sh
 ```
 
 ## Run the simulator
