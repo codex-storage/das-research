@@ -106,6 +106,10 @@ saveGit = False
 # True to simulate the distribution of the BlockSegments over a simulated DHTNetwork
 dhtSimulation = True
 
+# Define the strategy used to seed or disseminate the Block to the DHT
+# "builder-seeding-segments" -> The block builder is in charge of seeding the DHT with the block samples
+dhtSeedings = ["builder-seeding-segments"]
+
 # K replication factor, in how many DHT nodes are we going to store the block segments
 # reused as how many DHT nodes will fit into each Kbucket to the routing table
 ks = [20]
@@ -118,9 +122,9 @@ alphas = [1]
 nilStepsToStopLookup = 3
 
 def nextShape():
-    for run, fm, fr, class1ratio, chi, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2, k, alpha in itertools.product(
-        runs, failureModels, failureRates, class1ratios, chis, validatorsPerNode1, validatorsPerNode2, blockSizes, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2, ks, alphas):
+    for run, fm, fr, class1ratio, chi, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2, dhtSeeding, k, alpha in itertools.product(
+        runs, failureModels, failureRates, class1ratios, chis, validatorsPerNode1, validatorsPerNode2, blockSizes, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2, dhtSeedings, ks, alphas):
         # Network Degree has to be an even number
         if netDegree % 2 == 0:
-            shape = Shape(blockSize, nn, fm, fr, class1ratio, chi, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, k, alpha, run)
+            shape = Shape(blockSize, nn, fm, fr, class1ratio, chi, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, dhtSeeding, k, alpha, run)
             yield shape

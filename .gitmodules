@@ -1,3 +1,3 @@
 [submodule "py-dht"]
 	path = py-dht
-	url = https://github.com/cortze/py-dht.git
+	url = git@github.comm:cortze/py-dht.git

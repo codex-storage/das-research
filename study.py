@@ -38,7 +38,7 @@ def runOnce(config, shape, execID):
     if config.dhtSimulation:
         sim.logger.info("Shape: %s ... Setting up DHT Network" % (str(sim.shape.__dict__)), extra=sim.format)
         sim.initDHTNetwork()
-        sim.runBlockPublicationToDHT()
+        sim.runBlockPublicationToDHT(shape.dhtSeeding)
         sim.logger.info("Shape: %s ... Finished up Block propagation on the DHT Network" % (str(sim.shape.__dict__)), extra=sim.format)
         # TODO: append the DHT results to the previous results
 

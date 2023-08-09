@@ -109,6 +109,17 @@ class Validator:
         self.segmentShuffleScheduler = True # send each segment that's worth sending once in shuffled order, then repeat
         self.segmentShuffleSchedulerPersist = True # Persist scheduler state between timesteps
 
+        # --- DHT Related ---
+        self.segmentDHTneighbors = collections.defaultdict(dict)
+
+        # DHT statistics
+        self.dhtStatsTxInSlot = 0
+        self.dhtStatsTxPerSlot = []
+        self.dhtStatsRxInSlot = 0
+        self.dhtStatsRxPerSlot = []
+        self.dhtStatsRxDupInSlot = 0
+        self.dhtStatsRxDupPerSlot = []
+
     def logIDs(self):
         """It logs the assigned rows and columns."""
         if self.amIproposer == 1:
@@ -117,16 +128,8 @@ class Validator:
             self.logger.debug("Selected rows: "+str(self.rowIDs), extra=self.format)
             self.logger.debug("Selected columns: "+str(self.columnIDs), extra=self.format)
 
-    def addDHTClient(self, dhtClient):
-        self.logger.debug("Adding new DHTClient...", extra=self.format)
-        # double check that
-        if dhtClient.ID != self.ID:
-            self.logger.error("Received DHTClient with different ValidatorID: %d", dhtClient.ID, extra=self.format)
-            # TODO: do we want to panic here if the IDs don't match?
-        self.DHTClient = dhtClient
-
     def initBlock(self):
-        """It initializes the block for the proposer."""
+        """It initializes and returns the block for the proposer"""
         if self.amIproposer == 0:
             self.logger.warning("I am not a block proposer", extra=self.format)
         else:
@@ -184,6 +187,8 @@ class Validator:
             nbFailures = self.block.data.count(0)
             measuredFailureRate = nbFailures * 100 / (self.shape.blockSize * self.shape.blockSize)
             self.logger.debug("Number of failures: %d (%0.02f %%)", nbFailures, measuredFailureRate, extra=self.format)
+
+        return self.block
 
     def getColumn(self, index):
         """It returns a given column."""
@@ -454,7 +459,7 @@ class Validator:
             if self.statsTxInSlot >= self.bwUplink:
                 return
 
-    def send(self):
+    def sendToNeigbors(self):
         """ Send as much as we can in the timestep, limited by bwUplink."""
 
         # process node level send queue
@@ -552,3 +557,20 @@ class Validator:
                 validated+=1
 
         return arrived, expected, validated
+
+    # --- DHT Related ---
+
+    def addDHTclient(self, dhtClient):
+        """Add a DHTClient with its respective routing table as part of the Validator"""
+        self.logger.debug("Adding new DHTClient...", extra=self.format)
+        # double check that
+        if dhtClient.ID != self.ID:
+            self.logger.error("Received DHTClient with different ValidatorID: %d", dhtClient.ID, extra=self.format)
+            # TODO: do we want to panic here if the IDs don't match?
+        self.dhtClient = dhtClient
+
+    def setDHTtargetForSegment(self):
+        pass
+    def sendDHTsegments(self):
+        """DHT equivalent to """
+        pass
