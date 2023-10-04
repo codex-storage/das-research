@@ -6,3 +6,5 @@ doc/_build
 !results/plots.py
 Frontend/
 .idea
+DHT/imgs
+DHT/csvs
