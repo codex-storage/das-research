@@ -1,10 +1,7 @@
 #!/bin/python
-
 import networkx as nx
-import logging, random
 import pandas as pd
 from functools import partial, partialmethod
-from datetime import datetime
 from DAS.tools import *
 from DAS.results import *
 from DAS.observer import *
@@ -216,12 +213,12 @@ class Simulator:
                             self.logger.debug("Column %d, Neighbor %d sent: %s" % (c, val.columnNeighbors[c][nc].node.ID, val.columnNeighbors[c][nc].received), extra=self.format)
                             self.logger.debug("Column %d, Neighbor %d has: %s" % (c, val.columnNeighbors[c][nc].node.ID, self.validators[val.columnNeighbors[c][nc].node.ID].getColumn(c)), extra=self.format)
 
-    def run(self):
+    def runBlockBroadcasting(self):
         """It runs the main simulation until the block is available or it gets stucked."""
         self.glob.checkRowsColumns(self.validators)
         for i in range(0,self.shape.numberNodes):
             if i == self.proposerID:
-                self.validators[i].initBlock()
+                self.block = self.validators[i].initBlock()  # Keep the OG block that we are broadcasting
             else:
                 self.validators[i].logIDs()
         arrived, expected, ready, validatedall, validated = self.glob.checkStatus(self.validators)
@@ -235,7 +232,7 @@ class Simulator:
             oldMissingSamples = missingSamples
             self.logger.debug("PHASE SEND %d" % steps, extra=self.format)
             for i in range(0,self.shape.numberNodes):
-                self.validators[i].send()
+                self.validators[i].sendToNeigbors()
             self.logger.debug("PHASE RECEIVE %d" % steps, extra=self.format)
             for i in range(1,self.shape.numberNodes):
                 self.validators[i].receiveRowsColumns()

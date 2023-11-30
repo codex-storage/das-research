@@ -1,7 +1,13 @@
 *.swp
 *.pyc
 results/*
-myenv*/
+*env*/
 doc/_build
 !results/plots.py
 Frontend/
+.idea
+
+# DHT module related
+DHT/imgs
+DHT/csvs
+DHT/.ipynb_checkpoints

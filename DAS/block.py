@@ -81,3 +81,8 @@ class Block:
             print(line+"|")
         print(dash)
 
+
+    def getUniqueIDforSegment(self, rowID, columnID):
+        """It returns a unique ID for a segment indicating its coordinates in the block"""
+        return f"r{rowID}-c{columnID}"
+

@@ -118,7 +118,7 @@ class Validator:
             self.logger.debug("Selected columns: "+str(self.columnIDs), extra=self.format)
 
     def initBlock(self):
-        """It initializes the block for the proposer."""
+        """It initializes and returns the block for the proposer"""
         if self.amIproposer == 0:
             self.logger.warning("I am not a block proposer", extra=self.format)
         else:
@@ -176,6 +176,8 @@ class Validator:
             nbFailures = self.block.data.count(0)
             measuredFailureRate = nbFailures * 100 / (self.shape.blockSize * self.shape.blockSize)
             self.logger.debug("Number of failures: %d (%0.02f %%)", nbFailures, measuredFailureRate, extra=self.format)
+
+        return self.block
 
     def getColumn(self, index):
         """It returns a given column."""
@@ -446,7 +448,7 @@ class Validator:
             if self.statsTxInSlot >= self.bwUplink:
                 return
 
-    def send(self):
+    def sendToNeigbors(self):
         """ Send as much as we can in the timestep, limited by bwUplink."""
 
         # process node level send queue

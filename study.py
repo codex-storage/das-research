@@ -1,6 +1,7 @@
 #! /bin/python3
 
 import time, sys, random, copy
+from datetime import datetime
 import importlib
 import subprocess
 from joblib import Parallel, delayed
@@ -33,9 +34,8 @@ def runOnce(config, shape, execID):
     sim.initLogger()
     sim.initValidators()
     sim.initNetwork()
-    result = sim.run()
+    result = sim.runBlockBroadcasting()
     sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
-
     if config.dumpXML:
         result.dump()
 
@@ -79,7 +79,7 @@ def study():
 
     logger.info("Starting simulations:", extra=format)
     start = time.time()
-    results = Parallel(config.numJobs)(delayed(runOnce)(config, shape ,execID) for shape in config.nextShape())
+    results = Parallel(config.numJobs)(delayed(runOnce)(config, shape, execID) for shape in config.nextShape())
     end = time.time()
     logger.info("A total of %d simulations ran in %d seconds" % (len(results), end-start), extra=format)
 
