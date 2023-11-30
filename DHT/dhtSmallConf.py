@@ -8,9 +8,9 @@ studyType = "retrieval"
 
 # Network
 jobs = 8
-nodeNumber = [12_000]
+nodeNumber = [2_000]
 nodesRetrieving = [100]
-samples = [100]
+samples = [20]
 fastErrorRate = [10]
 slowErrorRate = [0]
 connectionDelayRange = [range(50, 76, 1)]  # ms

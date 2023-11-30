@@ -1,4 +1,4 @@
-VENV="./myenv"
+VENV="./venv"
 
 echo "Installing dependencies for DAS..."
 
@@ -16,5 +16,6 @@ git submodule update --init
 
 # install requirements for DAS and py-dht and install the dht module from py-dht
 pip3 install -r DAS/requirements.txt
+pip3 install -r DHT/requirements.txt
 pip3 install -r py-dht/requirements.txt
 python -m pip install -e py-dht/
