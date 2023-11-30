@@ -3,7 +3,6 @@
 import random
 from bitarray import bitarray
 from bitarray.util import zeros
-from dht.hashes import Hash
 
 class Block:
     """This class represents a block in the Ethereum blockchain."""
@@ -83,16 +82,7 @@ class Block:
         print(dash)
 
 
-    # --- DHT Related ---
     def getUniqueIDforSegment(self, rowID, columnID):
         """It returns a unique ID for a segment indicating its coordinates in the block"""
         return f"r{rowID}-c{columnID}"
 
-    def getSegmentHash(self, rowID, columnID):
-        """It generates the Hash that will be used to identify the segment in the DHT.
-
-        This includes matching the uniqueID based on the row and the column
-        with the actual value of the segment.
-        """
-        segmentID = self.getUniqueIDforSegment(rowID, columnID) + f"x{self.getSegment(rowID, columnID)}"
-        return Hash(segmentID)

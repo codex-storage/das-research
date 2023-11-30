@@ -109,17 +109,6 @@ class Validator:
         self.segmentShuffleScheduler = True # send each segment that's worth sending once in shuffled order, then repeat
         self.segmentShuffleSchedulerPersist = True # Persist scheduler state between timesteps
 
-        # --- DHT Related ---
-        self.segmentDHTneighbors = collections.defaultdict(dict)
-
-        # DHT statistics
-        self.dhtStatsTxInSlot = 0
-        self.dhtStatsTxPerSlot = []
-        self.dhtStatsRxInSlot = 0
-        self.dhtStatsRxPerSlot = []
-        self.dhtStatsRxDupInSlot = 0
-        self.dhtStatsRxDupPerSlot = []
-
     def logIDs(self):
         """It logs the assigned rows and columns."""
         if self.amIproposer == 1:
@@ -557,20 +546,3 @@ class Validator:
                 validated+=1
 
         return arrived, expected, validated
-
-    # --- DHT Related ---
-
-    def addDHTclient(self, dhtClient):
-        """Add a DHTClient with its respective routing table as part of the Validator"""
-        self.logger.debug("Adding new DHTClient...", extra=self.format)
-        # double check that
-        if dhtClient.ID != self.ID:
-            self.logger.error("Received DHTClient with different ValidatorID: %d", dhtClient.ID, extra=self.format)
-            # TODO: do we want to panic here if the IDs don't match?
-        self.dhtClient = dhtClient
-
-    def setDHTtargetForSegment(self):
-        pass
-    def sendDHTsegments(self):
-        """DHT equivalent to """
-        pass

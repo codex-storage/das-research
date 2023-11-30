@@ -1,6 +1,7 @@
 #! /bin/python3
 
 import time, sys, random, copy
+from datetime import datetime
 import importlib
 import subprocess
 from joblib import Parallel, delayed
@@ -35,13 +36,6 @@ def runOnce(config, shape, execID):
     sim.initNetwork()
     result = sim.runBlockBroadcasting()
     sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
-    if config.dhtSimulation:
-        sim.logger.info("Shape: %s ... Setting up DHT Network" % (str(sim.shape.__dict__)), extra=sim.format)
-        sim.initDHTNetwork()
-        sim.runBlockPublicationToDHT(shape.dhtSeeding)
-        sim.logger.info("Shape: %s ... Finished up Block propagation on the DHT Network" % (str(sim.shape.__dict__)), extra=sim.format)
-        # TODO: append the DHT results to the previous results
-
     if config.dumpXML:
         result.dump()
 

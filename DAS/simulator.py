@@ -1,16 +1,11 @@
 #!/bin/python
-import time
 import networkx as nx
-import logging, random
 import pandas as pd
 from functools import partial, partialmethod
-from collections import deque
-from datetime import datetime
 from DAS.tools import *
 from DAS.results import *
 from DAS.observer import *
 from DAS.validator import *
-from dht import DHTNetwork
 
 class Simulator:
     """This class implements the main DAS simulator."""
@@ -22,7 +17,6 @@ class Simulator:
         self.format = {"entity": "Simulator"}
         self.execID = execID
         self.result = Result(self.shape, self.execID)
-        self.dhtResult = Result(self.shape, self.execID)
         self.validators = []
         self.logger = []
         self.logLevel = config.logLevel
@@ -33,7 +27,6 @@ class Simulator:
         self.distC = []
         self.nodeRows = []
         self.nodeColumns = []
-        self.dhtNetwork = DHTNetwork(0, 0, [0])
 
         # In GossipSub the initiator might push messages without participating in the mesh.
         # proposerPublishOnly regulates this behavior. If set to true, the proposer is not
@@ -311,89 +304,3 @@ class Simulator:
         self.result.populate(self.shape, self.config, missingVector)
         return self.result
 
-    def initDHTNetwork(self):
-        """ Compose the DHT network based on the pre-initialized Validators """
-        # compose the DHT networking layer
-        self.logger.info("Initializing DHTNetwork... with %d nodes" % self.shape.numberNodes, extra=self.format)
-        self.dhtNetwork = DHTNetwork(self.execID, self.shape.failureRate, [self.config.stepDuration])
-
-        # initialize each of the routing tables
-        startTime = time.time()
-        _ = self.dhtNetwork.init_with_random_peers(self.config.numJobs, self.shape.numberNodes,
-            self.shape.k, self.shape.alpha, self.shape.k, self.config.nilStepsToStopLookup)
-        self.logger.info("DHT fast-init (%d jobs) done in %.2f secs", self.config.numJobs, time.time()-startTime, extra=self.format)
-
-        # add the initialized DHTClient back to the Validator
-        for val in self.validators:
-            val.addDHTclient(self.dhtNetwork.nodestore.get_node(val.ID))
-        # the network should be ready to go :)
-
-    def runBlockPublicationToDHT(self, strategy):
-        """It runs the dht simulation to seed the DHT with blocks' info"""
-
-        if strategy == "builder-seeding-segments":
-            self.logger.info("Seeding DHT with '%s' strategy" % strategy, extra=self.format)
-            self.dhtBlockProposerSeedingDHTwithSegments()
-        else:
-            self.logger.error("unable to identify DHT seeding strategy '%s'" % strategy, extra=self.format)
-
-        return
-
-    def dhtBlockProposerSeedingDHTwithSegments(self):
-        """It runs the simulation where the block builder has to seed the DHT with all the block segments"""
-        # check who is the block proposer
-        blockProposer = self.dhtNetwork.nodestore.get_node(self.proposerID)
-        self.logger.info("Node %d will start providing the block to the DHT!" % self.proposerID, extra=self.format)
-
-        # make a dht lookup for each of the segments in the block
-        # TODO: currently sequential, add randomness later
-        # TODO: it is pretty hard to define the bandwidth usage of so many lookups,
-        #  a concurrency degree could help though (only XX lookups at the time)
-        totalSegements = self.shape.blockSize * self.shape.blockSize
-        segmentIDs = deque(maxlen=totalSegements)
-        segmentHashes = deque(maxlen=totalSegements)
-        segmentValues = deque(maxlen=totalSegements)
-        closestNodes = deque(maxlen=totalSegements)
-        lookupAggrDelays = deque(maxlen=totalSegements)
-        lookupTotalAttempts = deque(maxlen=totalSegements)
-        lookupConnectedNodes = deque(maxlen=totalSegements)
-        lookupProcessExecTime = deque(maxlen=totalSegements)
-
-        lookupStartTime = time.time()
-        for rowID in range(self.shape.blockSize):
-            for columnID in range(self.shape.blockSize):
-                segmentID = self.block.getUniqueIDforSegment(rowID, columnID)
-                segmentHash = self.block.getSegmentHash(rowID, columnID)
-                segmentValue = self.block.getSegment(rowID, columnID)
-                self.logger.debug(f"starting DHT lookup for segment {segmentID} with hash {segmentHash}",
-                                  extra=self.format)
-                nodes, _, summary, aggrDelay = blockProposer.lookup_for_hash(segmentHash)
-                self.logger.debug(
-                    f"finished DHT lookup for segment {segmentID} with hash {segmentHash} in {summary['finishTime'] - summary['startTime']} secs",
-                    extra=self.format)
-                segmentIDs.append(segmentID)
-                segmentHashes.append(segmentHash)
-                segmentValues.append(segmentValue)
-                closestNodes.append(nodes)
-                lookupAggrDelays.append(aggrDelay)
-                lookupTotalAttempts.append(summary["connectionAttempts"])
-                lookupConnectedNodes.append(summary["successfulCons"])
-                lookupProcessExecTime.append(summary["finishTime"] - summary["startTime"])
-        self.logger.info(f"lookup for the {totalSegements} segments done in {time.time() - lookupStartTime} secs",
-                         extra=self.format)
-
-        # make the provide operation of the segments to the closest nodes
-        # TODO: at the moment, this only supports the standard Provide operation (mimicking IPFS' provide operation)
-        # for each segment add the K closest nodes as neighbours
-
-        # start the dissemination of the segments based on avg latency windows,
-        # track Tx and Rx stats
-        # remember, opening a connection uses one latency step
-
-        # when there are no more segments to disseminate, get all the metrics
-        # Avg successful provides vs failed ones on provide
-        # avg time for the lookup
-
-        # TODO: do we want to check if the content would be retrievable?
-
-        return
