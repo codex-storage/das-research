@@ -55,9 +55,7 @@ class Node:
         self.sendQueue = deque()
         self.amIproposer = amIproposer
         self.logger = logger
-        if self.shape.chiR < 1 and self.shape.chiC < 1:
-            self.logger.error("Chi has to be greater than 0", extra=self.format)
-        elif self.shape.chiC > self.shape.blockSizeR:
+        if self.shape.chiC > self.shape.blockSizeR:
             self.logger.error("ChiC has to be smaller than %d" % self.shape.blockSizeR, extra=self.format)
         elif self.shape.chiR > self.shape.blockSizeC:
             self.logger.error("ChiR has to be smaller than %d" % self.shape.blockSizeC, extra=self.format)
