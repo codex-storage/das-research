@@ -8,7 +8,7 @@ from datetime import datetime
 from DAS.tools import *
 from DAS.results import *
 from DAS.observer import *
-from DAS.validator import *
+from DAS.node import *
 
 class Simulator:
     """This class implements the main DAS simulator."""
