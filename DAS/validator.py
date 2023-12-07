@@ -31,7 +31,7 @@ class Neighbor:
         self.sendQueue = deque()
 
 
-class Validator:
+class Node:
     """This class implements a validator/node in the network."""
 
     def __repr__(self):
