@@ -97,7 +97,17 @@ class Simulator:
                 self.nodeColumns.append(val.columnIDs)
 
             else:
-                val = Node(i, int(not i!=0), self.logger, self.shape, self.config)
+                if self.shape.chiC > self.shape.blockSizeR:
+                    self.logger.error("ChiC has to be smaller than %d" % self.shape.blockSizeR)
+                elif self.shape.chiR > self.shape.blockSizeC:
+                    self.logger.error("ChiR has to be smaller than %d" % self.shape.blockSizeC)
+
+                vs = []
+                nodeClass = 1 if (i <= self.shape.numberNodes * self.shape.class1ratio) else 2
+                vpn = self.shape.vpn1 if (nodeClass == 1) else self.shape.vpn2
+                for v in range(vpn):
+                    vs.append(initValidator(self.shape.blockSizeC, self.shape.chiR, self.shape.blockSizeR, self.shape.chiC))
+                val = Node(i, int(not i!=0), self.logger, self.shape, self.config, vs)
             if i == self.proposerID:
                 val.initBlock()
             else:

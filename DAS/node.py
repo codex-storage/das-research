@@ -31,15 +31,26 @@ class Neighbor:
         self.sendQueue = deque()
 
 
+class Validator:
+    def __init__(self, rowIDs, columnIDs):
+        self.rowIDs = rowIDs
+        self.columnIDs = columnIDs
+
+def initValidator(blockSizeC, chiR, blockSizeR, chiC):
+        rowIDs = set(random.sample(range(blockSizeC), chiR))
+        columnIDs = set(random.sample(range(blockSizeR), chiC))
+        return Validator(rowIDs, columnIDs)
+
 class Node:
-    """This class implements a validator/node in the network."""
+    """This class implements a node in the network."""
 
     def __repr__(self):
-        """It returns the validator ID."""
+        """It returns the node ID."""
         return str(self.ID)
 
-    def __init__(self, ID, amIproposer, logger, shape, config, rows = None, columns = None):
-        """It initializes the validator with the logger shape and rows/columns.
+    def __init__(self, ID, amIproposer, logger, shape, config,
+                 validators, rows = set(), columns = set()):
+        """It initializes the node, and eventual validators, following the simulation configuration in shape and config.
 
             If rows/columns are specified these are observed, otherwise (default)
             chiR rows and chiC columns are selected randomly.
@@ -55,27 +66,22 @@ class Node:
         self.sendQueue = deque()
         self.amIproposer = amIproposer
         self.logger = logger
-        if self.shape.chiC > self.shape.blockSizeR:
-            self.logger.error("ChiC has to be smaller than %d" % self.shape.blockSizeR, extra=self.format)
-        elif self.shape.chiR > self.shape.blockSizeC:
-            self.logger.error("ChiR has to be smaller than %d" % self.shape.blockSizeC, extra=self.format)
+        self.validators = validators
+
+        if amIproposer:
+            self.nodeClass = 0
+            self.rowIDs = range(shape.blockSizeC)
+            self.columnIDs = range(shape.blockSizeR)
         else:
-            if amIproposer:
-                self.nodeClass = 0
-                self.rowIDs = range(shape.blockSizeC)
-                self.columnIDs = range(shape.blockSizeR)
-            else:
-                #if shape.deterministic:
-                #    random.seed(self.ID)
-                self.nodeClass = 1 if (self.ID <= shape.numberNodes * shape.class1ratio) else 2
-                self.vpn = self.shape.vpn1 if (self.nodeClass == 1) else self.shape.vpn2
-                self.vRowIDs = []
-                self.vColumnIDs = []
-                for i in range(self.vpn):
-                    self.vRowIDs.append(set(rows[i*self.shape.chiR:(i+1)*self.shape.chiR]) if rows else set(random.sample(range(self.shape.blockSizeC), self.shape.chiR)))
-                    self.vColumnIDs.append(set(columns[i*self.shape.chiC:(i+1)*self.shape.chiC]) if columns else set(random.sample(range(self.shape.blockSizeR), self.shape.chiC)))
-                self.rowIDs = set.union(*self.vRowIDs)
-                self.columnIDs = set.union(*self.vColumnIDs)
+            self.nodeClass = 1 if (self.ID <= shape.numberNodes * shape.class1ratio) else 2
+            self.vpn = len(validators)  #TODO: needed by old code, change to fn
+
+            self.rowIDs = set(rows)
+            self.columnIDs = set(columns)
+            for v in validators:
+                self.rowIDs = self.rowIDs.union(v.rowIDs)
+                self.columnIDs = self.columnIDs.union(v.columnIDs)
+
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)
 
@@ -113,7 +119,7 @@ class Node:
     def logIDs(self):
         """It logs the assigned rows and columns."""
         if self.amIproposer == 1:
-            self.logger.warning("I am a block proposer."% self.ID)
+            self.logger.warning("I am a block proposer.", extra=self.format)
         else:
             self.logger.debug("Selected rows: "+str(self.rowIDs), extra=self.format)
             self.logger.debug("Selected columns: "+str(self.columnIDs), extra=self.format)
@@ -535,8 +541,8 @@ class Node:
         self.logger.debug("status: %d / %d", arrived, expected, extra=self.format)
 
         validated = 0
-        for i in range(self.vpn):
-            a, e = checkStatus(self.vColumnIDs[i], self.vRowIDs[i])
+        for v in self.validators:
+            a, e = checkStatus(v.columnIDs, v.rowIDs)
             if a == e:
                 validated+=1
 
