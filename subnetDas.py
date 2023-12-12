@@ -48,7 +48,7 @@ evenLineDistribution = False
 runs = [1]
 
 # Number of validators
-numberNodes = [4000]
+numberNodes = [1000]
 
 # select failure model between: "random, sequential, MEP, MEP+1, DEP, DEP+1, MREP, MREP-1"
 failureModels = ["random"]
@@ -70,20 +70,20 @@ rowsN = rowsK
 netDegrees = [8]
 
 # number of rows and columns a validator is interested in
-chiR = 1
-chiC = 1
+chiR = 1 # Number of rows observed by validators (not Beacon nodes with validators, but individual validators)
+chiC = 16 # Number of columns observed by full nodes
 
 # ratio of class1 nodes (see below for parameters per class)
-class1ratios = [1]
+class1ratios = [.5]
 
 # Number of validators per beacon node
-validatorsPerNode1 = [1]
-validatorsPerNode2 = [500]
+validatorsPerNode1 = [0] # Full nodes, without validators 
+validatorsPerNode2 = [500] # Nodes with validators
 
 # Set uplink bandwidth in megabits/second
 bwUplinksProd = [200]
-bwUplinks1 = [10]
-bwUplinks2 = [200]
+bwUplinks1 = [10] # Full nodes
+bwUplinks2 = [200] # Nodes with validators
 
 # Step duration in miliseconds (Classic RTT is about 100ms)
 stepDuration = 50
