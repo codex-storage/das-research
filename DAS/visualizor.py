@@ -6,16 +6,20 @@ import os
 def plotData(conf):
     plt.clf()
     fig = plt.figure("9, 3")
+    plt.grid(True)
     if conf["desLoc"] == 1:
         xDes = 0
     else:
         xDes = conf["xdots"][-1] * 0.6
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
     plt.text(xDes, conf["yaxismax"]/4, conf["textBox"], fontsize=10, verticalalignment='top', bbox=props)
-    for i in range(len(conf["data"])):
-        if conf["type"] == "plot":
+    if conf["type"] == "plot":
+        for i in range(len(conf["data"])):
             plt.plot(conf["xdots"], conf["data"][i], conf["colors"][i], label=conf["labels"][i])
-        if conf["type"] == "bar":
+    elif conf["type"] == "individual_bar":
+        plt.bar(conf["xdots"], conf["data"])
+    elif conf["type"] == "grouped_bar":
+        for i in range(len(conf["data"])):
             plt.bar(conf["xdots"], conf["data"][i], label=conf["labels"][i])
     plt.title(conf["title"])
     plt.ylabel(conf["ylabel"])
@@ -66,6 +70,9 @@ class Visualizor:
         for result in self.results:
             plotPath = "results/"+self.execID+"/plots/"+str(result.shape)
             os.makedirs(plotPath, exist_ok=True)
+            self.plotMessagesSent(result, plotPath)
+            self.plotMessagesRecv(result, plotPath)
+            self.plotSampleRecv(result, plotPath)
             self.plotMissingSamples(result, plotPath)
             self.plotProgress(result, plotPath)
             self.plotSentData(result, plotPath)
@@ -74,6 +81,28 @@ class Visualizor:
             if self.config.saveRCdist:
                 self.plotRowCol(result, plotPath)
 
+    def plotSampleRecv(self, result, plotPath):
+        """Plots the percentage sampleRecv for each node"""
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
+            +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"
+        conf["title"] = "Percentage of Samples Received by Nodes"
+        conf["type"] = "individual_bar"
+        conf["legLoc"] = 1
+        conf["desLoc"] = 1
+        conf["xlabel"] = "Nodes"
+        conf["ylabel"] = "Percentage of samples received (%)"
+        total_samples = result.shape.blockSize * result.shape.blockSize
+        percentage_data = [(count / total_samples) * 100 for count in result.sampleRecvCount]
+        conf["data"] = percentage_data
+        conf["xdots"] = range(result.shape.numberNodes)
+        conf["path"] = plotPath + "/sampleRecv.png"
+        maxi = max(conf["data"])
+        conf["yaxismax"] = maxi
+        plotData(conf)
+        print("Plot %s created." % conf["path"])
+    
     def plotMissingSamples(self, result, plotPath):
         """Plots the missing samples in the network"""
         conf = {}
@@ -101,9 +130,9 @@ class Visualizor:
 
     def plotProgress(self, result, plotPath):
         """Plots the percentage of nodes ready in the network"""
-        vector1 = result.metrics["progress"]["nodes ready"]
-        vector2 = result.metrics["progress"]["validators ready"]
-        vector3 = result.metrics["progress"]["samples received"]
+        vector1 = [x * 100 for x in result.metrics["progress"]["nodes ready"]]
+        vector2 = [x * 100 for x in result.metrics["progress"]["validators ready"]]
+        vector3 = [x * 100 for x in result.metrics["progress"]["samples received"]]   
         conf = {}
         text = str(result.shape).split("-")
         conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
@@ -228,7 +257,7 @@ class Visualizor:
         conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
         +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"
         conf["title"] = "Row/Column distribution"
-        conf["type"] = "bar"
+        conf["type"] = "grouped_bar"
         conf["legLoc"] = 2
         conf["desLoc"] = 2
         conf["colors"] = ["r+", "b+"]
@@ -242,6 +271,46 @@ class Visualizor:
         for v in conf["data"]:
             if max(v) > maxi:
                 maxi = max(v)
+        conf["yaxismax"] = maxi
+        plotData(conf)
+        print("Plot %s created." % conf["path"])
+
+    def plotMessagesSent(self, result, plotPath):
+        """Plots the number of messages sent by all nodes"""
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
+            +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"
+        conf["title"] = "Number of Messages Sent by Nodes"
+        conf["type"] = "individual_bar"
+        conf["legLoc"] = 1
+        conf["desLoc"] = 1
+        conf["xlabel"] = "Nodes"
+        conf["ylabel"] = "Number of Messages Sent"
+        conf["data"] = result.msgSentCount
+        conf["xdots"] = range(result.shape.numberNodes)
+        conf["path"] = plotPath + "/messagesSent.png"
+        maxi = max(conf["data"])
+        conf["yaxismax"] = maxi
+        plotData(conf)
+        print("Plot %s created." % conf["path"])
+
+    def plotMessagesRecv(self, result, plotPath):
+        """Plots the number of messages received by all nodes"""
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
+            +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"
+        conf["title"] = "Number of Messages Received by Nodes"
+        conf["type"] = "individual_bar"
+        conf["legLoc"] = 1
+        conf["desLoc"] = 1
+        conf["xlabel"] = "Nodes"
+        conf["ylabel"] = "Number of Messages Received"
+        conf["data"] = result.msgRecvCount
+        conf["xdots"] = range(result.shape.numberNodes)
+        conf["path"] = plotPath + "/messagesRecv.png"
+        maxi = max(conf["data"])
         conf["yaxismax"] = maxi
         plotData(conf)
         print("Plot %s created." % conf["path"])

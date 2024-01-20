@@ -45,19 +45,22 @@ numJobs = -1
 evenLineDistribution = True
 
 # Number of simulation runs with the same parameters for statistical relevance
-runs = range(3)
+runs = [1]
 
 # Number of validators
-numberNodes = range(128, 513, 128)
+numberNodes = [1024]
 
 # select failure model between: "random, sequential, MEP, MEP+1, DEP, DEP+1, MREP, MREP-1"
 failureModels = ["random"]
 
 # Percentage of block not released by producer
-failureRates = range(40, 81, 20)
+failureRates = [0]
+
+# Percentage of nodes that are considered malicious
+maliciousNodes = [95]
 
 # Block size in one dimension in segments. Block is blockSizes * blockSizes segments.
-blockSizes = range(64, 113, 128)
+blockSizes = [128]
 
 # Per-topic mesh neighborhood size
 netDegrees = range(8, 9, 2)
@@ -69,8 +72,8 @@ chis = range(2, 3, 2)
 class1ratios = [0.8]
 
 # Number of validators per beacon node
-validatorsPerNode1 = [1]
-validatorsPerNode2 = [500]
+validatorsPerNode1 = [10]
+validatorsPerNode2 = [250]
 
 # Set uplink bandwidth in megabits/second
 bwUplinksProd = [200]
@@ -102,9 +105,9 @@ diagnostics = False
 saveGit = False
 
 def nextShape():
-    for run, fm, fr, class1ratio, chi, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
-        runs, failureModels, failureRates, class1ratios, chis, validatorsPerNode1, validatorsPerNode2, blockSizes, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
+    for run, fm, fr, mn, class1ratio, chi, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
+        runs, failureModels, failureRates, maliciousNodes, class1ratios, chis, validatorsPerNode1, validatorsPerNode2, blockSizes, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
         # Network Degree has to be an even number
         if netDegree % 2 == 0:
-            shape = Shape(blockSize, nn, fm, fr, class1ratio, chi, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
+            shape = Shape(blockSize, nn, fm, fr, mn, class1ratio, chi, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
             yield shape
