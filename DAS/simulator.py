@@ -71,13 +71,26 @@ class Simulator:
         assignedRows = []
         assignedCols = []
         maliciousNodesCount = int((self.shape.maliciousNodes / 100) * self.shape.numberNodes)
+        remainingMaliciousNodes = maliciousNodesCount
+
         for i in range(self.shape.numberNodes):
-            if i==0:
+            if i == 0:
                 amImalicious_value = 0
-            elif i < maliciousNodesCount+1:
-                amImalicious_value = 1
             else:
-                amImalicious_value = 0
+                if not self.config.randomizeMaliciousNodes:
+                    # Assign based on predefined pattern when randomization is turned off
+                    if i < maliciousNodesCount + 1:
+                        amImalicious_value = 1
+                    else:
+                        amImalicious_value = 0
+                else:
+                    # Randomly assign amImalicious_value when randomization is turned on
+                    if remainingMaliciousNodes > 0 and random.random() < (self.shape.maliciousNodes / 100):
+                        amImalicious_value = 1
+                        remainingMaliciousNodes -= 1
+                    else:
+                        amImalicious_value = 0
+    
             if self.config.evenLineDistribution:
                 if i < int(lightVal/self.shape.vpn1):  # First start with the light nodes
                     start =   i  *self.shape.chi*self.shape.vpn1

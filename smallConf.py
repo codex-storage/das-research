@@ -59,6 +59,10 @@ failureRates = [0]
 # Percentage of nodes that are considered malicious
 maliciousNodes = [95]
 
+# Parameter to determine whether to randomly assign malicious nodes or not
+# If True, the malicious nodes will be assigned randomly; if False, a predefined pattern may be used
+randomizeMaliciousNodes = True
+
 # Block size in one dimension in segments. Block is blockSizes * blockSizes segments.
 blockSizes = [128]
 
