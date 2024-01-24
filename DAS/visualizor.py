@@ -1,6 +1,7 @@
 #!/bin/python3
 
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 
 def plotData(conf):
@@ -194,6 +195,10 @@ class Visualizor:
         """Plots the percentage of nodes ready in the network"""
         vector1 = result.metrics["rowDist"]
         vector2 = result.metrics["columnDist"]
+        if len(vector1) > len(vector2):
+            vector2 += [np.nan] * (len(vector1) - len(vector2))
+        elif len(vector1) < len(vector2):
+            vector1 += [np.nan] * (len(vector2) - len(vector1))
         conf = {}
         text = str(result.shape).split("-")
         conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
@@ -211,7 +216,7 @@ class Visualizor:
         conf["path"] = "results/"+self.execID+"/plots/RowColDist-"+str(result.shape)+".png"
         maxi = 0
         for v in conf["data"]:
-            if max(v) > maxi:
+            if np.nanmax(v) > maxi:
                 maxi = max(v)
         conf["yaxismax"] = maxi
         plotData(conf)
