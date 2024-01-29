@@ -60,6 +60,8 @@ class Validator:
         self.msgRecvCount = 0
         self.sampleSentCount = 0
         self.sampleRecvCount = 0
+        self.restoreRowCount = 0
+        self.restoreColumnCount = 0
         self.logger = logger
         if self.shape.chi < 1:
             self.logger.error("Chi has to be greater than 0", extra=self.format)
@@ -268,21 +270,23 @@ class Validator:
 
     def checkSegmentToNeigh(self, rID, cID, neigh):
         """Check if a segment should be sent to a neighbor."""
-        if (neigh.sent | neigh.received).count(1) >= self.sendLineUntil:
-            return False # sent enough, other side can restore
-        i = rID if neigh.dim else cID
-        if not neigh.sent[i] and not neigh.received[i] :
-            return True
+        if not self.amImalicious:
+            if (neigh.sent | neigh.received).count(1) >= self.sendLineUntil:
+                return False # sent enough, other side can restore
+            i = rID if neigh.dim else cID
+            if not neigh.sent[i] and not neigh.received[i] :
+                return True
         else:
             return False # received or already sent
 
     def sendSegmentToNeigh(self, rID, cID, neigh):
         """Send segment to a neighbor (without checks)."""
-        self.logger.trace("sending %d/%d to %d", rID, cID, neigh.node.ID, extra=self.format)
-        i = rID if neigh.dim else cID
-        neigh.sent[i] = 1
-        neigh.node.receiveSegment(rID, cID, self.ID)
-        self.statsTxInSlot += 1
+        if not self.amImalicious:
+            self.logger.trace("sending %d/%d to %d", rID, cID, neigh.node.ID, extra=self.format)
+            i = rID if neigh.dim else cID
+            neigh.sent[i] = 1
+            neigh.node.receiveSegment(rID, cID, self.ID)
+            self.statsTxInSlot += 1
 
     def checkSendSegmentToNeigh(self, rID, cID, neigh):
         """Check and send a segment to a neighbor if needed."""
@@ -516,6 +520,7 @@ class Validator:
         if (rep.any()):
             # If operation is based on send queues, segments should
             # be queued after successful repair.
+            self.restoreRowCount += 1
             for i in range(len(rep)):
                 if rep[i]:
                     self.logger.trace("Rep: %d,%d", id, i, extra=self.format)
@@ -535,6 +540,7 @@ class Validator:
         if (rep.any()):
             # If operation is based on send queues, segments should
             # be queued after successful repair.
+            self.restoreColumnCount += 1
             for i in range(len(rep)):
                 if rep[i]:
                     self.logger.trace("Rep: %d,%d", i, id, extra=self.format)

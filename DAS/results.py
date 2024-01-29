@@ -20,6 +20,8 @@ class Result:
         self.msgSentCount = [0] * shape.numberNodes
         self.msgRecvCount = [0] * shape.numberNodes
         self.sampleRecvCount = [0] * shape.numberNodes
+        self.restoreRowCount = [0] * shape.numberNodes
+        self.restoreColumnCount = [0] * shape.numberNodes
 
     def copyValidators(self, validators):
         """Copy information from simulator.validators to result."""
@@ -28,6 +30,8 @@ class Result:
             self.msgSentCount[i] = validators[i].msgSentCount
             self.msgRecvCount[i] = validators[i].msgRecvCount
             self.sampleRecvCount[i] = validators[i].sampleRecvCount
+            self.restoreRowCount[i] = validators[i].restoreRowCount
+            self.restoreColumnCount[i] = validators[i].restoreColumnCount
 
     def populate(self, shape, config, missingVector):
         """It populates part of the result data inside a vector."""

@@ -70,6 +70,8 @@ class Visualizor:
         for result in self.results:
             plotPath = "results/"+self.execID+"/plots/"+str(result.shape)
             os.makedirs(plotPath, exist_ok=True)
+            self.plotRestoreRowCount(result, plotPath)
+            self.plotRestoreColumnCount(result, plotPath)
             self.plotMessagesSent(result, plotPath)
             self.plotMessagesRecv(result, plotPath)
             self.plotSampleRecv(result, plotPath)
@@ -80,6 +82,46 @@ class Visualizor:
             self.plotDupData(result, plotPath)
             if self.config.saveRCdist:
                 self.plotRowCol(result, plotPath)
+
+    def plotRestoreRowCount(self, result, plotPath):
+        """Plots the restoreRowCount for each node"""
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
+            +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"+"\nMalicious Nodes: "+text[27]+"%"
+        conf["title"] = "Restore Row Count for Each Node"
+        conf["type"] = "individual_bar"
+        conf["legLoc"] = 1
+        conf["desLoc"] = 1
+        conf["xlabel"] = "Nodes"
+        conf["ylabel"] = "Restore Row Count"
+        conf["data"] = result.restoreRowCount
+        conf["xdots"] = range(result.shape.numberNodes)
+        conf["path"] = plotPath + "/restoreRowCount.png"
+        maxi = max(conf["data"])
+        conf["yaxismax"] = maxi
+        plotData(conf)
+        print("Plot %s created." % conf["path"])
+
+    def plotRestoreColumnCount(self, result, plotPath):
+        """Plots the restoreColumnCount for each node"""
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
+            +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"+"\nMalicious Nodes: "+text[27]+"%"
+        conf["title"] = "Restore Column Count for Each Node"
+        conf["type"] = "individual_bar"
+        conf["legLoc"] = 1
+        conf["desLoc"] = 1
+        conf["xlabel"] = "Nodes"
+        conf["ylabel"] = "Restore Column Count"
+        conf["data"] = result.restoreColumnCount
+        conf["xdots"] = range(result.shape.numberNodes)
+        conf["path"] = plotPath + "/restoreColumnCount.png"
+        maxi = max(conf["data"])
+        conf["yaxismax"] = maxi
+        plotData(conf)
+        print("Plot %s created." % conf["path"])
 
     def plotSampleRecv(self, result, plotPath):
         """Plots the percentage sampleRecv for each node"""
