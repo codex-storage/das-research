@@ -241,7 +241,8 @@ class Simulator:
         self.glob.checkRowsColumns(self.validators)
         for i in range(0,self.shape.numberNodes):
             if i == self.proposerID:
-                self.validators[i].initBlock()
+                # self.validators[i].initBlock()
+                self.logger.warning("I am a block proposer.", extra=self.format)
             else:
                 self.validators[i].logIDs()
         arrived, expected, ready, validatedall, validated = self.glob.checkStatus(self.validators)
@@ -256,7 +257,8 @@ class Simulator:
             oldMissingSamples = missingSamples
             self.logger.debug("PHASE SEND %d" % steps, extra=self.format)
             for i in range(0,self.shape.numberNodes):
-                self.validators[i].send()
+                if not self.validators[i].amImalicious:
+                    self.validators[i].send()
             self.logger.debug("PHASE RECEIVE %d" % steps, extra=self.format)
             for i in range(1,self.shape.numberNodes):
                 self.validators[i].receiveRowsColumns()
@@ -322,6 +324,17 @@ class Simulator:
         for i in range(0,self.shape.numberNodes):
             if not self.validators[i].amIaddedToQueue :
                 malicious_nodes_not_added_count += 1
+
+        for i in range(0,self.shape.numberNodes):
+            column_ids = []
+            row_ids = []
+            for rID in self.validators[i].rowIDs:
+                row_ids.append(rID)
+            for cID in self.validators[i].columnIDs:
+                column_ids.append(cID)
+
+            self.logger.debug("List of columnIDs for %d node: %s", i, column_ids, extra=self.format)
+            self.logger.debug("List of rowIDs for %d node: %s", i, row_ids, extra=self.format)
 
         self.logger.debug("Number of malicious nodes not added to the send queue: %d" % malicious_nodes_not_added_count, extra=self.format)
         malicious_nodes_not_added_percentage = (malicious_nodes_not_added_count * 100)/(self.shape.numberNodes)
