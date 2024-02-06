@@ -48,6 +48,8 @@ class Simulator:
         self.glob = Observer(self.logger, self.shape)
         self.validators = []
         if self.config.evenLineDistribution:
+            self.logger.error("evenLineDistribution NOT YET SUPPORTED.", extra=self.format)
+            exit(1)
 
             lightNodes = int(self.shape.numberNodes * self.shape.class1ratio)
             heavyNodes = self.shape.numberNodes - lightNodes
@@ -102,12 +104,18 @@ class Simulator:
                 elif self.shape.chiR > self.shape.blockSizeC:
                     self.logger.error("ChiR has to be smaller than %d" % self.shape.blockSizeC)
 
-                vs = []
                 nodeClass = 1 if (i <= self.shape.numberNodes * self.shape.class1ratio) else 2
-                vpn = self.shape.vpn1 if (nodeClass == 1) else self.shape.vpn2
-                for v in range(vpn):
-                    vs.append(initValidator(self.shape.blockSizeC, self.shape.chiR, self.shape.blockSizeR, self.shape.chiC))
-                val = Node(i, int(not i!=0), self.logger, self.shape, self.config, vs)
+                if nodeClass == 1: # nodes
+                    validators = []
+                    rows = set()
+                    columns = set(random.sample(range(self.shape.blockSizeR), self.shape.chiC))
+                    val = Node(i, int(not i!=0), self.logger, self.shape, self.config, validators, rows, columns)
+                else: # validators
+                    validators = []
+                    vpn = self.shape.vpn1 if (nodeClass == 1) else self.shape.vpn2
+                    for _ in range(vpn):
+                        validators.append(initValidator(self.shape.blockSizeC, self.shape.chiR, self.shape.blockSizeR, 0))
+                    val = Node(i, int(not i!=0), self.logger, self.shape, self.config, validators)
             if i == self.proposerID:
                 val.initBlock()
             else:
