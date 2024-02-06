@@ -57,7 +57,7 @@ failureModels = ["random"]
 failureRates = [0]
 
 # Percentage of nodes that are considered malicious
-maliciousNodes = [95]
+maliciousNodes = [0]
 
 # Parameter to determine whether to randomly assign malicious nodes or not
 # If True, the malicious nodes will be assigned randomly; if False, a predefined pattern may be used
@@ -76,8 +76,8 @@ chis = range(2, 3, 2)
 class1ratios = [0.8]
 
 # Number of validators per beacon node
-validatorsPerNode1 = [10]
-validatorsPerNode2 = [250]
+validatorsPerNode1 = [1]
+validatorsPerNode2 = [1]
 
 # Set uplink bandwidth in megabits/second
 bwUplinksProd = [200]
@@ -113,5 +113,8 @@ def nextShape():
         runs, failureModels, failureRates, maliciousNodes, class1ratios, chis, validatorsPerNode1, validatorsPerNode2, blockSizes, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
         # Network Degree has to be an even number
         if netDegree % 2 == 0:
-            shape = Shape(blockSize, nn, fm, fr, mn, class1ratio, chi, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
+            blockSizeR = blockSize
+            blockSizeC = blockSizeRK = blockSizeCK = blockSize // 2
+            chiR = chiC = chi
+            shape = Shape(blockSizeR, blockSizeRK, blockSizeC, blockSizeCK, nn, fm, fr, mn, class1ratio, chiR, chiC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
             yield shape
