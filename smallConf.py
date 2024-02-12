@@ -25,30 +25,30 @@ dumpXML = 1
 saveProgress = 1
 
 # plot progress for each run to PNG
-plotProgress = 1
+plotProgress = 0
 
 # Save row and column distributions
-saveRCdist = 1
+saveRCdist = 0
 
 # Plot all figures
-visualization = 1
+visualization = 0
 
 # Verbosity level
-logLevel = logging.INFO
+logLevel = 5
 
 # number of parallel workers. -1: all cores; 1: sequential
 # for more details, see joblib.Parallel
-numJobs = -1
+numJobs = 1
 
 # distribute rows/columns evenly between validators (True)
 # or generate it using local randomness (False)
-evenLineDistribution = True
+evenLineDistribution = False
 
 # Number of simulation runs with the same parameters for statistical relevance
 runs = [1]
 
 # Number of validators
-numberNodes = [1024]
+numberNodes = [512]
 
 # select failure model between: "random, sequential, MEP, MEP+1, DEP, DEP+1, MREP, MREP-1"
 failureModels = ["random"]
@@ -102,10 +102,10 @@ diagnostics = False
 # True to save git diff and git commit
 saveGit = False
 
-blockSizeR =[128]
-blockSizeC = [64]
-blockSizeRK = [64]
-blockSizeCK = [64]
+blockSizeR =[64]
+blockSizeC = [32]
+blockSizeRK = [32]
+blockSizeCK = [32]
 chiR = [2]
 chiC = [2]
 
