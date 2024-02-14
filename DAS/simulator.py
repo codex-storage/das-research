@@ -170,6 +170,8 @@ class Simulator:
                 val1.rowNeighbors[id].update({val2.ID : Neighbor(val2, 0, self.shape.blockSizeR)})
                 val2.rowNeighbors[id].update({val1.ID : Neighbor(val1, 0, self.shape.blockSizeR)})
 
+        for id in range(self.shape.blockSizeR):
+
             if not columnChannels[id]:
                 self.logger.error("No nodes for column %d !" % id, extra=self.format)
                 continue
