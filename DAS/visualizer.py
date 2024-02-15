@@ -33,12 +33,12 @@ class Visualizer:
                 tree = ET.parse(os.path.join(self.folderPath, filename))
                 root = tree.getroot()
                 run = int(root.find('run').text)
-                blockSize = int(root.find('blockSize').text)
+                blockSize = int(root.find('blockSizeR').text) # TODO: maybe we want both dimensions
                 failureRate = int(root.find('failureRate').text)
                 numberNodes = int(root.find('numberNodes').text)
                 class1ratio = float(root.find('class1ratio').text)
                 netDegree = int(root.find('netDegree').text)
-                chi = int(root.find('chi').text)
+                chi = int(root.find('chiR').text) # TODO: maybe we want both dimensions
                 vpn1 = int(root.find('vpn1').text)
                 vpn2 = int(root.find('vpn2').text)
                 bwUplinkProd = int(root.find('bwUplinkProd').text)

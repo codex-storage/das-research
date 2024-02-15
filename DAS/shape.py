@@ -3,17 +3,22 @@
 class Shape:
     """This class represents a set of parameters for a specific simulation."""
 
-    def __init__(self, blockSize, numberNodes, failureModel, failureRate, maliciousNodes, class1ratio, chi, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run):
+    def __init__(self, blockSizeR, blockSizeRK, blockSizeC, blockSizeCK, 
+    numberNodes, failureModel, failureRate, maliciousNodes, class1ratio, chiR, chiC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run):
         """Initializes the shape with the parameters passed in argument."""
         self.run = run
         self.numberNodes = numberNodes
-        self.blockSize = blockSize
+        self.blockSizeR = blockSizeR
+        self.blockSizeRK = blockSizeRK
+        self.blockSizeC = blockSizeC
+        self.blockSizeCK = blockSizeCK
         self.failureModel = failureModel
         self.failureRate = failureRate
         self.maliciousNodes = maliciousNodes
         self.netDegree = netDegree
         self.class1ratio = class1ratio
-        self.chi = chi
+        self.chiR = chiR
+        self.chiC = chiC
         self.vpn1 = vpn1
         self.vpn2 = vpn2
         self.bwUplinkProd = bwUplinkProd
@@ -24,12 +29,16 @@ class Shape:
     def __repr__(self):
         """Returns a printable representation of the shape"""
         shastr = ""
-        shastr += "bs-"+str(self.blockSize)
+        shastr += "-bsrn-"+str(self.blockSizeR)
+        shastr += "-bsrk-"+str(self.blockSizeRK)
+        shastr += "-bscn-"+str(self.blockSizeC)
+        shastr += "-bsck-"+str(self.blockSizeCK)
         shastr += "-nn-"+str(self.numberNodes)
         shastr += "-fm-"+str(self.failureModel)
         shastr += "-fr-"+str(self.failureRate)
         shastr += "-c1r-"+str(self.class1ratio)
-        shastr += "-chi-"+str(self.chi)
+        shastr += "-chir-"+str(self.chiR)
+        shastr += "-chic-"+str(self.chiC)
         shastr += "-vpn1-"+str(self.vpn1)
         shastr += "-vpn2-"+str(self.vpn2)
         shastr += "-bwupprod-"+str(self.bwUplinkProd)
@@ -43,4 +52,3 @@ class Shape:
     def setSeed(self, seed):
         """Adds the random seed to the shape"""
         self.randomSeed = seed
-

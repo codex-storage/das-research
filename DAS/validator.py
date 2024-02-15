@@ -42,15 +42,15 @@ class Validator:
         """It initializes the validator with the logger shape and rows/columns.
 
             If rows/columns are specified these are observed, otherwise (default)
-            chi rows and columns are selected randomly.
+            chiR rows and chiC columns are selected randomly.
         """
 
         self.shape = shape
         FORMAT = "%(levelname)s : %(entity)s : %(message)s"
         self.ID = ID
         self.format = {"entity": "Val "+str(self.ID)}
-        self.block = Block(self.shape.blockSize)
-        self.receivedBlock = Block(self.shape.blockSize)
+        self.block = Block(self.shape.blockSizeR, self.shape.blockSizeRK, self.shape.blockSizeC,  self.shape.blockSizeCK)
+        self.receivedBlock = Block(self.shape.blockSizeR, self.shape.blockSizeRK, self.shape.blockSizeC,  self.shape.blockSizeCK)
         self.receivedQueue = deque()
         self.sendQueue = deque()
         self.amIproposer = amIproposer
@@ -63,15 +63,17 @@ class Validator:
         self.restoreRowCount = 0
         self.restoreColumnCount = 0
         self.logger = logger
-        if self.shape.chi < 1:
+        if self.shape.chiR < 1 and self.shape.chiC < 1:
             self.logger.error("Chi has to be greater than 0", extra=self.format)
-        elif self.shape.chi > self.shape.blockSize:
-            self.logger.error("Chi has to be smaller than %d" % self.shape.blockSize, extra=self.format)
+        elif self.shape.chiC > self.shape.blockSizeR:
+            self.logger.error("ChiC has to be smaller than %d" % self.shape.blockSizeR, extra=self.format)
+        elif self.shape.chiR > self.shape.blockSizeC:
+            self.logger.error("ChiR has to be smaller than %d" % self.shape.blockSizeC, extra=self.format)
         else:
             if amIproposer:
                 self.nodeClass = 0
-                self.rowIDs = range(shape.blockSize)
-                self.columnIDs = range(shape.blockSize)
+                self.rowIDs = range(shape.blockSizeC)
+                self.columnIDs = range(shape.blockSizeR)
             else:
                 #if shape.deterministic:
                 #    random.seed(self.ID)
@@ -80,8 +82,8 @@ class Validator:
                 self.vRowIDs = []
                 self.vColumnIDs = []
                 for i in range(self.vpn):
-                    self.vRowIDs.append(set(rows[i*self.shape.chi:(i+1)*self.shape.chi]) if rows else set(random.sample(range(self.shape.blockSize), self.shape.chi)))
-                    self.vColumnIDs.append(set(columns[i*self.shape.chi:(i+1)*self.shape.chi]) if columns else set(random.sample(range(self.shape.blockSize), self.shape.chi)))
+                    self.vRowIDs.append(set(rows[i*self.shape.chiR:(i+1)*self.shape.chiR]) if rows else set(random.sample(range(self.shape.blockSizeC), self.shape.chiR)))
+                    self.vColumnIDs.append(set(columns[i*self.shape.chiC:(i+1)*self.shape.chiC]) if columns else set(random.sample(range(self.shape.blockSizeR), self.shape.chiC)))
                 self.rowIDs = set.union(*self.vRowIDs)
                 self.columnIDs = set.union(*self.vColumnIDs)
         self.rowNeighbors = collections.defaultdict(dict)
@@ -107,7 +109,8 @@ class Validator:
         self.bwUplink *= 1e3 / 8 * config.stepDuration / config.segmentSize
 
         self.repairOnTheFly = True
-        self.sendLineUntil = (self.shape.blockSize + 1) // 2 # stop sending on a p2p link if at least this amount of samples passed
+        self.sendLineUntilR = self.shape.blockSizeRK # stop sending on a p2p link if at least this amount of samples passed
+        self.sendLineUntilC = self.shape.blockSizeCK # stop sending on a p2p link if at least this amount of samples passed
         self.perNeighborQueue = True # queue incoming messages to outgoing connections on arrival (as typical GossipSub impl)
         self.shuffleQueues = True # shuffle the order of picking from active queues of a sender node
         self.perNodeQueue = False # keep a global queue of incoming messages for later sequential dispatch
@@ -132,57 +135,53 @@ class Validator:
         else:
             self.logger.debug("Creating block...", extra=self.format)
             if self.shape.failureModel == "random":
-                order = [i for i in range(self.shape.blockSize * self.shape.blockSize)]
+                order = [i for i in range(self.shape.blockSizeR * self.shape.blockSizeC)]
                 order = random.sample(order, int((1 - self.shape.failureRate/100) * len(order)))
                 for i in order:
                     self.block.data[i] = 1
             elif self.shape.failureModel == "sequential":
-                order = [i for i in range(self.shape.blockSize * self.shape.blockSize)]
+                order = [i for i in range(self.shape.blockSizeR * self.shape.blockSizeC)]
                 order = order[:int((1 - self.shape.failureRate/100) * len(order))]
                 for i in order:
                     self.block.data[i] = 1
             elif self.shape.failureModel == "MEP": # Minimal size non-recoverable Erasure Pattern
-                for r in range(self.shape.blockSize):
-                    for c in range(self.shape.blockSize):
-                        k = self.shape.blockSize/2
-                        if r > k or c > k:
+                for r in range(self.shape.blockSizeR):
+                    for c in range(self.shape.blockSizeC):
+                        if r > self.shape.blockSizeRK or c > self.shape.blockSizeCK:
                             self.block.setSegment(r,c)
             elif self.shape.failureModel == "MEP+1": # MEP +1 segment to make it recoverable
-                for r in range(self.shape.blockSize):
-                    for c in range(self.shape.blockSize):
-                        k = self.shape.blockSize/2
-                        if r > k or c > k:
+                for r in range(self.shape.blockSizeR):
+                    for c in range(self.shape.blockSizeC):
+                        if r > self.shape.blockSizeRK or c > self.shape.blockSizeCK:
                             self.block.setSegment(r,c)
                 self.block.setSegment(0, 0)
             elif self.shape.failureModel == "DEP":
-                for r in range(self.shape.blockSize):
-                    for c in range(self.shape.blockSize):
-                        k = self.shape.blockSize/2
-                        if (r+c) % self.shape.blockSize > k:
+                assert(self.shape.blockSizeR == self.shape.blockSizeC and self.shape.blockSizeRK == self.shape.blockSizeCK)
+                for r in range(self.shape.blockSizeR):
+                    for c in range(self.shape.blockSizeC):
+                        if (r+c) % self.shape.blockSizeR > self.shape.blockSizeRK:
                             self.block.setSegment(r,c)
             elif self.shape.failureModel == "DEP+1":
-                for r in range(self.shape.blockSize):
-                    for c in range(self.shape.blockSize):
-                        k = self.shape.blockSize/2
-                        if (r+c) % self.shape.blockSize > k:
+                assert(self.shape.blockSizeR == self.shape.blockSizeC and self.shape.blockSizeRK == self.shape.blockSizeCK)
+                for r in range(self.shape.blockSizeR):
+                    for c in range(self.shape.blockSizeC):
+                        if (r+c) % self.shape.blockSizeR > self.shape.blockSizeRK:
                             self.block.setSegment(r,c)
                 self.block.setSegment(0, 0)
             elif self.shape.failureModel == "MREP": # Minimum size Recoverable Erasure Pattern
-                for r in range(self.shape.blockSize):
-                    for c in range(self.shape.blockSize):
-                        k = self.shape.blockSize/2
-                        if r < k and c < k:
+                for r in range(self.shape.blockSizeR):
+                    for c in range(self.shape.blockSizeC):
+                        if r < self.shape.blockSizeRK or c < self.shape.blockSizeCK:
                             self.block.setSegment(r,c)
             elif self.shape.failureModel == "MREP-1": # make MREP non-recoverable
-                for r in range(self.shape.blockSize):
-                    for c in range(self.shape.blockSize):
-                        k = self.shape.blockSize/2
-                        if r < k and c < k:
+                for r in range(self.shape.blockSizeR):
+                    for c in range(self.shape.blockSizeC):
+                        if r < self.shape.blockSizeRK or c < self.shape.blockSizeCK:
                             self.block.setSegment(r,c)
                 self.block.setSegment(0, 0, 0)
 
             nbFailures = self.block.data.count(0)
-            measuredFailureRate = nbFailures * 100 / (self.shape.blockSize * self.shape.blockSize)
+            measuredFailureRate = nbFailures * 100 / (self.shape.blockSizeR * self.shape.blockSizeC)
             self.logger.debug("Number of failures: %d (%0.02f %%)", nbFailures, measuredFailureRate, extra=self.format)
 
     def getColumn(self, index):
@@ -271,7 +270,7 @@ class Validator:
     def checkSegmentToNeigh(self, rID, cID, neigh):
         """Check if a segment should be sent to a neighbor."""
         if not self.amImalicious:
-            if (neigh.sent | neigh.received).count(1) >= self.sendLineUntil:
+            if (neigh.sent | neigh.received).count(1) >= (self.sendLineUntilC if neigh.dim else self.sendLineUntilR):
                 return False # sent enough, other side can restore
             i = rID if neigh.dim else cID
             if not neigh.sent[i] and not neigh.received[i] :
@@ -373,10 +372,10 @@ class Validator:
                 if not self.amImalicious:
                     for rID, neighs in self.rowNeighbors.items():
                         line = self.getRow(rID)
-                        needed = zeros(self.shape.blockSize)
+                        needed = zeros(self.shape.blockSizeR)
                         for neigh in neighs.values():
                             sentOrReceived = neigh.received | neigh.sent
-                            if sentOrReceived.count(1) < self.sendLineUntil:
+                            if sentOrReceived.count(1) < self.sendLineUntilR:
                                 needed |= ~sentOrReceived
                         needed &= line
                         if (needed).any():
@@ -386,10 +385,10 @@ class Validator:
 
                     for cID, neighs in self.columnNeighbors.items():
                         line = self.getColumn(cID)
-                        needed = zeros(self.shape.blockSize)
+                        needed = zeros(self.shape.blockSizeC)
                         for neigh in neighs.values():
                             sentOrReceived = neigh.received | neigh.sent
-                            if sentOrReceived.count(1) < self.sendLineUntil:
+                            if sentOrReceived.count(1) < self.sendLineUntilC:
                                 needed |= ~sentOrReceived
                         needed &= line
                         if (needed).any():
@@ -449,7 +448,7 @@ class Validator:
             while t:
                 if self.rowIDs:
                     rID = random.choice(self.rowIDs)
-                    cID = random.randrange(0, self.shape.blockSize)
+                    cID = random.randrange(0, self.shape.blockSizeR)
                     if self.block.getSegment(rID, cID) :
                         neigh = random.choice(list(self.rowNeighbors[rID].values()))
                         if self.checkSegmentToNeigh(rID, cID, neigh) and not self.amImalicious:
@@ -457,7 +456,7 @@ class Validator:
                             t = tries
                 if self.columnIDs:
                     cID = random.choice(self.columnIDs)
-                    rID = random.randrange(0, self.shape.blockSize)
+                    rID = random.randrange(0, self.shape.blockSizeC)
                     if self.block.getSegment(rID, cID) :
                         neigh = random.choice(list(self.columnNeighbors[cID].values()))
                         if self.checkSegmentToNeigh(rID, cID, neigh) and not self.amImalicious:

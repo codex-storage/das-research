@@ -1,6 +1,7 @@
 #!/bin/python3
 
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 
 def plotData(conf):
@@ -87,8 +88,8 @@ class Visualizor:
         """Plots the restoreRowCount for each node"""
         conf = {}
         text = str(result.shape).split("-")
-        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
-            +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"+"\nMalicious Nodes: "+text[27]+"%"
+        conf["textBox"] = "Block SizeR: "+text[2]+"\nBlock SizeC: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
         conf["title"] = "Restore Row Count for Each Node"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
@@ -107,8 +108,8 @@ class Visualizor:
         """Plots the restoreColumnCount for each node"""
         conf = {}
         text = str(result.shape).split("-")
-        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
-            +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"+"\nMalicious Nodes: "+text[27]+"%"
+        conf["textBox"] = "Block SizeR: "+text[2]+"\nBlock SizeC: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
         conf["title"] = "Restore Column Count for Each Node"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
@@ -127,15 +128,15 @@ class Visualizor:
         """Plots the percentage sampleRecv for each node"""
         conf = {}
         text = str(result.shape).split("-")
-        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
-            +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"+"\nMalicious Nodes: "+text[27]+"%"
+        conf["textBox"] = "Block SizeR: "+text[2]+"\nBlock SizeC: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
         conf["title"] = "Percentage of Samples Received by Nodes"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
         conf["desLoc"] = 1
         conf["xlabel"] = "Nodes"
         conf["ylabel"] = "Percentage of samples received (%)"
-        total_samples = result.shape.blockSize * result.shape.blockSize
+        total_samples = result.shape.blockSizeR * result.shape.blockSizeC
         percentage_data = [(count / total_samples) * 100 for count in result.sampleRecvCount]
         conf["data"] = percentage_data
         conf["xdots"] = range(result.shape.numberNodes)
@@ -149,8 +150,8 @@ class Visualizor:
         """Plots the missing samples in the network"""
         conf = {}
         text = str(result.shape).split("-")
-        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
-        +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"+"\nMalicious Nodes: "+text[27]+"%"
+        conf["textBox"] = "Block SizeR: "+text[2]+"\nBlock SizeC: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
         conf["title"] = "Missing Samples"
         conf["type"] = "plot"
         conf["legLoc"] = 1
@@ -177,8 +178,8 @@ class Visualizor:
         vector3 = [x * 100 for x in result.metrics["progress"]["samples received"]]   
         conf = {}
         text = str(result.shape).split("-")
-        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
-        +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"+"\nMalicious Nodes: "+text[27]+"%"
+        conf["textBox"] = "Block SizeR: "+text[2]+"\nBlock SizeC: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
         conf["title"] = "Nodes/validators ready"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -209,8 +210,8 @@ class Visualizor:
             vector3[i] = (vector3[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
         conf = {}
         text = str(result.shape).split("-")
-        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
-        +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"+"\nMalicious Nodes: "+text[27]+"%"
+        conf["textBox"] = "Block SizeR: "+text[2]+"\nBlock SizeC: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
         conf["title"] = "Sent data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -239,8 +240,8 @@ class Visualizor:
             vector2[i] = (vector2[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
         conf = {}
         text = str(result.shape).split("-")
-        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
-        +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"+"\nMalicious Nodes: "+text[27]+"%"
+        conf["textBox"] = "Block SizeR: "+text[2]+"\nBlock SizeC: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
         conf["title"] = "Received data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -269,8 +270,8 @@ class Visualizor:
             vector2[i] = (vector2[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
         conf = {}
         text = str(result.shape).split("-")
-        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
-        +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"+"\nMalicious Nodes: "+text[27]+"%"
+        conf["textBox"] = "Block SizeR: "+text[2]+"\nBlock SizeC: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
         conf["title"] = "Duplicated data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -294,10 +295,14 @@ class Visualizor:
         """Plots the percentage of nodes ready in the network"""
         vector1 = result.metrics["rowDist"]
         vector2 = result.metrics["columnDist"]
+        if len(vector1) > len(vector2):
+            vector2 += [np.nan] * (len(vector1) - len(vector2))
+        elif len(vector1) < len(vector2):
+            vector1 += [np.nan] * (len(vector2) - len(vector1))
         conf = {}
         text = str(result.shape).split("-")
-        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
-        +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"+"\nMalicious Nodes: "+text[27]+"%"
+        conf["textBox"] = "Block SizeR: "+text[2]+"\nBlock SizeC: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
         conf["title"] = "Row/Column distribution"
         conf["type"] = "grouped_bar"
         conf["legLoc"] = 2
@@ -311,7 +316,7 @@ class Visualizor:
         conf["path"] = plotPath+"/RowColDist.png"
         maxi = 0
         for v in conf["data"]:
-            if max(v) > maxi:
+            if np.nanmax(v) > maxi:
                 maxi = max(v)
         conf["yaxismax"] = maxi
         plotData(conf)
@@ -321,8 +326,8 @@ class Visualizor:
         """Plots the number of messages sent by all nodes"""
         conf = {}
         text = str(result.shape).split("-")
-        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
-            +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"+"\nMalicious Nodes: "+text[27]+"%"
+        conf["textBox"] = "Block SizeR: "+text[2]+"\nBlock SizeC: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
         conf["title"] = "Number of Messages Sent by Nodes"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
@@ -341,8 +346,8 @@ class Visualizor:
         """Plots the number of messages received by all nodes"""
         conf = {}
         text = str(result.shape).split("-")
-        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
-            +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"+"\nMalicious Nodes: "+text[27]+"%"
+        conf["textBox"] = "Block SizeR: "+text[2]+"\nBlock SizeC: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
         conf["title"] = "Number of Messages Received by Nodes"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
@@ -356,4 +361,3 @@ class Visualizor:
         conf["yaxismax"] = maxi
         plotData(conf)
         print("Plot %s created." % conf["path"])
-

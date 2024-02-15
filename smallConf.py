@@ -57,27 +57,21 @@ failureModels = ["random"]
 failureRates = [0]
 
 # Percentage of nodes that are considered malicious
-maliciousNodes = [95]
+maliciousNodes = [0]
 
 # Parameter to determine whether to randomly assign malicious nodes or not
 # If True, the malicious nodes will be assigned randomly; if False, a predefined pattern may be used
 randomizeMaliciousNodes = True
 
-# Block size in one dimension in segments. Block is blockSizes * blockSizes segments.
-blockSizes = [128]
-
 # Per-topic mesh neighborhood size
 netDegrees = range(8, 9, 2)
-
-# number of rows and columns a validator is interested in
-chis = range(2, 3, 2)
 
 # ratio of class1 nodes (see below for parameters per class)
 class1ratios = [0.8]
 
 # Number of validators per beacon node
-validatorsPerNode1 = [10]
-validatorsPerNode2 = [250]
+validatorsPerNode1 = [1]
+validatorsPerNode2 = [1]
 
 # Set uplink bandwidth in megabits/second
 bwUplinksProd = [200]
@@ -108,10 +102,17 @@ diagnostics = False
 # True to save git diff and git commit
 saveGit = False
 
+blockSizeR =[128]
+blockSizeC = [64]
+blockSizeRK = [64]
+blockSizeCK = [64]
+chiR = [2]
+chiC = [2]
+
 def nextShape():
-    for run, fm, fr, mn, class1ratio, chi, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
-        runs, failureModels, failureRates, maliciousNodes, class1ratios, chis, validatorsPerNode1, validatorsPerNode2, blockSizes, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
+    for blckSizeR, blckSizeRK, blckSizeC, blckSizeCK, run, fm, fr, mn, class1ratio, chR, chC, vpn1, vpn2, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
+        blockSizeR, blockSizeRK, blockSizeC, blockSizeCK, runs, failureModels, failureRates, maliciousNodes, class1ratios,  chiR, chiC, validatorsPerNode1, validatorsPerNode2, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
         # Network Degree has to be an even number
         if netDegree % 2 == 0:
-            shape = Shape(blockSize, nn, fm, fr, mn, class1ratio, chi, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
+            shape = Shape(blckSizeR, blckSizeRK, blckSizeC, blckSizeCK, nn, fm, fr, mn, class1ratio, chR, chC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
             yield shape
