@@ -59,7 +59,7 @@ class Simulator:
             rows =    list(range(self.shape.blockSizeC)) * (int(totalRows/self.shape.blockSizeC)+1)
             columns = list(range(self.shape.blockSizeR)) * (int(totalColumns/self.shape.blockSizeR)+1)
             rows =    rows[0:totalRows]
-            columns = columns[0:totalRows]
+            columns = columns[0:totalColumns]
             random.shuffle(rows)
             random.shuffle(columns)
             offsetR = lightVal*self.shape.chiR
