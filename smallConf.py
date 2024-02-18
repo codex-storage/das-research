@@ -40,10 +40,6 @@ logLevel = logging.INFO
 # for more details, see joblib.Parallel
 numJobs = -1
 
-# distribute rows/columns evenly between validators (True)
-# or generate it using local randomness (False)
-evenLineDistribution = True
-
 # Number of simulation runs with the same parameters for statistical relevance
 runs = [1]
 
@@ -64,7 +60,7 @@ maliciousNodes = [0]
 randomizeMaliciousNodes = True
 
 # Per-topic mesh neighborhood size
-netDegrees = range(8, 9, 2)
+netDegrees = [8]
 
 # ratio of class1 nodes (see below for parameters per class)
 class1ratios = [0.8]
@@ -102,7 +98,7 @@ diagnostics = False
 # True to save git diff and git commit
 saveGit = False
 
-blockSizeR =[128]
+blockSizeR = [128]
 blockSizeC = [64]
 blockSizeRK = [64]
 blockSizeCK = [64]

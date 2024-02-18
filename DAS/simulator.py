@@ -47,7 +47,8 @@ class Simulator:
         """It initializes all the validators in the network."""
         self.glob = Observer(self.logger, self.shape)
         self.validators = []
-        if self.config.evenLineDistribution:
+        evenLineDistribution = False
+        if evenLineDistribution:
 
             lightNodes = int(self.shape.numberNodes * self.shape.class1ratio)
             heavyNodes = self.shape.numberNodes - lightNodes
@@ -94,7 +95,7 @@ class Simulator:
                     else:
                         amImalicious_value = 0
     
-            if self.config.evenLineDistribution:
+            if evenLineDistribution:
                 if i < int(lightVal/self.shape.vpn1):  # First start with the light nodes
                     startR =   i  *self.shape.chiR*self.shape.vpn1
                     endR   = (i+1)*self.shape.chiR*self.shape.vpn1
@@ -263,6 +264,8 @@ class Simulator:
         steps = 0
         while(True):
             missingVector.append(missingSamples)
+            self.logger.debug("Expected Samples: %d" % expected, extra=self.format)
+            self.logger.debug("Missing Samples: %d" % missingSamples, extra=self.format)
             oldMissingSamples = missingSamples
             self.logger.debug("PHASE SEND %d" % steps, extra=self.format)
             for i in range(0,self.shape.numberNodes):
