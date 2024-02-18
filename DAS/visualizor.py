@@ -23,10 +23,10 @@ def plotData(conf):
         for i in range(len(conf["data"])):
             plt.bar(conf["xdots"], conf["data"][i], label=conf["labels"][i])
     if conf["type"] == "individual_bar_with_2line":
-        plt.axhline(y = conf["expected_value1"], color='r', linestyle='--', label='Expected Value for class 1 nodes')
-        plt.axhline(y = conf["expected_value2"], color='g', linestyle='--', label='Expected Value for class 2 nodes') 
+        plt.axhline(y = conf["expected_value1"], color='r', linestyle='--', label=conf["line_label1"])
+        plt.axhline(y = conf["expected_value2"], color='g', linestyle='--', label=conf["line_label2"]) 
     if conf["type"] == "plot_with_1line":
-        plt.axhline(y = conf["expected_value"], color='g', linestyle='--', label='Expected Value')
+        plt.axhline(y = conf["expected_value"], color='g', linestyle='--', label=conf["line_label"])
     plt.title(conf["title"])
     plt.ylabel(conf["ylabel"])
     plt.xlabel(conf["xlabel"])
@@ -147,7 +147,7 @@ class Visualizor:
         conf["xdots"] = range(result.shape.numberNodes)
         conf["path"] = plotPath + "/sampleRecv.png"
         maxi = max(conf["data"])
-        conf["yaxismax"] = maxi * 1.1
+        # conf["yaxismax"] = maxi * 1.1
         expected_percentage1 = (result.shape.vpn1 * (result.shape.blockSizeR * result.shape.chiR + result.shape.blockSizeC * result.shape.chiC) * 100)/total_samples
         expected_percentage2 = (result.shape.vpn2 * (result.shape.blockSizeR * result.shape.chiR + result.shape.blockSizeC * result.shape.chiC) * 100)/total_samples
         if expected_percentage1 > 100:
@@ -156,6 +156,9 @@ class Visualizor:
             expected_percentage2 = 100
         conf["expected_value1"] = expected_percentage1
         conf["expected_value2"] = expected_percentage2
+        conf["line_label1"] = "Expected Value for class 1 nodes"
+        conf["line_label2"] = "Expected Value for class 1 nodes"
+        conf["yaxismax"] = max(expected_percentage1, expected_percentage2) * 1.05
         plotData(conf)
         print("Plot %s created." % conf["path"])
     
@@ -183,6 +186,7 @@ class Visualizor:
         conf["yaxismax"] = maxi
         x = result.shape.blockSizeR * result.shape.chiR + result.shape.blockSizeC * result.shape.chiC
         conf["expected_value"] = (result.shape.numberNodes - 1) * (result.shape.class1ratio * result.shape.vpn1 * x + (1 - result.shape.class1ratio) * result.shape.vpn2 * x)
+        conf["line_label"] = "Total samples to deliver"
         plotData(conf)
         print("Plot %s created." % conf["path"])
 
