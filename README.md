@@ -22,5 +22,5 @@ $ pip3 install -r DAS/requirements.txt
 ## Run the simulator
 
 ```
-$ python3 study.py config.das
+$ python3 study.py smallConf.py
 ```
