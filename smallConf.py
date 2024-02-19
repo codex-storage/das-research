@@ -106,5 +106,8 @@ def nextShape():
         runs, failureModels, failureRates, class1ratios, chis, validatorsPerNode1, validatorsPerNode2, blockSizes, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
         # Network Degree has to be an even number
         if netDegree % 2 == 0:
-            shape = Shape(blockSize, nn, fm, fr, class1ratio, chi, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
+            blockSizeR = blockSizeC = blockSize
+            blockSizeRK = blockSizeCK = blockSize // 2
+            chiR = chiC = chi
+            shape = Shape(blockSizeR, blockSizeRK, blockSizeC, blockSizeCK, nn, fm, fr, class1ratio, chiR, chiC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
             yield shape

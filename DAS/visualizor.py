@@ -1,6 +1,7 @@
 #!/bin/python3
 
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 
 def plotData(conf):
@@ -34,6 +35,13 @@ class Visualizor:
         self.config = config
         self.results = results
         os.makedirs("results/"+self.execID+"/plots", exist_ok=True)
+    
+    def __get_attrbs__(self, result):
+        text = str(result.shape).split("-")
+        d = dict()
+        for i in range(0, len(text), 2):
+            d[text[i]] = text[i + 1]
+        return d
 
     def plotAll(self):
         """Plot all the important elements of each result"""
@@ -48,9 +56,9 @@ class Visualizor:
     def plotMissingSamples(self, result):
         """Plots the missing samples in the network"""
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
-        +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+" \nNetwork degree: "+attrbs['nd']
         conf["title"] = "Missing Samples"
         conf["type"] = "plot"
         conf["legLoc"] = 1
@@ -76,9 +84,9 @@ class Visualizor:
         vector2 = result.metrics["progress"]["validators ready"]
         vector3 = result.metrics["progress"]["samples received"]
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
-        +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+" \nNetwork degree: "+attrbs['nd']
         conf["title"] = "Nodes/validators ready"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -108,9 +116,9 @@ class Visualizor:
             vector2[i] = (vector2[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
             vector3[i] = (vector3[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
-        +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+" \nNetwork degree: "+attrbs['nd']
         conf["title"] = "Sent data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -138,9 +146,9 @@ class Visualizor:
             vector1[i] = (vector1[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
             vector2[i] = (vector2[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
-        +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+" \nNetwork degree: "+attrbs['nd']
         conf["title"] = "Received data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -168,9 +176,9 @@ class Visualizor:
             vector1[i] = (vector1[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
             vector2[i] = (vector2[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
-        +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+" \nNetwork degree: "+attrbs['nd']
         conf["title"] = "Duplicated data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -194,10 +202,14 @@ class Visualizor:
         """Plots the percentage of nodes ready in the network"""
         vector1 = result.metrics["rowDist"]
         vector2 = result.metrics["columnDist"]
+        if len(vector1) > len(vector2):
+            vector2 += [np.nan] * (len(vector1) - len(vector2))
+        elif len(vector1) < len(vector2):
+            vector1 += [np.nan] * (len(vector2) - len(vector1))
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Block Size: "+text[1]+"\nNumber of nodes: "+text[3]\
-        +"\nFailure rate: "+text[7]+" \nNetwork degree: "+text[23]+"\nX: "+text[11]+" rows/columns"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+" \nNetwork degree: "+attrbs['nd']
         conf["title"] = "Row/Column distribution"
         conf["type"] = "bar"
         conf["legLoc"] = 2
@@ -211,7 +223,7 @@ class Visualizor:
         conf["path"] = "results/"+self.execID+"/plots/RowColDist-"+str(result.shape)+".png"
         maxi = 0
         for v in conf["data"]:
-            if max(v) > maxi:
+            if np.nanmax(v) > maxi:
                 maxi = max(v)
         conf["yaxismax"] = maxi
         plotData(conf)
