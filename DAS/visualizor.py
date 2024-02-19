@@ -157,7 +157,7 @@ class Visualizor:
         conf["expected_value1"] = expected_percentage1
         conf["expected_value2"] = expected_percentage2
         conf["line_label1"] = "Expected Value for class 1 nodes"
-        conf["line_label2"] = "Expected Value for class 1 nodes"
+        conf["line_label2"] = "Expected Value for class 2 nodes"
         conf["yaxismax"] = max(expected_percentage1, expected_percentage2) * 1.05
         plotData(conf)
         print("Plot %s created." % conf["path"])
