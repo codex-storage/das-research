@@ -22,6 +22,7 @@ class Result:
         self.sampleRecvCount = [0] * shape.numberNodes
         self.restoreRowCount = [0] * shape.numberNodes
         self.restoreColumnCount = [0] * shape.numberNodes
+        self.repairedSampleCount = [0] * shape.numberNodes
 
     def copyValidators(self, validators):
         """Copy information from simulator.validators to result."""
@@ -32,6 +33,7 @@ class Result:
             self.sampleRecvCount[i] = validators[i].sampleRecvCount
             self.restoreRowCount[i] = validators[i].restoreRowCount
             self.restoreColumnCount[i] = validators[i].restoreColumnCount
+            self.repairedSampleCount[i] = validators[i].repairedSampleCount
 
     def populate(self, shape, config, missingVector):
         """It populates part of the result data inside a vector."""

@@ -86,6 +86,7 @@ class Visualizor:
             self.plotSentData(result, plotPath)
             self.plotRecvData(result, plotPath)
             self.plotDupData(result, plotPath)
+            self.plotSamplesRepaired(result, plotPath)
             if self.config.saveRCdist:
                 self.plotRowCol(result, plotPath)
 
@@ -376,6 +377,26 @@ class Visualizor:
         conf["data"] = result.msgRecvCount
         conf["xdots"] = range(result.shape.numberNodes)
         conf["path"] = plotPath + "/messagesRecv.png"
+        maxi = max(conf["data"])
+        conf["yaxismax"] = maxi
+        plotData(conf)
+        print("Plot %s created." % conf["path"])
+
+    def plotSamplesRepaired(self, result, plotPath):
+        """Plots the number of samples repaired by all nodes"""
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "Number of Samples Repaired by Nodes"
+        conf["type"] = "individual_bar"
+        conf["legLoc"] = 1
+        conf["desLoc"] = 1
+        conf["xlabel"] = "Nodes"
+        conf["ylabel"] = "Number of Samples Repaired"
+        conf["data"] = result.repairedSampleCount
+        conf["xdots"] = range(result.shape.numberNodes)
+        conf["path"] = plotPath + "/repairedSampleCount.png"
         maxi = max(conf["data"])
         conf["yaxismax"] = maxi
         plotData(conf)

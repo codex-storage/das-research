@@ -62,6 +62,7 @@ class Validator:
         self.sampleRecvCount = 0
         self.restoreRowCount = 0
         self.restoreColumnCount = 0
+        self.repairedSampleCount = 0
         self.logger = logger
         if self.shape.chiR < 1 and self.shape.chiC < 1:
             self.logger.error("Chi has to be greater than 0", extra=self.format)
@@ -518,7 +519,8 @@ class Validator:
 
     def restoreRow(self, id):
         """Restore a given row if repairable."""
-        rep = self.block.repairRow(id)
+        rep, repairedSamples = self.block.repairRow(id)
+        self.repairedSampleCount += repairedSamples
         if (rep.any()):
             # If operation is based on send queues, segments should
             # be queued after successful repair.
@@ -538,7 +540,8 @@ class Validator:
 
     def restoreColumn(self, id):
         """Restore a given column if repairable."""
-        rep = self.block.repairColumn(id)
+        rep, repairedSamples = self.block.repairColumn(id)
+        self.repairedSampleCount += repairedSamples
         if (rep.any()):
             # If operation is based on send queues, segments should
             # be queued after successful repair.
