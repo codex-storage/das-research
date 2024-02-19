@@ -39,6 +39,10 @@ def runOnce(config, shape, execID):
     if config.dumpXML:
         result.dump()
 
+    if config.visualization:
+        visual = Visualizor(execID, config, [result])
+        visual.plotAll()
+
     return result
 
 def study():
@@ -88,7 +92,7 @@ def study():
         vis.plotHeatmaps()
 
         visual = Visualizor(execID, config, results)
-        visual.plotAll()
+        visual.plotHeatmaps("nn", "fr")
 
 if __name__ == "__main__":
     study()

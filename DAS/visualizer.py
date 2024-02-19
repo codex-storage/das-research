@@ -4,6 +4,7 @@ import time
 import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import seaborn as sns
 from itertools import combinations
 from mplfinance.original_flavor import candlestick_ohlc
@@ -197,10 +198,9 @@ class Visualizer:
                 ylabels = np.sort(np.unique(data[key][labels[1]]))
                 if len(xlabels) < self.minimumDataPoints or len(ylabels) < self.minimumDataPoints:
                     continue
-                hist, xedges, yedges = np.histogram2d(data[key][labels[0]], data[key][labels[1]], bins=(len(xlabels), len(ylabels)), weights=data[key]['ttas'])
-                hist = hist.T
+                df = pd.DataFrame.from_dict(data[key]).pivot(columns=labels[0], index=labels[1], values='ttas')
                 fig, ax = plt.subplots(figsize=(10, 6))
-                sns.heatmap(hist, xticklabels=xlabels, yticklabels=ylabels, cmap='hot_r', cbar_kws={'label': 'Time to block availability (ms)'}, linecolor='black', linewidths=0.3, annot=True, fmt=".2f", ax=ax, vmin=vmin, vmax=vmax)
+                sns.heatmap(df, cmap='hot_r', cbar_kws={'label': 'Time to block availability (ms)'}, linecolor='black', linewidths=0.3, annot=True, fmt=".2f", ax=ax) #vmin=vmin, vmax=vmax
                 plt.xlabel(self.formatLabel(labels[0]))
                 plt.ylabel(self.formatLabel(labels[1]))
                 filename = ""
