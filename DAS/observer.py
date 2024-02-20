@@ -86,6 +86,22 @@ class Observer:
 
             return missingSamples, sampleProgress, nodeProgress, validatorAllProgress, validatorProgress
 
+    def getSamplingProgress(self, validators):
+        arrived = 0
+        expected = 0
+        ready = 0
+        nodes = 0
+
+        for val in validators:
+            if val.amIproposer == 0:
+                (a, e) = val.checkDAS()
+                arrived += a
+                expected += e
+                if a == e:
+                    ready += 1
+                nodes += 1
+        return (arrived / expected, ready / nodes)
+
     def getTrafficStats(self, validators):
             """Summary statistics of traffic measurements in a timestep."""
             def maxOrNan(l):

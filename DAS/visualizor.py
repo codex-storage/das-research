@@ -112,6 +112,7 @@ class Visualizor:
         vector1 = result.metrics["progress"]["nodes ready"]
         vector2 = result.metrics["progress"]["validators ready"]
         vector3 = result.metrics["progress"]["samples received"]
+        vector4 = result.metrics["progress"]["DASampling ready"]
         conf = {}
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
@@ -120,11 +121,11 @@ class Visualizor:
         conf["type"] = "plot"
         conf["legLoc"] = 2
         conf["desLoc"] = 2
-        conf["colors"] = ["g-", "b-", "r-"]
-        conf["labels"] = ["Nodes", "Validators", "Samples"]
+        conf["colors"] = ["g-", "b-", "r-", "m-"]
+        conf["labels"] = ["Nodes", "Validators", "Samples", "DASampling"]
         conf["xlabel"] = "Time (ms)"
         conf["ylabel"] = "Percentage (%)"
-        conf["data"] = [vector1, vector2, vector3]
+        conf["data"] = [vector1, vector2, vector3, vector4]
         conf["xdots"] = [x*self.config.stepDuration for x in range(len(vector1))]
         conf["path"] = plotPath+"/nodesReady.png"
         maxi = 0
