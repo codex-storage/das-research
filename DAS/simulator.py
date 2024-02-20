@@ -157,8 +157,7 @@ class Simulator:
             for u, v in G.edges:
                 val1=rowChannels[id][u]
                 val2=rowChannels[id][v]
-                val1.addRowNeighbor(id, val2)
-                val2.addRowNeighbor(id, val1)
+                val1.addRowNeighbor(id, val2) # symmetric
 
         for id in range(self.shape.blockSizeR):
 
@@ -176,7 +175,6 @@ class Simulator:
                 val1=columnChannels[id][u]
                 val2=columnChannels[id][v]
                 val1.addColumnNeighbor(id, val2)
-                val2.addColumnNeighbor(id, val1)
 
         for v in self.validators:
             if (self.proposerPublishOnly and v.amIproposer):
@@ -184,12 +182,12 @@ class Simulator:
                     count = min(self.proposerPublishTo, len(rowChannels[id]))
                     publishTo = random.sample(rowChannels[id], count)
                     for vi in publishTo:
-                        v.addRowNeighbor(id, vi)
+                        v.addRowNeighbor(id, vi, False)
                 for id in v.columnIDs:
                     count = min(self.proposerPublishTo, len(columnChannels[id]))
                     publishTo = random.sample(columnChannels[id], count)
                     for vi in publishTo:
-                        v.addColumnNeighbor(id, vi)
+                        v.addColumnNeighbor(id, vi, False)
 
         if self.logger.isEnabledFor(logging.DEBUG):
             for i in range(0, self.shape.numberNodes):

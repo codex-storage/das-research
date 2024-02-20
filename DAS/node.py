@@ -21,14 +21,17 @@ class Neighbor:
         """It returns the amount of sent and received data."""
         return "%d:%d/%d, q:%d" % (self.node.ID, self.sent.count(1), self.received.count(1), len(self.sendQueue))
 
-    def __init__(self, v, dim, blockSize):
+    def __init__(self, node, dim, blockSize):
         """It initializes the neighbor with the node and sets counters to zero."""
-        self.node = v
+        self.node = node
         self.dim = dim # 0:row 1:col
         self.receiving = zeros(blockSize)
         self.received = zeros(blockSize)
         self.sent = zeros(blockSize)
         self.sendQueue = deque()
+
+    def setPeer(self, peer):
+        self.peer = peer
 
 
 class Validator:
@@ -116,11 +119,25 @@ class Node:
         self.segmentShuffleScheduler = True # send each segment that's worth sending once in shuffled order, then repeat
         self.segmentShuffleSchedulerPersist = True # Persist scheduler state between timesteps
 
-    def addRowNeighbor(self, lineID, node):
-        self.rowNeighbors[lineID].update({node.ID : Neighbor(node, 0, self.shape.blockSizeR)})
+    def addRowNeighbor(self, lineID, peer, symmetric = True):
+        n = Neighbor(self, 0, self.shape.blockSizeR)
+        p = Neighbor(peer, 0, self.shape.blockSizeR)
+        n.setPeer(p)
+        p.setPeer(n)
 
-    def addColumnNeighbor(self, lineID, node):
-        self.columnNeighbors[lineID].update({node.ID : Neighbor(node, 1, self.shape.blockSizeC)})
+        self.rowNeighbors[lineID].update({peer.ID : n})
+        if symmetric:
+            peer.rowNeighbors[lineID].update({self.ID : p})
+
+    def addColumnNeighbor(self, lineID, peer, symmetric = True):
+        n = Neighbor(self, 1, self.shape.blockSizeR)
+        p = Neighbor(peer, 1, self.shape.blockSizeR)
+        n.setPeer(p)
+        p.setPeer(n)
+
+        self.columnNeighbors[lineID].update({peer.ID : n})
+        if symmetric:
+            peer.columnNeighbors[lineID].update({self.ID : p})
 
 
     def logIDs(self):
@@ -271,10 +288,10 @@ class Node:
 
     def sendSegmentToNeigh(self, rID, cID, neigh):
         """Send segment to a neighbor (without checks)."""
-        self.logger.trace("sending %d/%d to %d", rID, cID, neigh.node.ID, extra=self.format)
+        self.logger.trace("sending %d/%d to %d", rID, cID, neigh.peer.node.ID, extra=self.format)
         i = rID if neigh.dim else cID
         neigh.sent[i] = 1
-        neigh.node.receiveSegment(rID, cID, self.ID)
+        neigh.peer.node.receiveSegment(rID, cID, self.ID)
         self.statsTxInSlot += 1
 
     def checkSendSegmentToNeigh(self, rID, cID, neigh):
