@@ -9,6 +9,13 @@ from bitarray.util import zeros
 from collections import deque
 from itertools import chain
 
+class P2PNeighbor:
+    def __init__(self, node, peerNode):
+        """Implement a p2p neighbor for gossip and monitor sent and received data."""
+        self.node = node
+    def setPeer(self, peer):
+        self.peer = peer
+
 class Neighbor:
     """This class implements a node neighbor to monitor sent and received data.
 
@@ -85,6 +92,7 @@ class Node:
                 self.rowIDs = self.rowIDs.union(v.rowIDs)
                 self.columnIDs = self.columnIDs.union(v.columnIDs)
 
+        self.neighbors = dict()
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)
 
@@ -118,6 +126,18 @@ class Node:
         self.dumbRandomScheduler = False # dumb random scheduler
         self.segmentShuffleScheduler = True # send each segment that's worth sending once in shuffled order, then repeat
         self.segmentShuffleSchedulerPersist = True # Persist scheduler state between timesteps
+
+    def addNeighbor(self, peer, symmetric = True):
+        n = P2PNeighbor(self, self.shape.blockSizeR)
+        p = P2PNeighbor(peer, self.shape.blockSizeR)
+        n.setPeer(p)
+        p.setPeer(n)
+
+        if peer.ID not in self.neighbors:
+            self.neighbors[peer.ID] = p
+        if symmetric:
+            if self.ID not in peer.neighbors:
+                peer.neighbors[self.ID] = n
 
     def addRowNeighbor(self, lineID, peer, symmetric = True):
         n = Neighbor(self, 0, self.shape.blockSizeR)
