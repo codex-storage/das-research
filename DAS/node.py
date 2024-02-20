@@ -115,6 +115,7 @@ class Node:
             self.bwUplink = shape.bwUplink2
         self.bwUplink *= 1e3 / 8 * config.stepDuration / config.segmentSize
 
+        self.DASampleSize = 10 # TODO make this an external parameter
         self.repairOnTheFly = True
         self.sendLineUntilR = self.shape.blockSizeRK # stop sending on a p2p link if at least this amount of samples passed
         self.sendLineUntilC = self.shape.blockSizeCK # stop sending on a p2p link if at least this amount of samples passed
@@ -159,6 +160,32 @@ class Node:
         if symmetric:
             peer.columnNeighbors[lineID].update({self.ID : p})
 
+    def getNeighbors(self):
+        """Collect all neighbors (WIP, to be cached)"""
+        nn = set()
+        for neighs in self.rowNeighbors.values():
+            for n in neighs.values():
+                nn.add(n.peer.node)
+        for neighs in self.columnNeighbors.values():
+            for n in neighs.values():
+                nn.add(n.peer.node)
+
+        return nn
+    def initDAS(self):
+        """ Minimal sample init function"""
+        self.DASample = [(random.randrange(self.shape.blockSizeC), random.randrange(self.shape.blockSizeR))
+                        for i in range(self.DASampleSize)]
+
+    def checkDAS(self):
+        """ Dumb check in all neighbors without messaging """
+        block = Block.copy(self.block)
+        for neigh in self.getNeighbors():
+            block.merge(neigh.block)
+        found = 0
+        for rid, cid in self.DASample:
+            found += block.getSegment(rid, cid)
+        self.logger.debug("DAS found: %d / %d", found, self.DASampleSize, extra=self.format)
+        return (found, self.DASampleSize)
 
     def logIDs(self):
         """It logs the assigned rows and columns."""

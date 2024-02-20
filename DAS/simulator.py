@@ -247,6 +247,8 @@ class Simulator:
         progressVector = []
         trafficStatsVector = []
         steps = 0
+        for i in range(1,self.shape.numberNodes):
+            self.validators[i].initDAS()
         while(True):
             missingVector.append(missingSamples)
             oldMissingSamples = missingSamples
@@ -264,6 +266,8 @@ class Simulator:
             for i in range(0,self.shape.numberNodes):
                 self.validators[i].logRows()
                 self.validators[i].logColumns()
+            for i in range(1,self.shape.numberNodes):
+                self.validators[i].checkDAS()
 
             # log TX and RX statistics
             trafficStats = self.glob.getTrafficStats(self.validators)
