@@ -157,8 +157,8 @@ class Simulator:
             for u, v in G.edges:
                 val1=rowChannels[id][u]
                 val2=rowChannels[id][v]
-                val1.rowNeighbors[id].update({val2.ID : Neighbor(val2, 0, self.shape.blockSizeR)})
-                val2.rowNeighbors[id].update({val1.ID : Neighbor(val1, 0, self.shape.blockSizeR)})
+                val1.addRowNeighbor(id, val2)
+                val2.addRowNeighbor(id, val1)
 
         for id in range(self.shape.blockSizeR):
 
@@ -175,8 +175,8 @@ class Simulator:
             for u, v in G.edges:
                 val1=columnChannels[id][u]
                 val2=columnChannels[id][v]
-                val1.columnNeighbors[id].update({val2.ID : Neighbor(val2, 1, self.shape.blockSizeC)})
-                val2.columnNeighbors[id].update({val1.ID : Neighbor(val1, 1, self.shape.blockSizeC)})
+                val1.addColumnNeighbor(id, val2)
+                val2.addColumnNeighbor(id, val1)
 
         for v in self.validators:
             if (self.proposerPublishOnly and v.amIproposer):
@@ -184,12 +184,12 @@ class Simulator:
                     count = min(self.proposerPublishTo, len(rowChannels[id]))
                     publishTo = random.sample(rowChannels[id], count)
                     for vi in publishTo:
-                        v.rowNeighbors[id].update({vi.ID : Neighbor(vi, 0, self.shape.blockSizeR)})
+                        v.addRowNeighbor(id, vi)
                 for id in v.columnIDs:
                     count = min(self.proposerPublishTo, len(columnChannels[id]))
                     publishTo = random.sample(columnChannels[id], count)
                     for vi in publishTo:
-                        v.columnNeighbors[id].update({vi.ID : Neighbor(vi, 1, self.shape.blockSizeC)})
+                        v.addColumnNeighbor(id, vi)
 
         if self.logger.isEnabledFor(logging.DEBUG):
             for i in range(0, self.shape.numberNodes):

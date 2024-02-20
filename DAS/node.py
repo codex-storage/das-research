@@ -116,6 +116,13 @@ class Node:
         self.segmentShuffleScheduler = True # send each segment that's worth sending once in shuffled order, then repeat
         self.segmentShuffleSchedulerPersist = True # Persist scheduler state between timesteps
 
+    def addRowNeighbor(self, lineID, node):
+        self.rowNeighbors[lineID].update({node.ID : Neighbor(node, 0, self.shape.blockSizeR)})
+
+    def addColumnNeighbor(self, lineID, node):
+        self.columnNeighbors[lineID].update({node.ID : Neighbor(node, 1, self.shape.blockSizeC)})
+
+
     def logIDs(self):
         """It logs the assigned rows and columns."""
         if self.amIproposer == 1:
