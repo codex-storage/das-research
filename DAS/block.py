@@ -21,6 +21,12 @@ class Block:
         self.blockSizeCK = blockSizeCK if blockSizeCK else blockSizeRK
         self.data = zeros(self.blockSizeR*self.blockSizeC)
 
+    @classmethod
+    def copy(cls, a):
+        b = cls(a.blockSizeR, a.blockSizeRK, a.blockSizeC, a.blockSizeCK)
+        b.data = a.data.copy()
+        return b
+
     def fill(self):
         """It fills the block data with ones."""
         self.data.setall(1)
