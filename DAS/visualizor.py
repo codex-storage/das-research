@@ -93,6 +93,7 @@ class Visualizor:
             self.plotRestoreRowCount(result, plotPath)
             self.plotRestoreColumnCount(result, plotPath)
             self.plotMessagesSent(result, plotPath)
+            self.plotBoxMessagesSent(result, plotPath)
             self.plotMessagesRecv(result, plotPath)
             self.plotBoxMessagesRecv(result, plotPath)
             self.plotSampleRecv(result, plotPath)
@@ -395,6 +396,21 @@ class Visualizor:
         maxi = max(conf["data"])
         conf["yaxismax"] = maxi
         plotData(conf)
+        print("Plot %s created." % conf["path"])
+    
+    def plotBoxMessagesSent(self, result, plotPath):
+        """Box Plot of the number of messages sent by all nodes"""
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "Number of Messages Sent by Nodes"
+        conf["xlabel"] = "Node Type"
+        conf["ylabel"] = "Number of Messages Sent"
+        n1 = int(result.numberNodes * result.class1ratio)
+        conf["data"] = [result.msgSentCount[1: n1], result.msgSentCount[n1: ]]
+        conf["path"] = plotPath + "/box_messagesSent.png"
+        plotBoxData(conf)
         print("Plot %s created." % conf["path"])
 
     def plotMessagesRecv(self, result, plotPath):
