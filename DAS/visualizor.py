@@ -34,6 +34,20 @@ def plotData(conf):
     plt.legend(loc=conf["legLoc"])
     plt.savefig(conf["path"], bbox_inches="tight")
 
+def plotBoxData(conf):
+    plt.clf()
+    plt.grid(True)
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+    num_boxes = len(conf["data"])
+    positions = np.arange(num_boxes)
+    plt.text(0.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
+    plt.boxplot(conf["data"], patch_artist=True, showmeans=True, meanline=True, positions=positions)
+    plt.title(conf["title"], fontsize=14)
+    plt.ylabel(conf["ylabel"], fontsize=12)
+    plt.xlabel(conf["xlabel"], fontsize=12)
+    plt.xticks(fontsize=10)
+    plt.yticks(fontsize=10)
+    plt.savefig(conf["path"], bbox_inches="tight")
 
 class Visualizor:
     """This class helps the visualization of the results"""
@@ -80,7 +94,9 @@ class Visualizor:
             self.plotRestoreColumnCount(result, plotPath)
             self.plotMessagesSent(result, plotPath)
             self.plotMessagesRecv(result, plotPath)
+            self.plotBoxMessagesRecv(result, plotPath)
             self.plotSampleRecv(result, plotPath)
+            self.plotBoxSampleRecv(result, plotPath)
             self.plotMissingSamples(result, plotPath)
             self.plotProgress(result, plotPath)
             self.plotSentData(result, plotPath)
@@ -161,6 +177,25 @@ class Visualizor:
         conf["line_label2"] = "Expected Value for class 2 nodes"
         conf["yaxismax"] = max(expected_percentage1, expected_percentage2) * 1.05
         plotData(conf)
+        print("Plot %s created." % conf["path"])
+    
+    def plotBoxSampleRecv(self, result, plotPath):
+        """Box Plot of the sampleRecv for each node"""
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "Number of Samples Received by Nodes"
+        conf["type"] = "individual_bar_with_2line"
+        conf["legLoc"] = 1
+        conf["desLoc"] = 1
+        conf["xlabel"] = "Node Type"
+        conf["ylabel"] = "Number of samples received (%)"
+        n1 = int(result.numberNodes * result.class1ratio)
+        conf["data"] = [result.sampleRecvCount[1: n1], result.sampleRecvCount[n1: ]]
+        conf["xdots"] = range(result.shape.numberNodes)
+        conf["path"] = plotPath + "/box_sampleRecv.png"
+        plotBoxData(conf)
         print("Plot %s created." % conf["path"])
     
     def plotMissingSamples(self, result, plotPath):
@@ -380,6 +415,27 @@ class Visualizor:
         maxi = max(conf["data"])
         conf["yaxismax"] = maxi
         plotData(conf)
+        print("Plot %s created." % conf["path"])
+    
+    def plotBoxMessagesRecv(self, result, plotPath):
+        """Plots the number of messages received by all nodes"""
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "Number of Messages Received by Nodes"
+        conf["type"] = "individual_bar"
+        conf["legLoc"] = 1
+        conf["desLoc"] = 1
+        conf["xlabel"] = "Node Type"
+        conf["ylabel"] = "Number of Messages Received"
+        n1 = int(result.numberNodes * result.class1ratio)
+        conf["data"] = [result.msgRecvCount[1: n1], result.msgRecvCount[n1: ]]
+        conf["xdots"] = range(result.shape.numberNodes)
+        conf["path"] = plotPath + "/box_messagesRecv.png"
+        maxi = max(conf["data"])
+        conf["yaxismax"] = maxi
+        plotBoxData(conf)
         print("Plot %s created." % conf["path"])
 
     def plotSamplesRepaired(self, result, plotPath):

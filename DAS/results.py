@@ -23,6 +23,8 @@ class Result:
         self.restoreRowCount = [0] * shape.numberNodes
         self.restoreColumnCount = [0] * shape.numberNodes
         self.repairedSampleCount = [0] * shape.numberNodes
+        self.numberNodes = shape.numberNodes
+        self.class1ratio = shape.class1ratio
 
     def copyValidators(self, validators):
         """Copy information from simulator.validators to result."""
