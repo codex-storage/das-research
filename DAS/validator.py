@@ -6,7 +6,8 @@ import logging
 from DAS.block import *
 from DAS.tools import shuffled, shuffledDict, unionOfSamples
 from bitarray.util import zeros
-from collections import deque
+#from collections import deque
+from typeddeque import deque
 from itertools import chain
 
 class Neighbor:
