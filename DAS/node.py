@@ -171,10 +171,22 @@ class Node:
                 nn.add(n.peer.node)
 
         return nn
+
     def initDAS(self):
         """ Minimal sample init function"""
-        self.DASample = [(random.randrange(self.shape.blockSizeC), random.randrange(self.shape.blockSizeR))
+        self.DASample = [(random.randrange(self.shape.blockSizeC), random.randrange(self.shape.blockSizeR), [])
                         for i in range(self.DASampleSize)]
+
+        # check which neighbor is supposed to custody which segment
+        for neigh in self.getNeighbors():
+            for rid, cid, sources in self.DASample:
+                if rid in neigh.rowIDs or cid in neigh.columnIDs:
+                    sources.append(neigh)
+
+        # random shuffle order, so that we can use it as a priority order
+        for rid, cid, sources in self.DASample:
+            random.shuffle(sources)
+            self.logger.info("Potential sources for (%d,%d): %d", rid, cid, len(sources), extra=self.format)
 
     def checkDAS(self):
         """ Dumb check in all neighbors without messaging """
@@ -182,8 +194,25 @@ class Node:
         for neigh in self.getNeighbors():
             block.merge(neigh.block)
         found = 0
-        for rid, cid in self.DASample:
+        for rid, cid, sources in self.DASample:
             found += block.getSegment(rid, cid)
+        self.logger.debug("DAS found: %d / %d", found, self.DASampleSize, extra=self.format)
+        return (found, self.DASampleSize)
+
+    def checkDAS3(self, check=3):
+        """ Check some neighbors without messaging """
+        block = Block.copy(self.block)
+        for neigh in self.getNeighbors():
+            block.merge(neigh.block)
+        found = [0] * (check+1)
+        for rid, cid, sources in self.DASample:
+            if self.block.getSegment(rid, cid):
+                found[0] += 1
+                continue
+            for i in range(min(check, len(sources))):
+                if sources[i].block.getSegment(rid, cid):
+                    found[i+1] += 1
+                    break
         self.logger.debug("DAS found: %d / %d", found, self.DASampleSize, extra=self.format)
         return (found, self.DASampleSize)
 

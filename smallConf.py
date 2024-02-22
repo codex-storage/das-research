@@ -38,39 +38,39 @@ logLevel = logging.INFO
 
 # number of parallel workers. -1: all cores; 1: sequential
 # for more details, see joblib.Parallel
-numJobs = -1
+numJobs = 1
 
 # distribute rows/columns evenly between validators (True)
 # or generate it using local randomness (False)
 evenLineDistribution = False
 
 # Number of simulation runs with the same parameters for statistical relevance
-runs = range(3)
+runs = range(1)
 
 # Number of validators
-numberNodes = range(128, 513, 128)
+numberNodes = [4000]
 
 # select failure model between: "random, sequential, MEP, MEP+1, DEP, DEP+1, MREP, MREP-1"
 failureModels = ["random"]
 
 # Percentage of block not released by producer
-failureRates = range(40, 81, 20)
+failureRates = [0]
 
 # Block size in one dimension in segments. Block is blockSizes * blockSizes segments.
-blockSizes = range(64, 113, 128)
+blockSizes = [256]
 
 # Per-topic mesh neighborhood size
-netDegrees = range(8, 9, 2)
+netDegrees = [6]
 
 # number of rows and columns a validator is interested in
-chis = range(2, 3, 2)
+chis = [2]
 
 # ratio of class1 nodes (see below for parameters per class)
 class1ratios = [0.8]
 
 # Number of validators per beacon node
 validatorsPerNode1 = [1]
-validatorsPerNode2 = [500]
+validatorsPerNode2 = [5]
 
 # Set uplink bandwidth in megabits/second
 bwUplinksProd = [200]
@@ -99,7 +99,7 @@ successCondition = 0.9
 diagnostics = False
 
 # True to save git diff and git commit
-saveGit = False
+saveGit = True
 
 def nextShape():
     for run, fm, fr, class1ratio, chi, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(

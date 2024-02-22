@@ -112,7 +112,10 @@ class Visualizor:
         vector1 = result.metrics["progress"]["nodes ready"]
         vector2 = result.metrics["progress"]["validators ready"]
         vector3 = result.metrics["progress"]["samples received"]
-        vector4 = result.metrics["progress"]["DASampling ready"]
+        vector4 = result.metrics["progress"]["DASampling ready (query all)"]
+        vector5 = result.metrics["progress"]["DASampling ready (query 3)"]
+        vector6 = result.metrics["progress"]["DASampling ready (query 2)"]
+        vector7 = result.metrics["progress"]["DASampling ready (query 1)"]
         conf = {}
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
@@ -121,11 +124,12 @@ class Visualizor:
         conf["type"] = "plot"
         conf["legLoc"] = 2
         conf["desLoc"] = 2
-        conf["colors"] = ["g-", "b-", "r-", "m-"]
-        conf["labels"] = ["Nodes", "Validators", "Samples", "DASampling"]
+        conf["colors"] = ["g-", "b-", "r-", "m-", "m--", "m-.", "m:"]
+        conf["labels"] = ["Nodes", "Validators", "Custody samples",
+                          "DASampling (query all)", "DASampling (query 3)", "DASampling (query 2)", "DASampling (query 1)"]
         conf["xlabel"] = "Time (ms)"
-        conf["ylabel"] = "Percentage (%)"
-        conf["data"] = [vector1, vector2, vector3, vector4]
+        conf["ylabel"] = "Ratio of all (0..1)"
+        conf["data"] = [vector1, vector2, vector3, vector4, vector5, vector6, vector7]
         conf["xdots"] = [x*self.config.stepDuration for x in range(len(vector1))]
         conf["path"] = plotPath+"/nodesReady.png"
         maxi = 0

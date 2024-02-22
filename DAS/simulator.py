@@ -257,7 +257,7 @@ class Simulator:
                 self.validators[i].send()
             self.logger.debug("PHASE PROGRESS STATS %d" % steps, extra=self.format)
             missingSamples, sampleProgress, nodeProgress, validatorAllProgress, validatorProgress = self.glob.getProgress(self.validators)
-            samplingProgress, _ = self.glob.getSamplingProgress(self.validators)
+            samplingProgressAll, samplingProgress3, samplingProgress2, samplingProgress1, _ = self.glob.getSamplingProgress(self.validators)
             self.logger.debug("PHASE RECEIVE %d" % steps, extra=self.format)
             for i in range(1,self.shape.numberNodes):
                 self.validators[i].receiveRowsColumns()
@@ -282,12 +282,15 @@ class Simulator:
 
             self.logger.info("step %d, arrived %0.02f %%, ready %0.02f %%, validatedall %0.02f %%, validated %0.02f %%, sampled %0.02f %%"
                               % (steps, sampleProgress*100, nodeProgress*100, validatorAllProgress*100, validatorProgress*100,
-                                 samplingProgress*100), extra=self.format)
+                                 samplingProgressAll*100), extra=self.format)
 
             cnS = "samples received"
             cnN = "nodes ready"
             cnV = "validators ready"
-            cnDAS = "DASampling ready"
+            cnDASall = "DASampling ready (query all)"
+            cnDAS3 = "DASampling ready (query 3)"
+            cnDAS2 = "DASampling ready (query 2)"
+            cnDAS1 = "DASampling ready (query 1)"
             cnT0 = "TX builder mean"
             cnT1 = "TX class1 mean"
             cnT2 = "TX class2 mean"
@@ -300,7 +303,10 @@ class Simulator:
                 cnS:sampleProgress,
                 cnN:nodeProgress,
                 cnV:validatorProgress,
-                cnDAS:samplingProgress,
+                cnDASall:samplingProgressAll,
+                cnDAS3:samplingProgress3,
+                cnDAS2:samplingProgress2,
+                cnDAS1:samplingProgress1,
                 cnT0: trafficStats[0]["Tx"]["mean"],
                 cnT1: trafficStats[1]["Tx"]["mean"],
                 cnT2: trafficStats[2]["Tx"]["mean"],

@@ -91,16 +91,21 @@ class Observer:
         expected = 0
         ready = 0
         nodes = 0
+        f1 = f2 = f3 = 0
 
         for val in validators:
             if val.amIproposer == 0:
                 (a, e) = val.checkDAS()
+                (f, e) = val.checkDAS3()
+                f1 += f[0] + f[1]
+                f2 += f[0] + f[1] + f[2]
+                f3 += f[0] + f[1] + f[2] + f[3]
                 arrived += a
                 expected += e
                 if a == e:
                     ready += 1
                 nodes += 1
-        return (arrived / expected, ready / nodes)
+        return (arrived / expected, f3/expected, f2/expected, f1/expected, ready / nodes)
 
     def getTrafficStats(self, validators):
             """Summary statistics of traffic measurements in a timestep."""
