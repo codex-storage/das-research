@@ -70,7 +70,7 @@ class1ratios = [0.8]
 
 # Number of validators per beacon node
 validatorsPerNode1 = [1]
-validatorsPerNode2 = [500]
+validatorsPerNode2 = [5]
 
 # Set uplink bandwidth in megabits/second
 bwUplinksProd = [200]
