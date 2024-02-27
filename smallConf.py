@@ -63,7 +63,7 @@ blockSizes = range(64, 113, 128)
 netDegrees = range(8, 9, 2)
 
 # number of rows and columns a validator is interested in
-custody = range(2, 3, 2)
+custody = [2]
 
 # ratio of class1 nodes (see below for parameters per class)
 class1ratios = [0.8]
@@ -106,8 +106,8 @@ def nextShape():
         runs, failureModels, failureRates, class1ratios, custody, validatorsPerNode1, validatorsPerNode2, blockSizes, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
         # Network Degree has to be an even number
         if netDegree % 2 == 0:
-            blockSizeR = blockSizeC = blockSize
-            blockSizeRK = blockSizeCK = blockSize // 2
+            nbCols = nbRows = blockSize
+            nbColsK = nbRowsK = blockSize // 2
             custodyRows = custodyCols = cust
-            shape = Shape(blockSizeR, blockSizeRK, blockSizeC, blockSizeCK, nn, fm, fr, class1ratio, custodyRows, custodyCols, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
+            shape = Shape(nbCols, nbColsK, nbRows, nbRowsK, nn, fm, fr, class1ratio, custodyRows, custodyCols, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
             yield shape

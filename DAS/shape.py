@@ -3,21 +3,21 @@
 class Shape:
     """This class represents a set of parameters for a specific simulation."""
 
-    def __init__(self, blockSizeR, blockSizeRK, blockSizeC, blockSizeCK,
-                 numberNodes, failureModel, failureRate, class1ratio, chiR, chiC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run):
+    def __init__(self, nbCols, nbColsK, nbRows, nbRowsK,
+                 numberNodes, failureModel, failureRate, class1ratio, custodyRows, custodyCols, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run):
         """Initializes the shape with the parameters passed in argument."""
         self.run = run
         self.numberNodes = numberNodes
-        self.blockSizeR = blockSizeR
-        self.blockSizeRK = blockSizeRK
-        self.blockSizeC = blockSizeC
-        self.blockSizeCK = blockSizeCK
+        self.nbCols = nbCols
+        self.nbColsK = nbColsK
+        self.nbRows = nbRows
+        self.nbRowsK = nbRowsK
         self.failureModel = failureModel
         self.failureRate = failureRate
         self.netDegree = netDegree
         self.class1ratio = class1ratio
-        self.chiR = chiR
-        self.chiC = chiC
+        self.custodyRows = custodyRows
+        self.custodyCols = custodyCols
         self.vpn1 = vpn1
         self.vpn2 = vpn2
         self.bwUplinkProd = bwUplinkProd
@@ -28,16 +28,16 @@ class Shape:
     def __repr__(self):
         """Returns a printable representation of the shape"""
         shastr = ""
-        shastr += "bsrn-"+str(self.blockSizeR)
-        shastr += "bsrk-"+str(self.blockSizeRK)
-        shastr += "bscn-"+str(self.blockSizeC)
-        shastr += "bsck-"+str(self.blockSizeCK)
+        shastr += "bsrn-"+str(self.nbCols)
+        shastr += "bsrk-"+str(self.nbColsK)
+        shastr += "bscn-"+str(self.nbRows)
+        shastr += "bsck-"+str(self.nbRowsK)
         shastr += "-nn-"+str(self.numberNodes)
         shastr += "-fm-"+str(self.failureModel)
         shastr += "-fr-"+str(self.failureRate)
         shastr += "-c1r-"+str(self.class1ratio)
-        shastr += "-chir-"+str(self.chiR)
-        shastr += "-chic-"+str(self.chiC)
+        shastr += "-cusr-"+str(self.custodyRows)
+        shastr += "-cusc-"+str(self.custodyCols)
         shastr += "-vpn1-"+str(self.vpn1)
         shastr += "-vpn2-"+str(self.vpn2)
         shastr += "-bwupprod-"+str(self.bwUplinkProd)
