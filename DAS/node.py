@@ -36,9 +36,9 @@ class Validator:
         self.rowIDs = rowIDs
         self.columnIDs = columnIDs
 
-def initValidator(blockSizeC, chiR, blockSizeR, chiC):
-        rowIDs = set(random.sample(range(blockSizeC), chiR))
-        columnIDs = set(random.sample(range(blockSizeR), chiC))
+def initValidator(blockSizeC, custodyRows, blockSizeR, custodyCols):
+        rowIDs = set(random.sample(range(blockSizeC), custodyRows))
+        columnIDs = set(random.sample(range(blockSizeR), custodyCols))
         return Validator(rowIDs, columnIDs)
 
 class Node:
@@ -53,7 +53,7 @@ class Node:
         """It initializes the node, and eventual validators, following the simulation configuration in shape and config.
 
             If rows/columns are specified these are observed, otherwise (default)
-            chiR rows and chiC columns are selected randomly.
+            custodyRows rows and custodyCols columns are selected randomly.
         """
 
         self.shape = shape
@@ -93,7 +93,7 @@ class Node:
         self.statsRxDupInSlot = 0
         self.statsRxDupPerSlot = []
 
-        # Set uplink bandwidth. 
+        # Set uplink bandwidth.
         # Assuming segments of ~560 bytes and timesteps of 50ms, we get
         # 1 Mbps ~= 1e6 mbps * 0.050 s / (560*8) bits ~= 11 segments/timestep
         if self.amIproposer:

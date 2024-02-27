@@ -63,7 +63,7 @@ blockSizes = range(64, 113, 128)
 netDegrees = range(8, 9, 2)
 
 # number of rows and columns a validator is interested in
-chis = range(2, 3, 2)
+custody = range(2, 3, 2)
 
 # ratio of class1 nodes (see below for parameters per class)
 class1ratios = [0.8]
@@ -102,12 +102,12 @@ diagnostics = False
 saveGit = False
 
 def nextShape():
-    for run, fm, fr, class1ratio, chi, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
-        runs, failureModels, failureRates, class1ratios, chis, validatorsPerNode1, validatorsPerNode2, blockSizes, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
+    for run, fm, fr, class1ratio, cust, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
+        runs, failureModels, failureRates, class1ratios, custody, validatorsPerNode1, validatorsPerNode2, blockSizes, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
         # Network Degree has to be an even number
         if netDegree % 2 == 0:
             blockSizeR = blockSizeC = blockSize
             blockSizeRK = blockSizeCK = blockSize // 2
-            chiR = chiC = chi
-            shape = Shape(blockSizeR, blockSizeRK, blockSizeC, blockSizeCK, nn, fm, fr, class1ratio, chiR, chiC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
+            custodyRows = custodyCols = cust
+            shape = Shape(blockSizeR, blockSizeRK, blockSizeC, blockSizeCK, nn, fm, fr, class1ratio, custodyRows, custodyCols, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
             yield shape
