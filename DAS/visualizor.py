@@ -1,6 +1,7 @@
 #!/bin/python3
 
 import matplotlib.pyplot as plt
+import seaborn as sns
 import numpy as np
 import os
 
@@ -104,8 +105,275 @@ class Visualizor:
             self.plotRecvData(result, plotPath)
             self.plotDupData(result, plotPath)
             self.plotSamplesRepaired(result, plotPath)
+            self.plotBoxSamplesRepaired(result, plotPath)
+            self.plotBoxRowCol(result, plotPath)
+            self.plotBoxenMessagesRecv(result, plotPath)
+            self.plotBoxenMessagesSent(result, plotPath)
+            self.plotBoxenSamplesRecv(result, plotPath)
+            self.plotBoxenSamplesRepaired(result, plotPath)
+            self.plotBoxenRowColDist(result, plotPath)
+
+            self.plotECDFSamplesRepaired(result, plotPath)
+            self.plotECDFRowColDist(result, plotPath)
+            self.plotECDFSamplesReceived(result, plotPath)
+            self.plotECDFMessagesRecv(result, plotPath)
+            self.plotECDFMessagesSent(result, plotPath)
             if self.config.saveRCdist:
                 self.plotRowCol(result, plotPath)
+
+
+    def plotECDFMessagesSent(self, result, plotPath):
+        """Plots the ECDF of messages sent by all nodes using seaborn's ecdfplot"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "ECDF of Messages Sent by Nodes"
+        conf["xlabel"] = "Number of Messages Sent"
+        conf["ylabel"] = "ECDF"
+        sns.ecdfplot(data=result.msgSentCount)
+        plt.xlabel(conf["xlabel"])
+        plt.ylabel(conf["ylabel"])
+        plt.title(conf["title"])
+        plt.xlim(left=0, right=max(result.msgSentCount) * 1.1)
+        plt.savefig(plotPath + "/ecdf_messagesSent.png", bbox_inches="tight")
+        print("Plot %s created." % (plotPath + "/ecdf_messagesSent.png"))
+
+    def plotECDFMessagesRecv(self, result, plotPath):
+        """Plots the ECDF of messages received by all nodes using seaborn's ecdfplot"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "ECDF of Messages Received by Nodes"
+        conf["xlabel"] = "Number of Messages Received"
+        conf["ylabel"] = "ECDF"
+        sns.ecdfplot(data=result.msgRecvCount)
+        plt.xlabel(conf["xlabel"])
+        plt.ylabel(conf["ylabel"])
+        plt.title(conf["title"])
+        plt.xlim(left=0, right=max(result.msgRecvCount) * 1.1)
+        plt.savefig(plotPath + "/ecdf_messagesRecv.png", bbox_inches="tight")
+        print("Plot %s created." % (plotPath + "/ecdf_messagesRecv.png"))
+
+    def plotECDFSamplesReceived(self, result, plotPath):
+        """Plots the ECDF of samples received by all nodes using seaborn's ecdfplot"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "ECDF of Samples Received by Nodes"
+        conf["xlabel"] = "Number of Samples Received"
+        conf["ylabel"] = "ECDF"
+        sns.ecdfplot(data=result.sampleRecvCount)
+        plt.xlabel(conf["xlabel"])
+        plt.ylabel(conf["ylabel"])
+        plt.title(conf["title"])
+        plt.xlim(left=0, right=max(result.sampleRecvCount) * 1.1)
+        plt.savefig(plotPath + "/ecdf_samplesReceived.png", bbox_inches="tight")
+        print("Plot %s created." % (plotPath + "/ecdf_samplesReceived.png"))
+
+    def plotECDFRowColDist(self, result, plotPath):
+        """Plots the ECDF of row col distance by all nodes using seaborn's ecdfplot"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "ECDF of Row-Col Distance by Nodes"
+        conf["xlabel"] = "Row-Col Distance"
+        conf["ylabel"] = "ECDF"
+        vector1 = result.metrics["rowDist"]
+        vector2 = result.metrics["columnDist"]
+        if len(vector1) > len(vector2):
+            vector2 += [np.nan] * (len(vector1) - len(vector2))
+        elif len(vector1) < len(vector2):
+            vector1 += [np.nan] * (len(vector2) - len(vector1))
+        n1 = int(result.numberNodes * result.class1ratio)
+        conf["data"] = [vector1, vector2]
+        sns.ecdfplot(data=conf["data"])
+        plt.xlabel(conf["xlabel"])
+        plt.ylabel(conf["ylabel"])
+        plt.title(conf["title"])
+        plt.xlim(left=0, right=max(max(vector1), max(vector2)) * 1.1)
+        plt.savefig(plotPath + "/ecdf_rowColDist.png", bbox_inches="tight")
+        print("Plot %s created." % (plotPath + "/ecdf_rowColDist.png"))
+
+    def plotECDFSamplesRepaired(self, result, plotPath):
+        """Plots the ECDF of samples repaired by all nodes using seaborn's ecdfplot"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "ECDF of Samples Repaired by Nodes"
+        conf["xlabel"] = "Number of Samples Repaired"
+        conf["ylabel"] = "ECDF"
+        sns.ecdfplot(data=result.repairedSampleCount)
+        plt.xlabel(conf["xlabel"])
+        plt.ylabel(conf["ylabel"])
+        plt.title(conf["title"])
+        plt.xlim(left=0, right=max(result.repairedSampleCount) * 1.1)
+        plt.savefig(plotPath + "/ecdf_samplesRepaired.png", bbox_inches="tight")
+        print("Plot %s created." % (plotPath + "/ecdf_samplesRepaired.png"))
+
+
+    
+    
+    def plotBoxenSamplesRecv(self, result, plotPath):
+        """Boxen Plot of the number of samples received by all nodes"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "Number of Samples Received by Nodes"
+        conf["xlabel"] = "Node Type"
+        conf["ylabel"] = "Number of Samples Received"
+        n1 = int(result.numberNodes * result.class1ratio)
+        data = [result.sampleRecvCount[1: n1], result.sampleRecvCount[n1: ]]
+        plt.figure(figsize=(8, 6))
+        sns.boxenplot(data=data, width=0.8)
+        plt.xlabel(conf["xlabel"])
+        plt.ylabel(conf["ylabel"])
+        plt.title(conf["title"])
+        plt.tight_layout()
+        plt.savefig(plotPath + "/boxen_samplesRecv.png")
+        plt.close()
+        print("Plot %s created." % (plotPath + "/boxen_samplesRecv.png"))
+
+    def plotBoxenSamplesRepaired(self, result, plotPath):
+        """Boxen Plot of the number of samples repaired by all nodes"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "Number of Samples Repaired by Nodes"
+        conf["xlabel"] = "Node Type"
+        conf["ylabel"] = "Number of Samples Repaired"
+        n1 = int(result.numberNodes * result.class1ratio)
+        data = [result.repairedSampleCount[1: n1], result.repairedSampleCount[n1: ]]
+        plt.figure(figsize=(8, 6))
+        sns.boxenplot(data=data, width=0.8)
+        plt.xlabel(conf["xlabel"])
+        plt.ylabel(conf["ylabel"])
+        plt.title(conf["title"])
+        plt.tight_layout()
+        plt.savefig(plotPath + "/boxen_samplesRepaired.png")
+        plt.close()
+        print("Plot %s created." % (plotPath + "/boxen_samplesRepaired.png"))
+
+    def plotBoxenRowColDist(self, result, plotPath):
+        """Boxen Plot of the Row/Column distribution"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "Row/Column Distribution"
+        conf["xlabel"] = "Row/Column Type"
+        conf["ylabel"] = "Validators Subscribed"
+        vector1 = result.metrics["rowDist"]
+        vector2 = result.metrics["columnDist"]
+        if len(vector1) > len(vector2):
+            vector2 += [np.nan] * (len(vector1) - len(vector2))
+        elif len(vector1) < len(vector2):
+            vector1 += [np.nan] * (len(vector2) - len(vector1))
+        data = [vector1, vector2]
+        plt.figure(figsize=(8, 6))
+        sns.boxenplot(data=data, width=0.8)
+        plt.xlabel(conf["xlabel"])
+        plt.ylabel(conf["ylabel"])
+        plt.title(conf["title"])
+        plt.tight_layout()
+        plt.savefig(plotPath + "/boxen_rowColDist.png")
+        plt.close()
+        print("Plot %s created." % (plotPath + "/boxen_rowColDist.png"))
+        
+    def plotBoxenMessagesSent(self, result, plotPath):
+        """Plots the number of messages sent by all nodes using seaborn's boxenplot"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "Number of Messages Sent by Nodes"
+        conf["xlabel"] = "Node Type"
+        conf["ylabel"] = "Number of Messages Sent"
+        n1 = int(result.numberNodes * result.class1ratio)
+        data = [result.msgSentCount[1: n1], result.msgSentCount[n1: ]]
+        labels = ["Class 1", "Class 2"]
+        sns.boxenplot(data=data, palette="Set2", ax=plt.gca())
+        plt.xlabel(conf["xlabel"])
+        plt.ylabel(conf["ylabel"])
+        plt.title(conf["title"])
+        plt.savefig(plotPath + "/boxen_messagesSent.png", bbox_inches="tight")
+        print("Plot %s created." % (plotPath + "/boxen_messagesSent.png"))
+
+    def plotBoxenMessagesRecv(self, result, plotPath):
+        """Plots the number of messages received by all nodes using seaborn's boxenplot"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "Number of Messages Received by Nodes"
+        conf["xlabel"] = "Node Type"
+        conf["ylabel"] = "Number of Messages Received"
+        n1 = int(result.numberNodes * result.class1ratio)
+        data = [result.msgRecvCount[1: n1], result.msgRecvCount[n1: ]]
+        labels = ["Class 1", "Class 2"]
+        sns.boxenplot(data=data, palette="Set2", ax=plt.gca())
+        plt.xlabel(conf["xlabel"])
+        plt.ylabel(conf["ylabel"])
+        plt.title(conf["title"])
+        plt.savefig(plotPath + "/boxen_messagesRecv.png", bbox_inches="tight")
+        print("Plot %s created." % (plotPath + "/boxen_messagesRecv.png"))
+    
+    def plotBoxSamplesRepaired(self, result, plotPath):
+        """Box Plot of the number of samples repaired by all nodes"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "Number of Samples Repaired by Nodes"
+        conf["type"] = "individual_bar"
+        conf["legLoc"] = 1
+        conf["desLoc"] = 1
+        conf["xlabel"] = "Node Type"
+        conf["ylabel"] = "Number of Samples Repaired"
+        n1 = int(result.numberNodes * result.class1ratio)
+        conf["data"] = [result.repairedSampleCount[1: n1], result.repairedSampleCount[n1: ]]
+        conf["path"] = plotPath + "/box_samplesRepaired.png"
+        plotBoxData(conf)
+        print("Plot %s created." % conf["path"])
+    
+    def plotBoxRowCol(self, result, plotPath):
+        """Box Plot of the Row/Column distribution"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "Row/Column Distribution"
+        conf["xlabel"] = ""
+        conf["ylabel"] = "Validators Subscribed"
+        vector1 = result.metrics["rowDist"]
+        vector2 = result.metrics["columnDist"]
+        if len(vector1) > len(vector2):
+            vector2 += [np.nan] * (len(vector1) - len(vector2))
+        elif len(vector1) < len(vector2):
+            vector1 += [np.nan] * (len(vector2) - len(vector1))
+        n1 = int(result.numberNodes * result.class1ratio)
+        conf["data"] = [vector1, vector2]
+        conf["path"] = plotPath + "/box_rowColDist.png"
+        plotBoxData(conf)
+        print("Plot %s created." % conf["path"])
 
     def plotRestoreRowCount(self, result, plotPath):
         """Plots the restoreRowCount for each node"""

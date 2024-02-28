@@ -41,33 +41,33 @@ logLevel = logging.INFO
 numJobs = -1
 
 # Number of simulation runs with the same parameters for statistical relevance
-runs = [1]
+runs = range(3)
 
 # Number of validators
-numberNodes = [1024]
+numberNodes = range(128, 513, 128)
 
 # select failure model between: "random, sequential, MEP, MEP+1, DEP, DEP+1, MREP, MREP-1"
 failureModels = ["random"]
 
 # Percentage of block not released by producer
-failureRates = [0]
+failureRates = range(40, 81, 20)
 
 # Percentage of nodes that are considered malicious
-maliciousNodes = [0]
+maliciousNodes = range(40,41,20)
 
 # Parameter to determine whether to randomly assign malicious nodes or not
 # If True, the malicious nodes will be assigned randomly; if False, a predefined pattern may be used
 randomizeMaliciousNodes = True
 
 # Per-topic mesh neighborhood size
-netDegrees = [8]
+netDegrees = range(8, 9, 2)
 
 # ratio of class1 nodes (see below for parameters per class)
 class1ratios = [0.8]
 
 # Number of validators per beacon node
-validatorsPerNode1 = [1]
-validatorsPerNode2 = [1]
+validatorsPerNode1 = [10]
+validatorsPerNode2 = [50]
 
 # Set uplink bandwidth in megabits/second
 bwUplinksProd = [200]
@@ -98,12 +98,12 @@ diagnostics = False
 # True to save git diff and git commit
 saveGit = False
 
-blockSizeR = [128]
-blockSizeC = [64]
-blockSizeRK = [64]
-blockSizeCK = [64]
-chiR = [2]
-chiC = [2]
+blockSizeR = range(64, 113, 128)
+blockSizeC = range(32, 113, 128)
+blockSizeRK = range(32, 65, 128)
+blockSizeCK = range(32, 65, 128)
+chiR = range(2, 3, 2)
+chiC = range(2, 3, 2)
 
 def nextShape():
     for blckSizeR, blckSizeRK, blckSizeC, blckSizeCK, run, fm, fr, mn, class1ratio, chR, chC, vpn1, vpn2, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
