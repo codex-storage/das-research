@@ -62,7 +62,13 @@ blockSizes = range(64, 113, 128)
 # Per-topic mesh neighborhood size
 netDegrees = range(8, 9, 2)
 
-# number of rows and columns a validator is interested in
+# the overall number of row/columns taken into custody by a node is determined by
+# a base number (custody) and a class specific multiplier (validatorsPerNode).
+# We support two models:
+#  - validatorsBasedCustody: each validator has a unique subset of size custody,
+#    and custody is the union of these. I.e. VPN is a "probabilistic multiplier"
+#  - !validatorsBasedCustody: VPN is interpreted as a simple custody multiplier
+validatorBasedCustody = False
 custody = [2]
 
 # ratio of class1 nodes (see below for parameters per class)

@@ -78,21 +78,22 @@ class Node:
 
             self.rowIDs = set(rows)
             self.columnIDs = set(columns)
-            if (self.vpn * self.shape.custodyRows) > self.shape.nbRows:
-                self.logger.warning("Row custody (*vpn) larger than number of rows!", extra=self.format)
-                self.rowIDs = range(self.shape.nbRows)
+            if config.validatorBasedCustody:
+                for v in validators:
+                    self.rowIDs = self.rowIDs.union(v.rowIDs)
+                    self.columnIDs = self.columnIDs.union(v.columnIDs)
             else:
-                self.rowIDs = set(random.sample(range(self.shape.nbRows), self.vpn*self.shape.custodyRows))
+                if (self.vpn * self.shape.custodyRows) > self.shape.nbRows:
+                    self.logger.warning("Row custody (*vpn) larger than number of rows!", extra=self.format)
+                    self.rowIDs = range(self.shape.nbRows)
+                else:
+                    self.rowIDs = set(random.sample(range(self.shape.nbRows), self.vpn*self.shape.custodyRows))
 
-            if (self.vpn * self.shape.custodyCols) > self.shape.nbCols:
-                self.logger.warning("Column custody (*vpn) larger than number of columns!", extra=self.format)
-                self.columnIDs = range(self.shape.nbCols)
-            else:
-                self.columnIDs = set(random.sample(range(self.shape.nbCols), self.vpn*self.shape.custodyCols))
-
-            #for v in validators:
-            #    self.rowIDs = self.rowIDs.union(v.rowIDs)
-            #    self.columnIDs = self.columnIDs.union(v.columnIDs)
+                if (self.vpn * self.shape.custodyCols) > self.shape.nbCols:
+                    self.logger.warning("Column custody (*vpn) larger than number of columns!", extra=self.format)
+                    self.columnIDs = range(self.shape.nbCols)
+                else:
+                    self.columnIDs = set(random.sample(range(self.shape.nbCols), self.vpn*self.shape.custodyCols))
 
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)
