@@ -219,9 +219,6 @@ class Visualizor:
         plt.xlim(left=0, right=max(result.repairedSampleCount) * 1.1)
         plt.savefig(plotPath + "/ecdf_samplesRepaired.png", bbox_inches="tight")
         print("Plot %s created." % (plotPath + "/ecdf_samplesRepaired.png"))
-
-
-    
     
     def plotBoxenSamplesRecv(self, result, plotPath):
         """Boxen Plot of the number of samples received by all nodes"""
@@ -234,7 +231,7 @@ class Visualizor:
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Samples Received"
         n1 = int(result.numberNodes * result.class1ratio)
-        data = [result.sampleRecvCount[1: n1], result.sampleRecvCount[n1: ]]
+        data = [result.sampleRecvCount[1: n1], result.sampleRecvCount[n1+1: ]]
         plt.figure(figsize=(8, 6))
         sns.boxenplot(data=data, width=0.8)
         plt.xlabel(conf["xlabel"])
@@ -256,7 +253,7 @@ class Visualizor:
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Samples Repaired"
         n1 = int(result.numberNodes * result.class1ratio)
-        data = [result.repairedSampleCount[1: n1], result.repairedSampleCount[n1: ]]
+        data = [result.repairedSampleCount[1: n1], result.repairedSampleCount[n1+1: ]]
         plt.figure(figsize=(8, 6))
         sns.boxenplot(data=data, width=0.8)
         plt.xlabel(conf["xlabel"])
@@ -305,7 +302,7 @@ class Visualizor:
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Messages Sent"
         n1 = int(result.numberNodes * result.class1ratio)
-        data = [result.msgSentCount[1: n1], result.msgSentCount[n1: ]]
+        data = [result.msgSentCount[1: n1], result.msgSentCount[n1+1: ]]
         labels = ["Class 1", "Class 2"]
         sns.boxenplot(data=data, palette="Set2", ax=plt.gca())
         plt.xlabel(conf["xlabel"])
@@ -325,7 +322,7 @@ class Visualizor:
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Messages Received"
         n1 = int(result.numberNodes * result.class1ratio)
-        data = [result.msgRecvCount[1: n1], result.msgRecvCount[n1: ]]
+        data = [result.msgRecvCount[1: n1], result.msgRecvCount[n1+1: ]]
         labels = ["Class 1", "Class 2"]
         sns.boxenplot(data=data, palette="Set2", ax=plt.gca())
         plt.xlabel(conf["xlabel"])
@@ -348,7 +345,7 @@ class Visualizor:
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Samples Repaired"
         n1 = int(result.numberNodes * result.class1ratio)
-        conf["data"] = [result.repairedSampleCount[1: n1], result.repairedSampleCount[n1: ]]
+        conf["data"] = [result.repairedSampleCount[1: n1], result.repairedSampleCount[n1+1: ]]
         conf["path"] = plotPath + "/box_samplesRepaired.png"
         plotBoxData(conf)
         print("Plot %s created." % conf["path"])
@@ -461,7 +458,7 @@ class Visualizor:
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of samples received (%)"
         n1 = int(result.numberNodes * result.class1ratio)
-        conf["data"] = [result.sampleRecvCount[1: n1], result.sampleRecvCount[n1: ]]
+        conf["data"] = [result.sampleRecvCount[1: n1], result.sampleRecvCount[n1+1: ]]
         conf["xdots"] = range(result.shape.numberNodes)
         conf["path"] = plotPath + "/box_sampleRecv.png"
         plotBoxData(conf)
@@ -676,7 +673,7 @@ class Visualizor:
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Messages Sent"
         n1 = int(result.numberNodes * result.class1ratio)
-        conf["data"] = [result.msgSentCount[1: n1], result.msgSentCount[n1: ]]
+        conf["data"] = [result.msgSentCount[1: n1], result.msgSentCount[n1+1: ]]
         conf["path"] = plotPath + "/box_messagesSent.png"
         plotBoxData(conf)
         print("Plot %s created." % conf["path"])
@@ -714,7 +711,7 @@ class Visualizor:
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Messages Received"
         n1 = int(result.numberNodes * result.class1ratio)
-        conf["data"] = [result.msgRecvCount[1: n1], result.msgRecvCount[n1: ]]
+        conf["data"] = [result.msgRecvCount[1: n1], result.msgRecvCount[n1+1: ]]
         conf["xdots"] = range(result.shape.numberNodes)
         conf["path"] = plotPath + "/box_messagesRecv.png"
         maxi = max(conf["data"])
