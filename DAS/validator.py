@@ -111,6 +111,7 @@ class Validator:
         self.dumbRandomScheduler = False # dumb random scheduler
         self.segmentShuffleScheduler = True # send each segment that's worth sending once in shuffled order, then repeat
         self.segmentShuffleSchedulerPersist = True # Persist scheduler state between timesteps
+        self.forwardOnReceive = True # forward segments as soon as received
 
     def logIDs(self):
         """It logs the assigned rows and columns."""
@@ -196,8 +197,9 @@ class Validator:
         if not self.receivedBlock.getSegment(rID, cID):
             self.logger.trace("Recv new: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
             self.receivedBlock.setSegment(rID, cID)
-            if self.perNodeQueue or self.perNeighborQueue:
-                self.receivedQueue.append((rID, cID))
+            if self.forwardOnReceive:
+                if self.perNodeQueue or self.perNeighborQueue:
+                  self.receivedQueue.append((rID, cID))
         else:
             self.logger.trace("Recv DUP: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
             self.statsRxDupInSlot += 1
