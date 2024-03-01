@@ -112,6 +112,7 @@ class Validator:
         self.segmentShuffleScheduler = True # send each segment that's worth sending once in shuffled order, then repeat
         self.segmentShuffleSchedulerPersist = True # Persist scheduler state between timesteps
         self.forwardOnReceive = True # forward segments as soon as received
+        self.forwardOnRepair = False # forward all segments when full line available (repaired segments are always forwarded)
 
     def logIDs(self):
         """It logs the assigned rows and columns."""
@@ -496,7 +497,7 @@ class Validator:
             # If operation is based on send queues, segments should
             # be queued after successful repair.
             for i in range(len(rep)):
-                if rep[i]:
+                if rep[i] or self.forwardOnRepair:
                     self.logger.trace("Rep: %d,%d", id, i, extra=self.format)
                     self.addToSendQueue(id, i)
             # self.statsRepairInSlot += rep.count(1)
@@ -514,7 +515,7 @@ class Validator:
             # If operation is based on send queues, segments should
             # be queued after successful repair.
             for i in range(len(rep)):
-                if rep[i]:
+                if rep[i] or self.forwardOnRepair:
                     self.logger.trace("Rep: %d,%d", i, id, extra=self.format)
                     self.addToSendQueue(i, id)
             # self.statsRepairInSlot += rep.count(1)
