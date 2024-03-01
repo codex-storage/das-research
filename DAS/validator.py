@@ -111,6 +111,7 @@ class Validator:
         self.dumbRandomScheduler = False # dumb random scheduler
         self.segmentShuffleScheduler = True # send each segment that's worth sending once in shuffled order, then repeat
         self.segmentShuffleSchedulerPersist = True # Persist scheduler state between timesteps
+        self.queueAllOnInit = False # queue up everything in the block producer, without shuffling, at the very beginning 
         self.forwardOnReceive = True # forward segments as soon as received
         self.forwardOnRepair = False # forward all segments when full line available (repaired segments are always forwarded)
 
@@ -177,6 +178,17 @@ class Validator:
             nbFailures = self.block.data.count(0)
             measuredFailureRate = nbFailures * 100 / (self.shape.blockSizeR * self.shape.blockSizeC)
             self.logger.debug("Number of failures: %d (%0.02f %%)", nbFailures, measuredFailureRate, extra=self.format)
+
+            if self.queueAllOnInit:
+                for r in range(self.shape.blockSizeC):
+                    for c in range(self.shape.blockSizeR):
+                        if self.block.getSegment(r,c):
+                            if r in self.rowNeighbors:
+                                for n in self.rowNeighbors[r].values():
+                                    n.sendQueue.append(c)
+                            if c in self.columnNeighbors:
+                                for n in self.columnNeighbors[c].values():
+                                    n.sendQueue.append(r)
 
     def getColumn(self, index):
         """It returns a given column."""
