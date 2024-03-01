@@ -29,9 +29,9 @@ class Shape:
         """Returns a printable representation of the shape"""
         shastr = ""
         shastr += "bsrn-"+str(self.nbCols)
-        shastr += "bsrk-"+str(self.nbColsK)
-        shastr += "bscn-"+str(self.nbRows)
-        shastr += "bsck-"+str(self.nbRowsK)
+        shastr += "-bsrk-"+str(self.nbColsK)
+        shastr += "-bscn-"+str(self.nbRows)
+        shastr += "-bsck-"+str(self.nbRowsK)
         shastr += "-nn-"+str(self.numberNodes)
         shastr += "-fm-"+str(self.failureModel)
         shastr += "-fr-"+str(self.failureRate)
