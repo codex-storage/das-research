@@ -290,10 +290,18 @@ class Simulator:
             cnD1 = "Dup class1 mean"
             cnD2 = "Dup class2 mean"
 
+            # if custody is based on the requirements of underlying individual
+            # validators, we can get detailed data on how many validated.
+            # Otherwise, we can only use the weighted average.
+            if self.config.validatorBasedCustody:
+              cnVv = validatorProgress
+            else:
+              cnVv = validatorAllProgress
+
             progressVector.append({
                 cnS:sampleProgress,
                 cnN:nodeProgress,
-                cnV:validatorProgress,
+                cnV:cnVv,
                 cnT0: trafficStats[0]["Tx"]["mean"],
                 cnT1: trafficStats[1]["Tx"]["mean"],
                 cnT2: trafficStats[2]["Tx"]["mean"],
