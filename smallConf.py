@@ -62,6 +62,11 @@ blockSizes = range(64, 113, 128)
 # Per-topic mesh neighborhood size
 netDegrees = range(8, 9, 2)
 
+# How many copies are sent out by the block producer
+# Note, previously this was set to match netDegree
+proposerPublishToR = "shape.netDegree"
+proposerPublishToC = "shape.netDegree"
+
 # number of rows and columns a validator is interested in
 chis = range(2, 3, 2)
 
