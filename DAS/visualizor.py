@@ -91,34 +91,41 @@ class Visualizor:
         for result in self.results:
             plotPath = "results/"+self.execID+"/plots/"+str(result.shape)
             os.makedirs(plotPath, exist_ok=True)
-            self.plotRestoreRowCount(result, plotPath)
-            self.plotRestoreColumnCount(result, plotPath)
-            self.plotMessagesSent(result, plotPath)
-            self.plotBoxMessagesSent(result, plotPath)
-            self.plotMessagesRecv(result, plotPath)
-            self.plotBoxMessagesRecv(result, plotPath)
-            self.plotSampleRecv(result, plotPath)
-            self.plotBoxSampleRecv(result, plotPath)
             self.plotMissingSamples(result, plotPath)
             self.plotProgress(result, plotPath)
             self.plotSentData(result, plotPath)
             self.plotRecvData(result, plotPath)
             self.plotDupData(result, plotPath)
-            self.plotSamplesRepaired(result, plotPath)
-            self.plotBoxSamplesRepaired(result, plotPath)
-            self.plotBoxRowCol(result, plotPath)
-            self.plotBoxenMessagesRecv(result, plotPath)
-            self.plotBoxenMessagesSent(result, plotPath)
-            self.plotBoxenSamplesRecv(result, plotPath)
+            self.plotRestoreRowCount(result, plotPath)
+            self.plotRestoreColumnCount(result, plotPath)
+
+            # self.plotSamplesRepaired(result, plotPath)
+            # self.plotMessagesSent(result, plotPath)
+            # self.plotMessagesRecv(result, plotPath)
+            # self.plotSampleRecv(result, plotPath)
+            # if self.config.saveRCdist:
+            #     self.plotRowCol(result, plotPath)
+
+            # self.plotBoxSamplesRepaired(result, plotPath)
+            # self.plotBoxMessagesSent(result, plotPath)
+            # self.plotBoxMessagesRecv(result, plotPath)
+            # self.plotBoxSampleRecv(result, plotPath)
+            # if self.config.saveRCdist:
+            #     self.plotBoxRowCol(result, plotPath)
+
             self.plotBoxenSamplesRepaired(result, plotPath)
-            self.plotBoxenRowColDist(result, plotPath)
-            self.plotECDFSamplesRepaired(result, plotPath)
-            self.plotECDFRowColDist(result, plotPath)
-            self.plotECDFSamplesReceived(result, plotPath)
-            self.plotECDFMessagesRecv(result, plotPath)
-            self.plotECDFMessagesSent(result, plotPath)
+            self.plotBoxenMessagesSent(result, plotPath)
+            self.plotBoxenMessagesRecv(result, plotPath)
+            self.plotBoxenSamplesRecv(result, plotPath)
             if self.config.saveRCdist:
-                self.plotRowCol(result, plotPath)
+                self.plotBoxenRowColDist(result, plotPath)
+
+            self.plotECDFSamplesRepaired(result, plotPath)
+            self.plotECDFMessagesSent(result, plotPath)
+            self.plotECDFMessagesRecv(result, plotPath)
+            self.plotECDFSamplesReceived(result, plotPath)
+            if self.config.saveRCdist:
+                self.plotECDFRowColDist(result, plotPath)        
 
 
     def plotECDFMessagesSent(self, result, plotPath):
@@ -209,7 +216,6 @@ class Visualizor:
         vector1 = result.metrics["rowDist"]
         vector2 = result.metrics["columnDist"]
         n1 = int(result.numberNodes * result.class1ratio)
-        conf["data"] = [vector1, vector2]
         sns.ecdfplot(data=vector1, label='Rows')
         sns.ecdfplot(data=vector2, label='Columns')
         plt.xlabel(conf["xlabel"])
