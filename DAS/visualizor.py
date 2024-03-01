@@ -112,7 +112,6 @@ class Visualizor:
             self.plotBoxenSamplesRecv(result, plotPath)
             self.plotBoxenSamplesRepaired(result, plotPath)
             self.plotBoxenRowColDist(result, plotPath)
-
             self.plotECDFSamplesRepaired(result, plotPath)
             self.plotECDFRowColDist(result, plotPath)
             self.plotECDFSamplesReceived(result, plotPath)
@@ -132,11 +131,18 @@ class Visualizor:
         conf["title"] = "ECDF of Messages Sent by Nodes"
         conf["xlabel"] = "Number of Messages Sent"
         conf["ylabel"] = "ECDF"
-        sns.ecdfplot(data=result.msgSentCount)
+        n1 = int(result.numberNodes * result.class1ratio)
+        class1_data = result.msgSentCount[1: n1]
+        class2_data = result.msgSentCount[n1+1: ]
+        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
+        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
+        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'], loc=1)
         plt.xlabel(conf["xlabel"])
         plt.ylabel(conf["ylabel"])
         plt.title(conf["title"])
         plt.xlim(left=0, right=max(result.msgSentCount) * 1.1)
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
         plt.savefig(plotPath + "/ecdf_messagesSent.png", bbox_inches="tight")
         print("Plot %s created." % (plotPath + "/ecdf_messagesSent.png"))
 
@@ -150,11 +156,18 @@ class Visualizor:
         conf["title"] = "ECDF of Messages Received by Nodes"
         conf["xlabel"] = "Number of Messages Received"
         conf["ylabel"] = "ECDF"
-        sns.ecdfplot(data=result.msgRecvCount)
+        n1 = int(result.numberNodes * result.class1ratio)
+        class1_data = result.msgRecvCount[1: n1]
+        class2_data = result.msgRecvCount[n1+1: ]
+        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
+        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
+        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'], loc=1)
         plt.xlabel(conf["xlabel"])
         plt.ylabel(conf["ylabel"])
         plt.title(conf["title"])
         plt.xlim(left=0, right=max(result.msgRecvCount) * 1.1)
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
         plt.savefig(plotPath + "/ecdf_messagesRecv.png", bbox_inches="tight")
         print("Plot %s created." % (plotPath + "/ecdf_messagesRecv.png"))
 
@@ -168,11 +181,18 @@ class Visualizor:
         conf["title"] = "ECDF of Samples Received by Nodes"
         conf["xlabel"] = "Number of Samples Received"
         conf["ylabel"] = "ECDF"
-        sns.ecdfplot(data=result.sampleRecvCount)
+        n1 = int(result.numberNodes * result.class1ratio)
+        class1_data = result.sampleRecvCount[1: n1]
+        class2_data = result.sampleRecvCount[n1+1: ]
+        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
+        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
+        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'], loc=1)
         plt.xlabel(conf["xlabel"])
         plt.ylabel(conf["ylabel"])
         plt.title(conf["title"])
         plt.xlim(left=0, right=max(result.sampleRecvCount) * 1.1)
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
         plt.savefig(plotPath + "/ecdf_samplesReceived.png", bbox_inches="tight")
         print("Plot %s created." % (plotPath + "/ecdf_samplesReceived.png"))
 
@@ -188,17 +208,17 @@ class Visualizor:
         conf["ylabel"] = "ECDF"
         vector1 = result.metrics["rowDist"]
         vector2 = result.metrics["columnDist"]
-        if len(vector1) > len(vector2):
-            vector2 += [np.nan] * (len(vector1) - len(vector2))
-        elif len(vector1) < len(vector2):
-            vector1 += [np.nan] * (len(vector2) - len(vector1))
         n1 = int(result.numberNodes * result.class1ratio)
         conf["data"] = [vector1, vector2]
-        sns.ecdfplot(data=conf["data"])
+        sns.ecdfplot(data=vector1, label='Rows')
+        sns.ecdfplot(data=vector2, label='Columns')
         plt.xlabel(conf["xlabel"])
         plt.ylabel(conf["ylabel"])
         plt.title(conf["title"])
         plt.xlim(left=0, right=max(max(vector1), max(vector2)) * 1.1)
+        plt.legend(labels=['Row Dist', 'Column Dist'], loc=1)
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
         plt.savefig(plotPath + "/ecdf_rowColDist.png", bbox_inches="tight")
         print("Plot %s created." % (plotPath + "/ecdf_rowColDist.png"))
 
@@ -212,11 +232,18 @@ class Visualizor:
         conf["title"] = "ECDF of Samples Repaired by Nodes"
         conf["xlabel"] = "Number of Samples Repaired"
         conf["ylabel"] = "ECDF"
-        sns.ecdfplot(data=result.repairedSampleCount)
+        n1 = int(result.numberNodes * result.class1ratio)
+        class1_data = result.repairedSampleCount[1: n1]
+        class2_data = result.repairedSampleCount[n1+1: ]
+        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
+        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
+        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'])
         plt.xlabel(conf["xlabel"])
         plt.ylabel(conf["ylabel"])
         plt.title(conf["title"])
         plt.xlim(left=0, right=max(result.repairedSampleCount) * 1.1)
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
         plt.savefig(plotPath + "/ecdf_samplesRepaired.png", bbox_inches="tight")
         print("Plot %s created." % (plotPath + "/ecdf_samplesRepaired.png"))
     
@@ -237,6 +264,8 @@ class Visualizor:
         plt.xlabel(conf["xlabel"])
         plt.ylabel(conf["ylabel"])
         plt.title(conf["title"])
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
         plt.tight_layout()
         plt.savefig(plotPath + "/boxen_samplesRecv.png")
         plt.close()
@@ -259,6 +288,8 @@ class Visualizor:
         plt.xlabel(conf["xlabel"])
         plt.ylabel(conf["ylabel"])
         plt.title(conf["title"])
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
         plt.tight_layout()
         plt.savefig(plotPath + "/boxen_samplesRepaired.png")
         plt.close()
@@ -286,6 +317,8 @@ class Visualizor:
         plt.xlabel(conf["xlabel"])
         plt.ylabel(conf["ylabel"])
         plt.title(conf["title"])
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
         plt.tight_layout()
         plt.savefig(plotPath + "/boxen_rowColDist.png")
         plt.close()
@@ -308,6 +341,8 @@ class Visualizor:
         plt.xlabel(conf["xlabel"])
         plt.ylabel(conf["ylabel"])
         plt.title(conf["title"])
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
         plt.savefig(plotPath + "/boxen_messagesSent.png", bbox_inches="tight")
         print("Plot %s created." % (plotPath + "/boxen_messagesSent.png"))
 
@@ -328,6 +363,8 @@ class Visualizor:
         plt.xlabel(conf["xlabel"])
         plt.ylabel(conf["ylabel"])
         plt.title(conf["title"])
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
         plt.savefig(plotPath + "/boxen_messagesRecv.png", bbox_inches="tight")
         print("Plot %s created." % (plotPath + "/boxen_messagesRecv.png"))
     
