@@ -42,7 +42,7 @@ numJobs = -1
 
 # distribute rows/columns evenly between validators (True)
 # or generate it using local randomness (False)
-evenLineDistribution = True
+evenLineDistribution = False
 
 # Number of simulation runs with the same parameters for statistical relevance
 runs = range(3)
@@ -62,15 +62,21 @@ blockSizes = range(64, 113, 128)
 # Per-topic mesh neighborhood size
 netDegrees = range(8, 9, 2)
 
-# number of rows and columns a validator is interested in
-chis = range(2, 3, 2)
+# the overall number of row/columns taken into custody by a node is determined by
+# a base number (custody) and a class specific multiplier (validatorsPerNode).
+# We support two models:
+#  - validatorsBasedCustody: each validator has a unique subset of size custody,
+#    and custody is the union of these. I.e. VPN is a "probabilistic multiplier"
+#  - !validatorsBasedCustody: VPN is interpreted as a simple custody multiplier
+validatorBasedCustody = False
+custody = [2]
 
 # ratio of class1 nodes (see below for parameters per class)
 class1ratios = [0.8]
 
 # Number of validators per beacon node
 validatorsPerNode1 = [1]
-validatorsPerNode2 = [500]
+validatorsPerNode2 = [5]
 
 # Set uplink bandwidth in megabits/second
 bwUplinksProd = [200]
@@ -102,12 +108,12 @@ diagnostics = False
 saveGit = False
 
 def nextShape():
-    for run, fm, fr, class1ratio, chi, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
-        runs, failureModels, failureRates, class1ratios, chis, validatorsPerNode1, validatorsPerNode2, blockSizes, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
+    for run, fm, fr, class1ratio, cust, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
+        runs, failureModels, failureRates, class1ratios, custody, validatorsPerNode1, validatorsPerNode2, blockSizes, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
         # Network Degree has to be an even number
         if netDegree % 2 == 0:
-            blockSizeR = blockSizeC = blockSize
-            blockSizeRK = blockSizeCK = blockSize // 2
-            chiR = chiC = chi
-            shape = Shape(blockSizeR, blockSizeRK, blockSizeC, blockSizeCK, nn, fm, fr, class1ratio, chiR, chiC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
+            nbCols = nbRows = blockSize
+            nbColsK = nbRowsK = blockSize // 2
+            custodyRows = custodyCols = cust
+            shape = Shape(nbCols, nbColsK, nbRows, nbRowsK, nn, fm, fr, class1ratio, custodyRows, custodyCols, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
             yield shape
