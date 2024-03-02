@@ -96,13 +96,13 @@ class Visualizor:
             self.plotSentData(result, plotPath)
             self.plotRecvData(result, plotPath)
             self.plotDupData(result, plotPath)
-            self.plotRestoreRowCount(result, plotPath)
-            self.plotRestoreColumnCount(result, plotPath)
 
             # self.plotSamplesRepaired(result, plotPath)
             # self.plotMessagesSent(result, plotPath)
             # self.plotMessagesRecv(result, plotPath)
             # self.plotSampleRecv(result, plotPath)
+            # self.plotRestoreRowCount(result, plotPath)
+            # self.plotRestoreColumnCount(result, plotPath)
             # if self.config.saveRCdist:
             #     self.plotRowCol(result, plotPath)
 
@@ -110,6 +110,8 @@ class Visualizor:
             # self.plotBoxMessagesSent(result, plotPath)
             # self.plotBoxMessagesRecv(result, plotPath)
             # self.plotBoxSampleRecv(result, plotPath)
+            # self.plotBoxRestoreColumnCount(result, plotPath)
+            # self.plotBoxRestoreRowCount(result, plotPath)
             # if self.config.saveRCdist:
             #     self.plotBoxRowCol(result, plotPath)
 
@@ -117,6 +119,8 @@ class Visualizor:
             self.plotBoxenMessagesSent(result, plotPath)
             self.plotBoxenMessagesRecv(result, plotPath)
             self.plotBoxenSamplesRecv(result, plotPath)
+            self.plotBoxenRestoreRowCount(result, plotPath)
+            self.plotBoxenRestoreColumnCount(result, plotPath)
             if self.config.saveRCdist:
                 self.plotBoxenRowColDist(result, plotPath)
 
@@ -124,10 +128,150 @@ class Visualizor:
             self.plotECDFMessagesSent(result, plotPath)
             self.plotECDFMessagesRecv(result, plotPath)
             self.plotECDFSamplesReceived(result, plotPath)
+            self.plotECDFRestoreRowCount(result, plotPath)
+            self.plotECDFRestoreColumnCount(result, plotPath)
             if self.config.saveRCdist:
                 self.plotECDFRowColDist(result, plotPath)        
 
 
+    def plotBoxRestoreRowCount(self, result, plotPath):
+        """Box Plot of restoreRowCount for all nodes"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "Box Plot of Restore Row Count by Nodes"
+        conf["xlabel"] = "Node Type"
+        conf["ylabel"] = "Restore Row Count"
+        n1 = int(result.numberNodes * result.class1ratio)
+        class1_data = result.restoreRowCount[1: n1]
+        class2_data = result.restoreRowCount[n1+1: ]
+        data = [class1_data, class2_data]
+        plt.boxplot(data)
+        plt.xticks([1, 2], ['Class 1 Nodes', 'Class 2 Nodes'])
+        plt.xlabel(conf["xlabel"])
+        plt.ylabel(conf["ylabel"])
+        plt.title(conf["title"])
+        plt.savefig(plotPath + "/box_restoreRowCount.png", bbox_inches="tight")
+        print("Plot %s created." % (plotPath + "/box_restoreRowCount.png"))
+
+    def plotBoxRestoreColumnCount(self, result, plotPath):
+        """Box Plot of restoreColumnCount for all nodes"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "Box Plot of Restore Column Count by Nodes"
+        conf["xlabel"] = "Node Type"
+        conf["ylabel"] = "Restore Column Count"
+        n1 = int(result.numberNodes * result.class1ratio)
+        class1_data = result.restoreColumnCount[1: n1]
+        class2_data = result.restoreColumnCount[n1+1: ]
+        data = [class1_data, class2_data]
+        plt.boxplot(data)
+        plt.xticks([1, 2], ['Class 1 Nodes', 'Class 2 Nodes'])
+        plt.xlabel(conf["xlabel"])
+        plt.ylabel(conf["ylabel"])
+        plt.title(conf["title"])
+        plt.savefig(plotPath + "/box_restoreColumnCount.png", bbox_inches="tight")
+        print("Plot %s created." % (plotPath + "/box_restoreColumnCount.png"))
+    
+    def plotBoxenRestoreRowCount(self, result, plotPath):
+        """Plots the Boxen plot of restoreRowCount for all nodes"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "Boxen Plot of Restore Row Count by Nodes"
+        conf["xlabel"] = "Restore Row Count"
+        conf["ylabel"] = "Nodes"
+        n1 = int(result.numberNodes * result.class1ratio)
+        data = [result.restoreRowCount[1: n1], result.restoreRowCount[n1+1: ]]
+        plt.figure(figsize=(8, 6))
+        sns.boxenplot(data=data, width=0.8)
+        plt.xlabel(conf["xlabel"])
+        plt.ylabel(conf["ylabel"])
+        plt.title(conf["title"])
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
+        plt.savefig(plotPath + "/boxen_restoreRowCount.png", bbox_inches="tight")
+        print("Plot %s created." % (plotPath + "/boxen_restoreRowCount.png"))
+
+    def plotBoxenRestoreColumnCount(self, result, plotPath):
+        """Plots the Boxen plot of restoreColumnCount for all nodes"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "Boxen Plot of Restore Column Count by Nodes"
+        conf["xlabel"] = "Restore Column Count"
+        conf["ylabel"] = "Nodes"
+        n1 = int(result.numberNodes * result.class1ratio)
+        data = [result.restoreColumnCount[1: n1], result.restoreColumnCount[n1+1: ]]
+        plt.figure(figsize=(8, 6))
+        sns.boxenplot(data=data, width=0.8)
+        plt.xlabel(conf["xlabel"])
+        plt.ylabel(conf["ylabel"])
+        plt.title(conf["title"])
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
+        plt.savefig(plotPath + "/boxen_restoreColumnCount.png", bbox_inches="tight")
+        print("Plot %s created." % (plotPath + "/boxen_restoreColumnCount.png"))
+
+    def plotECDFRestoreRowCount(self, result, plotPath):
+        """Plots the ECDF of restoreRowCount for all nodes using seaborn's ecdfplot"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "ECDF of Restore Row Count by Nodes"
+        conf["xlabel"] = "Restore Row Count"
+        conf["ylabel"] = "ECDF"
+        n1 = int(result.numberNodes * result.class1ratio)
+        class1_data = result.restoreRowCount[1: n1]
+        class2_data = result.restoreRowCount[n1+1: ]
+        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
+        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
+        plt.xlabel(conf["xlabel"])
+        plt.ylabel(conf["ylabel"])
+        plt.title(conf["title"])
+        plt.xlim(left=0, right=max(result.restoreRowCount) * 1.1)
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
+        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'], loc=1)
+        plt.savefig(plotPath + "/ecdf_restoreRowCount.png", bbox_inches="tight")
+        print("Plot %s created." % (plotPath + "/ecdf_restoreRowCount.png"))
+
+    def plotECDFRestoreColumnCount(self, result, plotPath):
+        """Plots the ECDF of restoreColumnCount for all nodes using seaborn's ecdfplot"""
+        plt.clf()
+        conf = {}
+        text = str(result.shape).split("-")
+        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
+            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        conf["title"] = "ECDF of Restore Column Count by Nodes"
+        conf["xlabel"] = "Restore Column Count"
+        conf["ylabel"] = "ECDF"
+        n1 = int(result.numberNodes * result.class1ratio)
+        class1_data = result.restoreColumnCount[1: n1]
+        class2_data = result.restoreColumnCount[n1+1: ]
+        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
+        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
+        plt.xlabel(conf["xlabel"])
+        plt.ylabel(conf["ylabel"])
+        plt.title(conf["title"])
+        plt.xlim(left=0, right=max(result.restoreColumnCount) * 1.1)
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
+        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'], loc=1)
+        plt.savefig(plotPath + "/ecdf_restoreColumnCount.png", bbox_inches="tight")
+        print("Plot %s created." % (plotPath + "/ecdf_restoreColumnCount.png"))
+    
     def plotECDFMessagesSent(self, result, plotPath):
         """Plots the ECDF of messages sent by all nodes using seaborn's ecdfplot"""
         plt.clf()
