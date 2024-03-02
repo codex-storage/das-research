@@ -153,6 +153,8 @@ class Visualizor:
         plt.xlabel(conf["xlabel"])
         plt.ylabel(conf["ylabel"])
         plt.title(conf["title"])
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
         plt.savefig(plotPath + "/box_restoreRowCount.png", bbox_inches="tight")
         print("Plot %s created." % (plotPath + "/box_restoreRowCount.png"))
 
@@ -175,6 +177,8 @@ class Visualizor:
         plt.xlabel(conf["xlabel"])
         plt.ylabel(conf["ylabel"])
         plt.title(conf["title"])
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
         plt.savefig(plotPath + "/box_restoreColumnCount.png", bbox_inches="tight")
         print("Plot %s created." % (plotPath + "/box_restoreColumnCount.png"))
     
