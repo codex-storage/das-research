@@ -59,6 +59,39 @@ class Visualizor:
         self.config = config
         self.results = results
         os.makedirs("results/"+self.execID+"/plots", exist_ok=True)
+    
+    def __get_attrbs__(self, result):
+        text = str(result.shape).split("-")
+        d = dict()
+        for i in range(0, len(text), 2):
+            d[text[i]] = text[i + 1]
+        return d
+
+    def plotHeatmaps(self, x, y):
+        """Plot the heatmap using the parameters given as x axis and y axis"""
+        print("Plotting heatmap "+x+" vs "+y)
+        #Find the location of x in shape
+        #Find the location of y in shape
+        #Find the location od r in shape
+
+        #Loop over all results
+            #Add unique values foir every parameter
+
+        #Find number of runs from r
+        #If number of values for x and y > 3 then plot heatmap, otherwise finish
+
+        #Create a 2D grid with the dimensions of the number of values for x and y
+        #For all values of x
+            #For all values of y
+                # For all values in r
+                    #Fixing all other values to 1 (in the mean time)
+                    #Add/sum TTA into 2D grid
+                    #if last r divide by number of runs
+
+        #Plot 2D grid
+
+
+
 
     def plotHeatmaps(self, x, y):
         """Plot the heatmap using the parameters given as x axis and y axis"""
@@ -689,9 +722,9 @@ class Visualizor:
         vector2 = [x * 100 for x in result.metrics["progress"]["validators ready"]]
         vector3 = [x * 100 for x in result.metrics["progress"]["samples received"]]   
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+" \nNetwork degree: "+attrbs['nd']
         conf["title"] = "Nodes/validators ready"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -721,9 +754,9 @@ class Visualizor:
             vector2[i] = (vector2[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
             vector3[i] = (vector3[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+" \nNetwork degree: "+attrbs['nd']
         conf["title"] = "Sent data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -751,9 +784,9 @@ class Visualizor:
             vector1[i] = (vector1[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
             vector2[i] = (vector2[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+" \nNetwork degree: "+attrbs['nd']
         conf["title"] = "Received data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -781,9 +814,9 @@ class Visualizor:
             vector1[i] = (vector1[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
             vector2[i] = (vector2[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+" \nNetwork degree: "+attrbs['nd']
         conf["title"] = "Duplicated data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -812,9 +845,9 @@ class Visualizor:
         elif len(vector1) < len(vector2):
             vector1 += [np.nan] * (len(vector2) - len(vector1))
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+" \nNetwork degree: "+attrbs['nd']
         conf["title"] = "Row/Column distribution"
         conf["type"] = "grouped_bar"
         conf["legLoc"] = 2

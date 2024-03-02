@@ -277,7 +277,7 @@ class Validator:
             if not neigh.sent[i] and not neigh.received[i] :
                 return True
         else:
-            return False # received or already sent
+            return False # received or already sent or malicious
 
     def sendSegmentToNeigh(self, rID, cID, neigh):
         """Send segment to a neighbor (without checks)."""
@@ -396,7 +396,6 @@ class Validator:
                             for i in range(len(needed)):
                                 if needed[i]:
                                     segmentsToSend.append((1, cID, i))
-
                 return segmentsToSend
 
         def nextSegment():
