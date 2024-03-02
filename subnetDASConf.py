@@ -48,7 +48,7 @@ evenLineDistribution = False
 runs = [0]
 
 # Number of validators
-numberNodes = [50000]
+numberNodes = [5000]
 
 # select failure model between: "random, sequential, MEP, MEP+1, DEP, DEP+1, MREP, MREP-1"
 failureModels = ["random"]
