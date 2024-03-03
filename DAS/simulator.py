@@ -47,7 +47,8 @@ class Simulator:
         """It initializes all the validators in the network."""
         self.glob = Observer(self.logger, self.shape)
         self.validators = []
-        if self.config.evenLineDistribution:
+        evenLineDistribution = False
+        if evenLineDistribution:
 
             lightNodes = int(self.shape.numberNodes * self.shape.class1ratio)
             heavyNodes = self.shape.numberNodes - lightNodes
@@ -59,7 +60,7 @@ class Simulator:
             rows =    list(range(self.shape.blockSizeC)) * (int(totalRows/self.shape.blockSizeC)+1)
             columns = list(range(self.shape.blockSizeR)) * (int(totalColumns/self.shape.blockSizeR)+1)
             rows =    rows[0:totalRows]
-            columns = columns[0:totalRows]
+            columns = columns[0:totalColumns]
             random.shuffle(rows)
             random.shuffle(columns)
             offsetR = lightVal*self.shape.chiR
@@ -73,8 +74,28 @@ class Simulator:
 
         assignedRows = []
         assignedCols = []
+        maliciousNodesCount = int((self.shape.maliciousNodes / 100) * self.shape.numberNodes)
+        remainingMaliciousNodes = maliciousNodesCount
+
         for i in range(self.shape.numberNodes):
-            if self.config.evenLineDistribution:
+            if i == 0:
+                amImalicious_value = 0
+            else:
+                if not self.config.randomizeMaliciousNodes:
+                    # Assign based on predefined pattern when randomization is turned off
+                    if i < maliciousNodesCount + 1:
+                        amImalicious_value = 1
+                    else:
+                        amImalicious_value = 0
+                else:
+                    # Randomly assign amImalicious_value when randomization is turned on
+                    if remainingMaliciousNodes > 0 and random.random() < (self.shape.maliciousNodes / 100):
+                        amImalicious_value = 1
+                        remainingMaliciousNodes -= 1
+                    else:
+                        amImalicious_value = 0
+    
+            if evenLineDistribution:
                 if i < int(lightVal/self.shape.vpn1):  # First start with the light nodes
                     startR =   i  *self.shape.chiR*self.shape.vpn1
                     endR   = (i+1)*self.shape.chiR*self.shape.vpn1
@@ -88,7 +109,7 @@ class Simulator:
                     endC   = offsetC+((j+1)*self.shape.chiC*self.shape.vpn2)
                 r = rows[startR:endR]
                 c = columns[startC:endC]
-                val = Validator(i, int(not i!=0), self.logger, self.shape, self.config, r, c)
+                val = Validator(i, int(not i!=0), amImalicious_value, self.logger, self.shape, self.config, r, c)
                 self.logger.debug("Node %d has row IDs: %s" % (val.ID, val.rowIDs), extra=self.format)
                 self.logger.debug("Node %d has column IDs: %s" % (val.ID, val.columnIDs), extra=self.format)
                 assignedRows = assignedRows + list(r)
@@ -97,7 +118,7 @@ class Simulator:
                 self.nodeColumns.append(val.columnIDs)
 
             else:
-                val = Validator(i, int(not i!=0), self.logger, self.shape, self.config)
+                val = Validator(i, int(not i!=0), amImalicious_value, self.logger, self.shape, self.config)
             if i == self.proposerID:
                 val.initBlock()
             else:
@@ -151,7 +172,7 @@ class Simulator:
                 val2.rowNeighbors[id].update({val1.ID : Neighbor(val1, 0, self.shape.blockSizeR)})
 
         for id in range(self.shape.blockSizeR):
-
+            
             if not columnChannels[id]:
                 self.logger.error("No nodes for column %d !" % id, extra=self.format)
                 continue
@@ -230,7 +251,8 @@ class Simulator:
         self.glob.checkRowsColumns(self.validators)
         for i in range(0,self.shape.numberNodes):
             if i == self.proposerID:
-                self.validators[i].initBlock()
+                # self.validators[i].initBlock()
+                self.logger.warning("I am a block proposer.", extra=self.format)
             else:
                 self.validators[i].logIDs()
         arrived, expected, ready, validatedall, validated = self.glob.checkStatus(self.validators)
@@ -238,13 +260,17 @@ class Simulator:
         missingVector = []
         progressVector = []
         trafficStatsVector = []
+        malicious_nodes_not_added_count = 0
         steps = 0
         while(True):
             missingVector.append(missingSamples)
+            self.logger.debug("Expected Samples: %d" % expected, extra=self.format)
+            self.logger.debug("Missing Samples: %d" % missingSamples, extra=self.format)
             oldMissingSamples = missingSamples
             self.logger.debug("PHASE SEND %d" % steps, extra=self.format)
             for i in range(0,self.shape.numberNodes):
-                self.validators[i].send()
+                if not self.validators[i].amImalicious:
+                    self.validators[i].send()
             self.logger.debug("PHASE RECEIVE %d" % steps, extra=self.format)
             for i in range(1,self.shape.numberNodes):
                 self.validators[i].receiveRowsColumns()
@@ -307,6 +333,25 @@ class Simulator:
                 break
             steps += 1
 
+        for i in range(0,self.shape.numberNodes):
+            if not self.validators[i].amIaddedToQueue :
+                malicious_nodes_not_added_count += 1
+
+        for i in range(0,self.shape.numberNodes):
+            column_ids = []
+            row_ids = []
+            for rID in self.validators[i].rowIDs:
+                row_ids.append(rID)
+            for cID in self.validators[i].columnIDs:
+                column_ids.append(cID)
+
+            self.logger.debug("List of columnIDs for %d node: %s", i, column_ids, extra=self.format)
+            self.logger.debug("List of rowIDs for %d node: %s", i, row_ids, extra=self.format)
+
+        self.logger.debug("Number of malicious nodes not added to the send queue: %d" % malicious_nodes_not_added_count, extra=self.format)
+        malicious_nodes_not_added_percentage = (malicious_nodes_not_added_count * 100)/(self.shape.numberNodes)
+        self.logger.debug("Percentage of malicious nodes not added to the send queue: %d" % malicious_nodes_not_added_percentage, extra=self.format)
+
         progress = pd.DataFrame(progressVector)
         if self.config.saveRCdist:
             self.result.addMetric("rowDist", self.distR)
@@ -314,5 +359,5 @@ class Simulator:
         if self.config.saveProgress:
             self.result.addMetric("progress", progress.to_dict(orient='list'))
         self.result.populate(self.shape, self.config, missingVector)
+        self.result.copyValidators(self.validators)
         return self.result
-

@@ -241,21 +241,6 @@ class Visualizer:
         plt.savefig(filename)
         plt.clf()
 
-    def plotHist(self, bandwidth):
-        """Plot Bandwidth Frequency Histogram"""
-        plt.hist(bandwidth, bins=5)
-        plt.xlabel('Bandwidth')
-        plt.ylabel('Frequency')
-        plt.title('Bandwidth Histogram')
-
-        """Create the directory if it doesn't exist already"""
-        histogramFolder = self.folderPath + '/histogram'
-        if not os.path.exists(histogramFolder):
-            os.makedirs(histogramFolder)
-        filename = os.path.join(histogramFolder, 'histogram.png')
-        plt.savefig(filename)
-        plt.clf()
-
     def plotCandleStick(self, TX_prod, TX_avg, TX_max):
         #x-axis corresponding to steps
         steps = range(len(TX_prod))

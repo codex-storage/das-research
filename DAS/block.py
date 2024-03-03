@@ -9,7 +9,6 @@ class Block:
 
     def __init__(self, blockSizeR, blockSizeRK=0, blockSizeC=0, blockSizeCK=0):
         """Initialize the block with a data array of blocksize^2 zeros.
-
         BlockSizeR: row size
         BlockSizeRK: original row size, before erasure coding to BlocksSizeR
         BlockSizeC: column size (i.e. number of rows)
@@ -51,12 +50,14 @@ class Block:
         """
         line = self.data[id::self.blockSizeR]
         success = line.count(1)
+        repairedSamples = 0
         if success >= self.blockSizeCK:
             ret = ~line
             self.data[id::self.blockSizeR] = 1
+            repairedSamples = len(line) - success
         else:
             ret = zeros(self.blockSizeC)
-        return ret
+        return ret, repairedSamples
 
     def getRow(self, rowID):
         """It returns the block row corresponding to rowID."""
@@ -72,12 +73,14 @@ class Block:
         """
         line = self.data[id*self.blockSizeR:(id+1)*self.blockSizeR]
         success = line.count(1)
+        repairedSamples = 0
         if success >= self.blockSizeRK:
             ret = ~line
             self.data[id*self.blockSizeR:(id+1)*self.blockSizeR] = 1
+            repairedSamples = len(line) - success
         else:
             ret = zeros(self.blockSizeR)
-        return ret
+        return ret, repairedSamples
 
     def print(self):
         """It prints the block in the terminal (outside of the logger rules))."""
@@ -89,4 +92,3 @@ class Block:
                 line += "%i" % self.data[(i*self.blockSizeR)+j]
             print(line+"|")
         print(dash)
-

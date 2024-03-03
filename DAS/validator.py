@@ -38,7 +38,7 @@ class Validator:
         """It returns the validator ID."""
         return str(self.ID)
 
-    def __init__(self, ID, amIproposer, logger, shape, config, rows = None, columns = None):
+    def __init__(self, ID, amIproposer, amImalicious, logger, shape, config, rows = None, columns = None):
         """It initializes the validator with the logger shape and rows/columns.
 
             If rows/columns are specified these are observed, otherwise (default)
@@ -54,6 +54,15 @@ class Validator:
         self.receivedQueue = deque()
         self.sendQueue = deque()
         self.amIproposer = amIproposer
+        self.amImalicious = amImalicious
+        self.amIaddedToQueue = 0
+        self.msgSentCount = 0
+        self.msgRecvCount = 0
+        self.sampleSentCount = 0
+        self.sampleRecvCount = 0
+        self.restoreRowCount = 0
+        self.restoreColumnCount = 0
+        self.repairedSampleCount = 0
         self.logger = logger
         if self.shape.chiR < 1 and self.shape.chiC < 1:
             self.logger.error("Chi has to be greater than 0", extra=self.format)
@@ -196,8 +205,10 @@ class Validator:
         if not self.receivedBlock.getSegment(rID, cID):
             self.logger.trace("Recv new: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
             self.receivedBlock.setSegment(rID, cID)
+            self.sampleRecvCount += 1
             if self.perNodeQueue or self.perNeighborQueue:
                 self.receivedQueue.append((rID, cID))
+                self.msgRecvCount += 1
         else:
             self.logger.trace("Recv DUP: %d->%d: %d,%d", src, self.ID, rID, cID, extra=self.format)
             self.statsRxDupInSlot += 1
@@ -205,17 +216,23 @@ class Validator:
 
     def addToSendQueue(self, rID, cID):
         """Queue a segment for forwarding."""
-        if self.perNodeQueue:
+        if self.perNodeQueue and not self.amImalicious:
             self.sendQueue.append((rID, cID))
+            self.amIaddedToQueue = 1
+            self.msgSentCount += 1
 
-        if self.perNeighborQueue:
+        if self.perNeighborQueue and not self.amImalicious:
             if rID in self.rowIDs:
                 for neigh in self.rowNeighbors[rID].values():
                     neigh.sendQueue.append(cID)
+                    self.amIaddedToQueue = 1
+                    self.msgSentCount += 1
 
             if cID in self.columnIDs:
                 for neigh in self.columnNeighbors[cID].values():
                     neigh.sendQueue.append(rID)
+                    self.amIaddedToQueue = 1
+                    self.msgSentCount += 1
 
     def receiveRowsColumns(self):
         """Finalize time step by merging newly received segments in state."""
@@ -232,11 +249,14 @@ class Validator:
                     neigh.received |= neigh.receiving
                     neigh.receiving.setall(0)
 
+            for rID, cID in self.receivedQueue:
+                self.msgRecvCount += 1
             # add newly received segments to the send queue
             if self.perNodeQueue or self.perNeighborQueue:
                 while self.receivedQueue:
                     (rID, cID) = self.receivedQueue.popleft()
-                    self.addToSendQueue(rID, cID)
+                    if not self.amImalicious:
+                        self.addToSendQueue(rID, cID)
 
     def updateStats(self):
         """It updates the stats related to sent and received data."""
@@ -250,25 +270,27 @@ class Validator:
 
     def checkSegmentToNeigh(self, rID, cID, neigh):
         """Check if a segment should be sent to a neighbor."""
-        if (neigh.sent | neigh.received).count(1) >= (self.sendLineUntilC if neigh.dim else self.sendLineUntilR):
-            return False # sent enough, other side can restore
-        i = rID if neigh.dim else cID
-        if not neigh.sent[i] and not neigh.received[i] :
-            return True
+        if not self.amImalicious:
+            if (neigh.sent | neigh.received).count(1) >= (self.sendLineUntilC if neigh.dim else self.sendLineUntilR):
+                return False # sent enough, other side can restore
+            i = rID if neigh.dim else cID
+            if not neigh.sent[i] and not neigh.received[i] :
+                return True
         else:
-            return False # received or already sent
+            return False # received or already sent or malicious
 
     def sendSegmentToNeigh(self, rID, cID, neigh):
         """Send segment to a neighbor (without checks)."""
-        self.logger.trace("sending %d/%d to %d", rID, cID, neigh.node.ID, extra=self.format)
-        i = rID if neigh.dim else cID
-        neigh.sent[i] = 1
-        neigh.node.receiveSegment(rID, cID, self.ID)
-        self.statsTxInSlot += 1
+        if not self.amImalicious:
+            self.logger.trace("sending %d/%d to %d", rID, cID, neigh.node.ID, extra=self.format)
+            i = rID if neigh.dim else cID
+            neigh.sent[i] = 1
+            neigh.node.receiveSegment(rID, cID, self.ID)
+            self.statsTxInSlot += 1
 
     def checkSendSegmentToNeigh(self, rID, cID, neigh):
         """Check and send a segment to a neighbor if needed."""
-        if self.checkSegmentToNeigh(rID, cID, neigh):
+        if self.checkSegmentToNeigh(rID, cID, neigh) and not self.amImalicious:
             self.sendSegmentToNeigh(rID, cID, neigh)
             return True
         else:
@@ -283,16 +305,18 @@ class Validator:
         while self.sendQueue:
             (rID, cID) = self.sendQueue[0]
 
-            if rID in self.rowIDs:
+            if rID in self.rowIDs and not self.amImalicious:
                 for _, neigh in shuffledDict(self.rowNeighbors[rID], self.shuffleNeighbors):
-                    self.checkSendSegmentToNeigh(rID, cID, neigh)
+                    if not self.amImalicious: 
+                        self.checkSendSegmentToNeigh(rID, cID, neigh)
 
                 if self.statsTxInSlot >= self.bwUplink:
                     return
 
-            if cID in self.columnIDs:
+            if cID in self.columnIDs and not self.amImalicious:
                 for _, neigh in shuffledDict(self.columnNeighbors[cID], self.shuffleNeighbors):
-                    self.checkSendSegmentToNeigh(rID, cID, neigh)
+                    if not self.amImalicious: 
+                        self.checkSendSegmentToNeigh(rID, cID, neigh)
 
                 if self.statsTxInSlot >= self.bwUplink:
                     return
@@ -317,19 +341,20 @@ class Validator:
             # collect and shuffle
             for rID, neighs in self.rowNeighbors.items():
                 for neigh in neighs.values():
-                    if (neigh.sendQueue):
+                    if (neigh.sendQueue) and not self.amImalicious:
                         queues.append((0, rID, neigh))
 
             for cID, neighs in self.columnNeighbors.items():
                 for neigh in neighs.values():
-                    if (neigh.sendQueue):
+                    if (neigh.sendQueue) and not self.amImalicious:
                         queues.append((1, cID, neigh))
 
             for dim, lineID, neigh in shuffled(queues, self.shuffleQueues):
-                if dim == 0:
-                    self.checkSendSegmentToNeigh(lineID, neigh.sendQueue.popleft(), neigh)
-                else:
-                    self.checkSendSegmentToNeigh(neigh.sendQueue.popleft(), lineID, neigh)
+                if not self.amImalicious:
+                    if dim == 0:
+                        self.checkSendSegmentToNeigh(lineID, neigh.sendQueue.popleft(), neigh)
+                    else:
+                        self.checkSendSegmentToNeigh(neigh.sendQueue.popleft(), lineID, neigh)
                 progress = True
                 if self.statsTxInSlot >= self.bwUplink:
                     return
@@ -345,32 +370,32 @@ class Validator:
         def collectSegmentsToSend():
                 # yields list of segments to send as (dim, lineID, id)
                 segmentsToSend = []
-                for rID, neighs in self.rowNeighbors.items():
-                    line = self.getRow(rID)
-                    needed = zeros(self.shape.blockSizeR)
-                    for neigh in neighs.values():
-                        sentOrReceived = neigh.received | neigh.sent
-                        if sentOrReceived.count(1) < self.sendLineUntilR:
-                            needed |= ~sentOrReceived
-                    needed &= line
-                    if (needed).any():
-                        for i in range(len(needed)):
-                            if needed[i]:
-                                segmentsToSend.append((0, rID, i))
+                if not self.amImalicious:
+                    for rID, neighs in self.rowNeighbors.items():
+                        line = self.getRow(rID)
+                        needed = zeros(self.shape.blockSizeR)
+                        for neigh in neighs.values():
+                            sentOrReceived = neigh.received | neigh.sent
+                            if sentOrReceived.count(1) < self.sendLineUntilR:
+                                needed |= ~sentOrReceived
+                        needed &= line
+                        if (needed).any():
+                            for i in range(len(needed)):
+                                if needed[i]:
+                                    segmentsToSend.append((0, rID, i))
 
-                for cID, neighs in self.columnNeighbors.items():
-                    line = self.getColumn(cID)
-                    needed = zeros(self.shape.blockSizeC)
-                    for neigh in neighs.values():
-                        sentOrReceived = neigh.received | neigh.sent
-                        if sentOrReceived.count(1) < self.sendLineUntilC:
-                            needed |= ~sentOrReceived
-                    needed &= line
-                    if (needed).any():
-                        for i in range(len(needed)):
-                            if needed[i]:
-                                segmentsToSend.append((1, cID, i))
-
+                    for cID, neighs in self.columnNeighbors.items():
+                        line = self.getColumn(cID)
+                        needed = zeros(self.shape.blockSizeC)
+                        for neigh in neighs.values():
+                            sentOrReceived = neigh.received | neigh.sent
+                            if sentOrReceived.count(1) < self.sendLineUntilC:
+                                needed |= ~sentOrReceived
+                        needed &= line
+                        if (needed).any():
+                            for i in range(len(needed)):
+                                if needed[i]:
+                                    segmentsToSend.append((1, cID, i))
                 return segmentsToSend
 
         def nextSegment():
@@ -380,12 +405,12 @@ class Validator:
                     for dim, lineID, id in self.segmentShuffleGen:
                         if dim == 0:
                             for _, neigh in shuffledDict(self.rowNeighbors[lineID], self.shuffleNeighbors):
-                                if self.checkSegmentToNeigh(lineID, id, neigh):
+                                if self.checkSegmentToNeigh(lineID, id, neigh) and not self.amImalicious:
                                     yield((lineID, id, neigh))
                                     break
                         else:
                             for _, neigh in shuffledDict(self.columnNeighbors[lineID], self.shuffleNeighbors):
-                                if self.checkSegmentToNeigh(id, lineID, neigh):
+                                if self.checkSegmentToNeigh(id, lineID, neigh) and not self.amImalicious:
                                     yield((id, lineID, neigh))
                                     break
 
@@ -400,7 +425,8 @@ class Validator:
 
         for rid, cid, neigh in nextSegment():
             # segments are checked just before yield, so we can send directly
-            self.sendSegmentToNeigh(rid, cid, neigh)
+            if not self.amImalicious:
+                self.sendSegmentToNeigh(rid, cid, neigh)
 
             if self.statsTxInSlot >= self.bwUplink:
                 if not self.segmentShuffleSchedulerPersist:
@@ -425,7 +451,7 @@ class Validator:
                     cID = random.randrange(0, self.shape.blockSizeR)
                     if self.block.getSegment(rID, cID) :
                         neigh = random.choice(list(self.rowNeighbors[rID].values()))
-                        if self.checkSegmentToNeigh(rID, cID, neigh):
+                        if self.checkSegmentToNeigh(rID, cID, neigh) and not self.amImalicious:
                             yield(rID, cID, neigh)
                             t = tries
                 if self.columnIDs:
@@ -433,14 +459,15 @@ class Validator:
                     rID = random.randrange(0, self.shape.blockSizeC)
                     if self.block.getSegment(rID, cID) :
                         neigh = random.choice(list(self.columnNeighbors[cID].values()))
-                        if self.checkSegmentToNeigh(rID, cID, neigh):
+                        if self.checkSegmentToNeigh(rID, cID, neigh) and not self.amImalicious:
                             yield(rID, cID, neigh)
                             t = tries
                 t -= 1
 
         for rid, cid, neigh in nextSegment():
             # segments are checked just before yield, so we can send directly
-            self.sendSegmentToNeigh(rid, cid, neigh)
+            if not self.amImalicious:
+                self.sendSegmentToNeigh(rid, cid, neigh)
 
             if self.statsTxInSlot >= self.bwUplink:
                 return
@@ -449,22 +476,24 @@ class Validator:
         """ Send as much as we can in the timestep, limited by bwUplink."""
 
         # process node level send queue
-        self.processSendQueue()
+        if not self.amImalicious:
+            self.processSendQueue()
         if self.statsTxInSlot >= self.bwUplink:
             return
 
         # process neighbor level send queues in shuffled breadth-first order
-        self.processPerNeighborSendQueue()
+        if not self.amImalicious:
+            self.processPerNeighborSendQueue()
         if self.statsTxInSlot >= self.bwUplink:
             return
 
         # process possible segments to send in shuffled breadth-first order
-        if self.segmentShuffleScheduler:
+        if self.segmentShuffleScheduler and not self.amImalicious:
             self.runSegmentShuffleScheduler()
         if self.statsTxInSlot >= self.bwUplink:
             return
 
-        if self.dumbRandomScheduler:
+        if self.dumbRandomScheduler and not self.amImalicious:
             self.runDumbRandomScheduler()
         if self.statsTxInSlot >= self.bwUplink:
             return
@@ -489,14 +518,17 @@ class Validator:
 
     def restoreRow(self, id):
         """Restore a given row if repairable."""
-        rep = self.block.repairRow(id)
+        rep, repairedSamples = self.block.repairRow(id)
+        self.repairedSampleCount += repairedSamples
         if (rep.any()):
             # If operation is based on send queues, segments should
             # be queued after successful repair.
+            self.restoreRowCount += 1
             for i in range(len(rep)):
                 if rep[i]:
                     self.logger.trace("Rep: %d,%d", id, i, extra=self.format)
-                    self.addToSendQueue(id, i)
+                    if not self.amImalicious:
+                        self.addToSendQueue(id, i)
             # self.statsRepairInSlot += rep.count(1)
 
     def restoreColumns(self):
@@ -507,14 +539,17 @@ class Validator:
 
     def restoreColumn(self, id):
         """Restore a given column if repairable."""
-        rep = self.block.repairColumn(id)
+        rep, repairedSamples = self.block.repairColumn(id)
+        self.repairedSampleCount += repairedSamples
         if (rep.any()):
             # If operation is based on send queues, segments should
             # be queued after successful repair.
+            self.restoreColumnCount += 1
             for i in range(len(rep)):
                 if rep[i]:
                     self.logger.trace("Rep: %d,%d", i, id, extra=self.format)
-                    self.addToSendQueue(i, id)
+                    if not self.amImalicious:
+                        self.addToSendQueue(i, id)
             # self.statsRepairInSlot += rep.count(1)
 
     def checkStatus(self):
