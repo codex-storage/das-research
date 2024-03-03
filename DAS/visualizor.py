@@ -171,9 +171,9 @@ class Visualizor:
         """Box Plot of restoreRowCount for all nodes"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Box Plot of Restore Row Count by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Restore Row Count"
@@ -195,9 +195,9 @@ class Visualizor:
         """Box Plot of restoreColumnCount for all nodes"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Box Plot of Restore Column Count by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Restore Column Count"
@@ -219,9 +219,9 @@ class Visualizor:
         """Plots the Boxen plot of restoreRowCount for all nodes"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Boxen Plot of Restore Row Count by Nodes"
         conf["xlabel"] = "Restore Row Count"
         conf["ylabel"] = "Nodes"
@@ -241,9 +241,9 @@ class Visualizor:
         """Plots the Boxen plot of restoreColumnCount for all nodes"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Boxen Plot of Restore Column Count by Nodes"
         conf["xlabel"] = "Restore Column Count"
         conf["ylabel"] = "Nodes"
@@ -263,9 +263,9 @@ class Visualizor:
         """Plots the ECDF of restoreRowCount for all nodes using seaborn's ecdfplot"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "ECDF of Restore Row Count by Nodes"
         conf["xlabel"] = "Restore Row Count"
         conf["ylabel"] = "ECDF"
@@ -288,9 +288,9 @@ class Visualizor:
         """Plots the ECDF of restoreColumnCount for all nodes using seaborn's ecdfplot"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "ECDF of Restore Column Count by Nodes"
         conf["xlabel"] = "Restore Column Count"
         conf["ylabel"] = "ECDF"
@@ -313,9 +313,9 @@ class Visualizor:
         """Plots the ECDF of messages sent by all nodes using seaborn's ecdfplot"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "ECDF of Messages Sent by Nodes"
         conf["xlabel"] = "Number of Messages Sent"
         conf["ylabel"] = "ECDF"
@@ -338,9 +338,9 @@ class Visualizor:
         """Plots the ECDF of messages received by all nodes using seaborn's ecdfplot"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "ECDF of Messages Received by Nodes"
         conf["xlabel"] = "Number of Messages Received"
         conf["ylabel"] = "ECDF"
@@ -363,9 +363,9 @@ class Visualizor:
         """Plots the ECDF of samples received by all nodes using seaborn's ecdfplot"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "ECDF of Samples Received by Nodes"
         conf["xlabel"] = "Number of Samples Received"
         conf["ylabel"] = "ECDF"
@@ -388,9 +388,9 @@ class Visualizor:
         """Plots the ECDF of row col distance by all nodes using seaborn's ecdfplot"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "ECDF of Row-Col Distance by Nodes"
         conf["xlabel"] = "Row-Col Distance"
         conf["ylabel"] = "ECDF"
@@ -413,9 +413,9 @@ class Visualizor:
         """Plots the ECDF of samples repaired by all nodes using seaborn's ecdfplot"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "ECDF of Samples Repaired by Nodes"
         conf["xlabel"] = "Number of Samples Repaired"
         conf["ylabel"] = "ECDF"
@@ -438,9 +438,9 @@ class Visualizor:
         """Boxen Plot of the number of samples received by all nodes"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Number of Samples Received by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Samples Received"
@@ -462,9 +462,9 @@ class Visualizor:
         """Boxen Plot of the number of samples repaired by all nodes"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Number of Samples Repaired by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Samples Repaired"
@@ -486,9 +486,9 @@ class Visualizor:
         """Boxen Plot of the Row/Column distribution"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Row/Column Distribution"
         conf["xlabel"] = "Row/Column Type"
         conf["ylabel"] = "Validators Subscribed"
@@ -515,9 +515,9 @@ class Visualizor:
         """Plots the number of messages sent by all nodes using seaborn's boxenplot"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Number of Messages Sent by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Messages Sent"
@@ -537,9 +537,9 @@ class Visualizor:
         """Plots the number of messages received by all nodes using seaborn's boxenplot"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Number of Messages Received by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Messages Received"
@@ -559,9 +559,9 @@ class Visualizor:
         """Box Plot of the number of samples repaired by all nodes"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Number of Samples Repaired by Nodes"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
@@ -578,9 +578,9 @@ class Visualizor:
         """Box Plot of the Row/Column distribution"""
         plt.clf()
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Row/Column Distribution"
         conf["xlabel"] = ""
         conf["ylabel"] = "Validators Subscribed"
@@ -599,9 +599,9 @@ class Visualizor:
     def plotRestoreRowCount(self, result, plotPath):
         """Plots the restoreRowCount for each node"""
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Restore Row Count for Each Node"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
@@ -619,9 +619,9 @@ class Visualizor:
     def plotRestoreColumnCount(self, result, plotPath):
         """Plots the restoreColumnCount for each node"""
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Restore Column Count for Each Node"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
@@ -639,9 +639,9 @@ class Visualizor:
     def plotSampleRecv(self, result, plotPath):
         """Plots the percentage sampleRecv for each node"""
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Percentage of Samples Received by Nodes"
         conf["type"] = "individual_bar_with_2line"
         conf["legLoc"] = 1
@@ -672,9 +672,9 @@ class Visualizor:
     def plotBoxSampleRecv(self, result, plotPath):
         """Box Plot of the sampleRecv for each node"""
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Number of Samples Received by Nodes"
         conf["type"] = "individual_bar_with_2line"
         conf["legLoc"] = 1
@@ -691,9 +691,9 @@ class Visualizor:
     def plotMissingSamples(self, result, plotPath):
         """Plots the missing samples in the network"""
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Missing Samples"
         conf["type"] = "plot_with_1line"
         conf["legLoc"] = 1
@@ -724,7 +724,7 @@ class Visualizor:
         conf = {}
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+" \nNetwork degree: "+attrbs['nd']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Nodes/validators ready"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -756,7 +756,7 @@ class Visualizor:
         conf = {}
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+" \nNetwork degree: "+attrbs['nd']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Sent data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -786,7 +786,7 @@ class Visualizor:
         conf = {}
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+" \nNetwork degree: "+attrbs['nd']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Received data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -816,7 +816,7 @@ class Visualizor:
         conf = {}
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+" \nNetwork degree: "+attrbs['nd']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Duplicated data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -847,7 +847,7 @@ class Visualizor:
         conf = {}
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+" \nNetwork degree: "+attrbs['nd']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Row/Column distribution"
         conf["type"] = "grouped_bar"
         conf["legLoc"] = 2
@@ -870,9 +870,9 @@ class Visualizor:
     def plotMessagesSent(self, result, plotPath):
         """Plots the number of messages sent by all nodes"""
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Number of Messages Sent by Nodes"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
@@ -890,9 +890,9 @@ class Visualizor:
     def plotBoxMessagesSent(self, result, plotPath):
         """Box Plot of the number of messages sent by all nodes"""
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+" \nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Number of Messages Sent by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Messages Sent"
@@ -905,9 +905,9 @@ class Visualizor:
     def plotMessagesRecv(self, result, plotPath):
         """Plots the number of messages received by all nodes"""
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Number of Messages Received by Nodes"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
@@ -925,9 +925,9 @@ class Visualizor:
     def plotBoxMessagesRecv(self, result, plotPath):
         """Plots the number of messages received by all nodes"""
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Number of Messages Received by Nodes"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
@@ -946,9 +946,9 @@ class Visualizor:
     def plotSamplesRepaired(self, result, plotPath):
         """Plots the number of samples repaired by all nodes"""
         conf = {}
-        text = str(result.shape).split("-")
-        conf["textBox"] = "Row Size: "+text[2]+"\nColumn Size: "+text[6]+"\nNumber of nodes: "+text[10]\
-            +"\nFailure rate: "+text[14]+"%"+"\nNetwork degree: "+text[32]+"\nMalicious Nodes: "+text[36]+"%"
+        attrbs = self.__get_attrbs__(result)
+        conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']
         conf["title"] = "Number of Samples Repaired by Nodes"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
