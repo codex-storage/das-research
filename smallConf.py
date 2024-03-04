@@ -40,10 +40,6 @@ logLevel = logging.INFO
 # for more details, see joblib.Parallel
 numJobs = -1
 
-# distribute rows/columns evenly between validators (True)
-# or generate it using local randomness (False)
-evenLineDistribution = True
-
 # Number of simulation runs with the same parameters for statistical relevance
 runs = range(3)
 
@@ -56,8 +52,12 @@ failureModels = ["random"]
 # Percentage of block not released by producer
 failureRates = range(40, 81, 20)
 
-# Block size in one dimension in segments. Block is blockSizes * blockSizes segments.
-blockSizes = range(64, 113, 128)
+# Percentage of nodes that are considered malicious
+maliciousNodes = range(40,41,20)
+
+# Parameter to determine whether to randomly assign malicious nodes or not
+# If True, the malicious nodes will be assigned randomly; if False, a predefined pattern may be used
+randomizeMaliciousNodes = True
 
 # Per-topic mesh neighborhood size
 netDegrees = range(8, 9, 2)
@@ -67,15 +67,22 @@ netDegrees = range(8, 9, 2)
 proposerPublishToR = "shape.netDegree"
 proposerPublishToC = "shape.netDegree"
 
-# number of rows and columns a validator is interested in
-chis = range(2, 3, 2)
+# the overall number of row/columns taken into custody by a node is determined by
+# a base number (custody) and a class specific multiplier (validatorsPerNode).
+# We support two models:
+#  - validatorsBasedCustody: each validator has a unique subset of size custody,
+#    and custody is the union of these. I.e. VPN is a "probabilistic multiplier"
+#  - !validatorsBasedCustody: VPN is interpreted as a simple custody multiplier
+validatorBasedCustody = False
+custodyRows = range(2, 3, 2)
+custodyCols = range(2, 3, 2)
 
 # ratio of class1 nodes (see below for parameters per class)
 class1ratios = [0.8]
 
 # Number of validators per beacon node
 validatorsPerNode1 = [1]
-validatorsPerNode2 = [500]
+validatorsPerNode2 = [5]
 
 # Set uplink bandwidth in megabits/second
 bwUplinksProd = [200]
@@ -106,15 +113,17 @@ diagnostics = False
 # True to save git diff and git commit
 saveGit = False
 
+cols = range(64, 113, 128)
+rows = range(32, 113, 128)
+colsK = range(32, 65, 128)
+rowsK = range(32, 65, 128)
+
 def nextShape():
-    for run, fm, fr, class1ratio, chi, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
-        runs, failureModels, failureRates, class1ratios, chis, validatorsPerNode1, validatorsPerNode2, blockSizes, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
+    for nbCols, nbColsK, nbRows, nbRowsK, run, fm, fr, mn, class1ratio, chR, chC, vpn1, vpn2, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
+        cols, colsK, rows, rowsK, runs, failureModels, failureRates, maliciousNodes, class1ratios,  custodyRows, custodyCols, validatorsPerNode1, validatorsPerNode2, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
         # Network Degree has to be an even number
         if netDegree % 2 == 0:
-            blockSizeR = blockSizeC = blockSize
-            blockSizeRK = blockSizeCK = blockSize // 2
-            chiR = chiC = chi
-            shape = Shape(blockSizeR, blockSizeRK, blockSizeC, blockSizeCK, nn, fm, fr, class1ratio, chiR, chiC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
+            shape = Shape(nbCols, nbColsK, nbRows, nbRowsK, nn, fm, fr, mn, class1ratio, chR, chC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
             yield shape
 
 def evalConf(self, param, shape = None):
