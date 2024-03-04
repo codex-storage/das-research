@@ -112,15 +112,15 @@ sendLineUntilR = "shape.blockSizeRK" # stop sending on a p2p link if at least th
 sendLineUntilC = lambda shape : shape.blockSizeCK # stop sending on a p2p link if at least this amount of samples passed
 perNeighborQueue = True # queue incoming messages to outgoing connections on arrival (as typical GossipSub impl)
 shuffleQueues = True # shuffle the order of picking from active queues of a sender node
-perNodeQueue = False # keep a global queue of incoming messages for later sequential dispatch
+perNodeQueue = "self.amIproposer" # keep a global queue of incoming messages for later sequential dispatch
 shuffleLines = True # shuffle the order of rows/columns in each iteration while trying to send
 shuffleNeighbors = True # shuffle the order of neighbors when sending the same segment to each neighbor
 dumbRandomScheduler = False # dumb random scheduler
-segmentShuffleScheduler = True # send each segment that's worth sending once in shuffled order, then repeat
+segmentShuffleScheduler = False # send each segment that's worth sending once in shuffled order, then repeat
 segmentShuffleSchedulerPersist = True # Persist scheduler state between timesteps
-queueAllOnInit = False # queue up everything in the block producer, without shuffling, at the very beginning
-forwardOnReceive = True # forward segments as soon as received
-forwardOnRepair = False # forward all segments when full line available (repaired segments are always forwarded)
+queueAllOnInit = True # queue up everything in the block producer, without shuffling, at the very beginning
+forwardOnReceive = False # forward segments as soon as received
+forwardOnRepair = True # forward all segments when full line available (repaired segments are always forwarded)
 
 def nextShape():
     for run, fm, fr, class1ratio, chi, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
