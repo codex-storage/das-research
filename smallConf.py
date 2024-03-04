@@ -111,3 +111,18 @@ def nextShape():
             chiR = chiC = chi
             shape = Shape(blockSizeR, blockSizeRK, blockSizeC, blockSizeCK, nn, fm, fr, class1ratio, chiR, chiC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
             yield shape
+
+def evalConf(self, param, shape = None):
+    '''Allow lazy evaluation of params in various forms
+
+    Examples:
+      sendLineUntilR = "shape.blockSizeRK"
+      sendLineUntilC = lambda shape : shape.blockSizeCK
+      perNodeQueue = "self.amIproposer"
+    '''
+    if callable(param):
+        return param(shape)
+    elif isinstance(param, str):
+        return eval(param)
+    else:
+        return param
