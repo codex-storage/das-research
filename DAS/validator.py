@@ -21,14 +21,14 @@ class Neighbor:
         """It returns the amount of sent and received data."""
         return "%d:%d/%d, q:%d" % (self.node.ID, self.sent.count(1), self.received.count(1), len(self.sendQueue))
 
-    def __init__(self, v, dim, blockSize):
+    def __init__(self, v, dim, blockSize, sendDqSize):
         """It initializes the neighbor with the node and sets counters to zero."""
         self.node = v
         self.dim = dim # 0:row 1:col
         self.receiving = zeros(blockSize)
         self.received = zeros(blockSize)
         self.sent = zeros(blockSize)
-        self.sendQueue = deque()
+        self.sendQueue = deque(maxlen=sendDqSize)
 
 
 class Validator:
@@ -51,8 +51,8 @@ class Validator:
         self.format = {"entity": "Val "+str(self.ID)}
         self.block = Block(self.shape.blockSizeR, self.shape.blockSizeRK, self.shape.blockSizeC,  self.shape.blockSizeCK)
         self.receivedBlock = Block(self.shape.blockSizeR, self.shape.blockSizeRK, self.shape.blockSizeC,  self.shape.blockSizeCK)
-        self.receivedQueue = deque()
-        self.sendQueue = deque()
+        self.receivedQueue = deque(maxlen=self.shape.receivedDqSize)
+        self.sendQueue = deque(maxlen=self.shape.sendDqSize)
         self.amIproposer = amIproposer
         self.logger = logger
         if self.shape.chiR < 1 and self.shape.chiC < 1:

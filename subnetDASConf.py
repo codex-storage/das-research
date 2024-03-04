@@ -102,14 +102,17 @@ diagnostics = False
 # True to save git diff and git commit
 saveGit = False
 
+# deque sizes => (send deque, received deque)
+dequeSizes = [(7, 10), (10, 31), (18, 115), (25, 315), (32, 395), (39, 395)]
+
 def nextShape():
-    for run, fm, fr, class1ratio, vpn1, vpn2, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
-        runs, failureModels, failureRates, class1ratios, validatorsPerNode1, validatorsPerNode2, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
+    for run, fm, fr, class1ratio, vpn1, vpn2, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2, (sendDqSize, receivedDqSize) in itertools.product(
+        runs, failureModels, failureRates, class1ratios, validatorsPerNode1, validatorsPerNode2, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2, dequeSizes):
         # Network Degree has to be an even number
         if netDegree % 2 == 0:
             blockSizeR = 128
             blockSizeC = blockSizeRK = blockSizeCK = 64
             chiR = 0
             chiC = 4
-            shape = Shape(blockSizeR, blockSizeRK, blockSizeC, blockSizeCK, nn, fm, fr, class1ratio, chiR, chiC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
+            shape = Shape(blockSizeR, blockSizeRK, blockSizeC, blockSizeCK, nn, fm, fr, class1ratio, chiR, chiC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run, sendDqSize, receivedDqSize)
             yield shape

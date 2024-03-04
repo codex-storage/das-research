@@ -4,7 +4,7 @@ class Shape:
     """This class represents a set of parameters for a specific simulation."""
 
     def __init__(self, blockSizeR, blockSizeRK, blockSizeC, blockSizeCK,
-                 numberNodes, failureModel, failureRate, class1ratio, chiR, chiC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run):
+                 numberNodes, failureModel, failureRate, class1ratio, chiR, chiC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run, sendDqSize, receivedDqSize):
         """Initializes the shape with the parameters passed in argument."""
         self.run = run
         self.numberNodes = numberNodes
@@ -24,6 +24,8 @@ class Shape:
         self.bwUplink1 = bwUplink1
         self.bwUplink2 = bwUplink2
         self.randomSeed = ""
+        self.sendDqSize = sendDqSize
+        self.receivedDqSize = receivedDqSize
 
     def __repr__(self):
         """Returns a printable representation of the shape"""
@@ -45,6 +47,8 @@ class Shape:
         shastr += "-bwup2-"+str(self.bwUplink2)
         shastr += "-nd-"+str(self.netDegree)
         shastr += "-r-"+str(self.run)
+        shastr += "-sdq-"+str(self.sendDqSize)
+        shastr += "-rdq-"+str(self.receivedDqSize)
         return shastr
 
     def setSeed(self, seed):

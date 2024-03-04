@@ -33,7 +33,11 @@ def runOnce(config, shape, execID):
     sim.initLogger()
     sim.initValidators()
     sim.initNetwork()
+    tic = time.time()
     result = sim.run()
+    toc = time.time()
+    timed = f"(send: {shape.sendDqSize}, received: {shape.receivedDqSize}): {toc - tic}"
+    print(timed)
     sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
 
     if config.dumpXML:
