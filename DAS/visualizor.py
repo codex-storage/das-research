@@ -63,7 +63,7 @@ class Visualizor:
     def __get_attrbs__(self, result):
         text = str(result.shape).split("-")
         d = dict()
-        for i in range(1, len(text), 2):
+        for i in range(0, len(text), 2):
             d[text[i]] = text[i + 1]
         return d
 

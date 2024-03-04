@@ -28,7 +28,7 @@ class Shape:
     def __repr__(self):
         """Returns a printable representation of the shape"""
         shastr = ""
-        shastr += "-bsrn-"+str(self.nbCols)
+        shastr += "bsrn-"+str(self.nbCols)
         shastr += "-bsrk-"+str(self.nbColsK)
         shastr += "-bscn-"+str(self.nbRows)
         shastr += "-bsck-"+str(self.nbRowsK)
