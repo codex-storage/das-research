@@ -41,7 +41,8 @@ class Simulator:
         # pushed out by the proposer.
         # 1: the data is sent out exactly once on rows and once on columns (2 copies in total)
         # self.shape.netDegree: default behavior similar (but not same) to previous code
-        self.proposerPublishTo = self.shape.netDegree   # TODO: make this an external parameter
+        self.proposerPublishToR = config.evalConf(self, config.proposerPublishToR, shape)
+        self.proposerPublishToC = config.evalConf(self, config.proposerPublishToR, shape)
 
     def initValidators(self):
         """It initializes all the validators in the network."""
@@ -202,12 +203,12 @@ class Simulator:
         for v in self.validators:
             if (self.proposerPublishOnly and v.amIproposer):
                 for id in v.rowIDs:
-                    count = min(self.proposerPublishTo, len(rowChannels[id]))
+                    count = min(self.proposerPublishToR, len(rowChannels[id]))
                     publishTo = random.sample(rowChannels[id], count)
                     for vi in publishTo:
                         v.rowNeighbors[id].update({vi.ID : Neighbor(vi, 0, self.shape.nbCols)})
                 for id in v.columnIDs:
-                    count = min(self.proposerPublishTo, len(columnChannels[id]))
+                    count = min(self.proposerPublishToC, len(columnChannels[id]))
                     publishTo = random.sample(columnChannels[id], count)
                     for vi in publishTo:
                         v.columnNeighbors[id].update({vi.ID : Neighbor(vi, 1, self.shape.nbRows)})

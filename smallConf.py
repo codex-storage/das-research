@@ -62,6 +62,11 @@ randomizeMaliciousNodes = True
 # Per-topic mesh neighborhood size
 netDegrees = range(8, 9, 2)
 
+# How many copies are sent out by the block producer
+# Note, previously this was set to match netDegree
+proposerPublishToR = "shape.netDegree"
+proposerPublishToC = "shape.netDegree"
+
 # the overall number of row/columns taken into custody by a node is determined by
 # a base number (custody) and a class specific multiplier (validatorsPerNode).
 # We support two models:
@@ -120,3 +125,18 @@ def nextShape():
         if netDegree % 2 == 0:
             shape = Shape(nbCols, nbColsK, nbRows, nbRowsK, nn, fm, fr, mn, class1ratio, chR, chC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
             yield shape
+
+def evalConf(self, param, shape = None):
+    '''Allow lazy evaluation of params in various forms
+
+    Examples:
+      sendLineUntilR = "shape.blockSizeRK"
+      sendLineUntilC = lambda shape : shape.blockSizeCK
+      perNodeQueue = "self.amIproposer"
+    '''
+    if callable(param):
+        return param(shape)
+    elif isinstance(param, str):
+        return eval(param)
+    else:
+        return param
