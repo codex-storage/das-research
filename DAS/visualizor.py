@@ -648,15 +648,15 @@ class Visualizor:
         conf["desLoc"] = 1
         conf["xlabel"] = "Nodes"
         conf["ylabel"] = "Percentage of samples received (%)"
-        total_samples = result.shape.blockSizeR * result.shape.blockSizeC
+        total_samples = result.shape.nbCols * result.shape.nbRows
         percentage_data = [(count / total_samples) * 100 for count in result.sampleRecvCount]
         conf["data"] = percentage_data
         conf["xdots"] = range(result.shape.numberNodes)
         conf["path"] = plotPath + "/sampleRecv.png"
         maxi = max(conf["data"])
         # conf["yaxismax"] = maxi * 1.1
-        expected_percentage1 = (result.shape.vpn1 * (result.shape.blockSizeR * result.shape.chiR + result.shape.blockSizeC * result.shape.chiC) * 100)/total_samples
-        expected_percentage2 = (result.shape.vpn2 * (result.shape.blockSizeR * result.shape.chiR + result.shape.blockSizeC * result.shape.chiC) * 100)/total_samples
+        expected_percentage1 = (result.shape.vpn1 * (result.shape.nbCols * result.shape.custodyRows + result.shape.nbRows * result.shape.custodyCols) * 100)/total_samples
+        expected_percentage2 = (result.shape.vpn2 * (result.shape.nbCols * result.shape.custodyRows + result.shape.nbRows * result.shape.custodyCols) * 100)/total_samples
         if expected_percentage1 > 100:
             expected_percentage1 = 100
         if expected_percentage2 > 100:
@@ -710,7 +710,7 @@ class Visualizor:
             if max(v) > maxi:
                 maxi = max(v)
         conf["yaxismax"] = maxi
-        x = result.shape.blockSizeR * result.shape.chiR + result.shape.blockSizeC * result.shape.chiC
+        x = result.shape.nbCols * result.shape.custodyRows + result.shape.nbRows * result.shape.custodyCols
         conf["expected_value"] = (result.shape.numberNodes - 1) * (result.shape.class1ratio * result.shape.vpn1 * x + (1 - result.shape.class1ratio) * result.shape.vpn2 * x)
         conf["line_label"] = "Total samples to deliver"
         plotData(conf)

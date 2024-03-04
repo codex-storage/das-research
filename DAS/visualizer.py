@@ -17,7 +17,7 @@ class Visualizer:
         self.execID = execID
         self.config = config
         self.folderPath = "results/"+self.execID
-        self.parameters = ['run', 'blockSize', 'failureRate', 'numberNodes', 'netDegree', 'chi', 'vpn1', 'vpn2', 'class1ratio', 'bwUplinkProd', 'bwUplink1', 'bwUplink2']
+        self.parameters = ['run', 'blockSize', 'failureRate', 'numberNodes', 'netDegree', 'cus', 'vpn1', 'vpn2', 'class1ratio', 'bwUplinkProd', 'bwUplink1', 'bwUplink2']
         self.minimumDataPoints = 2
         self.maxTTA = 11000
 
@@ -33,12 +33,12 @@ class Visualizer:
                 tree = ET.parse(os.path.join(self.folderPath, filename))
                 root = tree.getroot()
                 run = int(root.find('run').text)
-                blockSize = int(root.find('blockSizeR').text) # TODO: maybe we want both dimensions
+                blockSize = int(root.find('nbCols').text) # TODO: maybe we want both dimensions
                 failureRate = int(root.find('failureRate').text)
                 numberNodes = int(root.find('numberNodes').text)
                 class1ratio = float(root.find('class1ratio').text)
                 netDegree = int(root.find('netDegree').text)
-                chi = int(root.find('chiR').text) # TODO: maybe we want both dimensions
+                custodyRows = int(root.find('custodyRows').text) # TODO: maybe we want both dimensions
                 vpn1 = int(root.find('vpn1').text)
                 vpn2 = int(root.find('vpn2').text)
                 bwUplinkProd = int(root.find('bwUplinkProd').text)
@@ -54,7 +54,7 @@ class Visualizer:
                     # Get the indices and values of the parameters in the combination
 
                     indices = [self.parameters.index(element) for element in combination]
-                    selectedValues = [run, blockSize, failureRate, numberNodes, netDegree, chi, vpn1, vpn2, class1ratio, bwUplinkProd, bwUplink1, bwUplink2]
+                    selectedValues = [run, blockSize, failureRate, numberNodes, netDegree, custodyRows, vpn1, vpn2, class1ratio, bwUplinkProd, bwUplink1, bwUplink2]
                     values = [selectedValues[index] for index in indices]
                     names = [self.parameters[i] for i in indices]
                     keyComponents = [f"{name}_{value}" for name, value in zip(names, values)]

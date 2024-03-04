@@ -62,12 +62,22 @@ randomizeMaliciousNodes = True
 # Per-topic mesh neighborhood size
 netDegrees = range(8, 9, 2)
 
+# the overall number of row/columns taken into custody by a node is determined by
+# a base number (custody) and a class specific multiplier (validatorsPerNode).
+# We support two models:
+#  - validatorsBasedCustody: each validator has a unique subset of size custody,
+#    and custody is the union of these. I.e. VPN is a "probabilistic multiplier"
+#  - !validatorsBasedCustody: VPN is interpreted as a simple custody multiplier
+validatorBasedCustody = False
+custodyRows = range(2, 3, 2)
+custodyCols = range(2, 3, 2)
+
 # ratio of class1 nodes (see below for parameters per class)
 class1ratios = [0.8]
 
 # Number of validators per beacon node
-validatorsPerNode1 = [10]
-validatorsPerNode2 = [50]
+validatorsPerNode1 = [1]
+validatorsPerNode2 = [5]
 
 # Set uplink bandwidth in megabits/second
 bwUplinksProd = [200]
@@ -98,17 +108,15 @@ diagnostics = False
 # True to save git diff and git commit
 saveGit = False
 
-blockSizeR = range(64, 113, 128)
-blockSizeC = range(32, 113, 128)
-blockSizeRK = range(32, 65, 128)
-blockSizeCK = range(32, 65, 128)
-chiR = range(2, 3, 2)
-chiC = range(2, 3, 2)
+cols = range(64, 113, 128)
+rows = range(32, 113, 128)
+colsK = range(32, 65, 128)
+rowsK = range(32, 65, 128)
 
 def nextShape():
-    for blckSizeR, blckSizeRK, blckSizeC, blckSizeCK, run, fm, fr, mn, class1ratio, chR, chC, vpn1, vpn2, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
-        blockSizeR, blockSizeRK, blockSizeC, blockSizeCK, runs, failureModels, failureRates, maliciousNodes, class1ratios,  chiR, chiC, validatorsPerNode1, validatorsPerNode2, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
+    for nbCols, nbColsK, nbRows, nbRowsK, run, fm, fr, mn, class1ratio, chR, chC, vpn1, vpn2, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
+        cols, colsK, rows, rowsK, runs, failureModels, failureRates, maliciousNodes, class1ratios,  custodyRows, custodyCols, validatorsPerNode1, validatorsPerNode2, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
         # Network Degree has to be an even number
         if netDegree % 2 == 0:
-            shape = Shape(blckSizeR, blckSizeRK, blckSizeC, blckSizeCK, nn, fm, fr, mn, class1ratio, chR, chC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
+            shape = Shape(nbCols, nbColsK, nbRows, nbRowsK, nn, fm, fr, mn, class1ratio, chR, chC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
             yield shape
