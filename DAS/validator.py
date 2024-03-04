@@ -32,69 +32,52 @@ class Neighbor:
 
 
 class Validator:
-    def __init__(self, rowIDs, columnIDs):
-        self.rowIDs = rowIDs
-        self.columnIDs = columnIDs
-
-def initValidator(nbRows, custodyRows, nbCols, custodyCols):
-        rowIDs = set(random.sample(range(nbRows), custodyRows))
-        columnIDs = set(random.sample(range(nbCols), custodyCols))
-        return Validator(rowIDs, columnIDs)
-
-class Node:
-    """This class implements a node in the network."""
+    """This class implements a validator/node in the network."""
 
     def __repr__(self):
-        """It returns the node ID."""
+        """It returns the validator ID."""
         return str(self.ID)
 
-    def __init__(self, ID, amIproposer, logger, shape, config,
-                 validators, rows = set(), columns = set()):
-        """It initializes the node, and eventual validators, following the simulation configuration in shape and config.
+    def __init__(self, ID, amIproposer, logger, shape, config, rows = None, columns = None):
+        """It initializes the validator with the logger shape and rows/columns.
 
             If rows/columns are specified these are observed, otherwise (default)
-            custodyRows rows and custodyCols columns are selected randomly.
+            chiR rows and chiC columns are selected randomly.
         """
 
         self.shape = shape
         FORMAT = "%(levelname)s : %(entity)s : %(message)s"
         self.ID = ID
         self.format = {"entity": "Val "+str(self.ID)}
-        self.block = Block(self.shape.nbCols, self.shape.nbColsK, self.shape.nbRows,  self.shape.nbRowsK)
-        self.receivedBlock = Block(self.shape.nbCols, self.shape.nbColsK, self.shape.nbRows,  self.shape.nbRowsK)
+        self.block = Block(self.shape.blockSizeR, self.shape.blockSizeRK, self.shape.blockSizeC,  self.shape.blockSizeCK)
+        self.receivedBlock = Block(self.shape.blockSizeR, self.shape.blockSizeRK, self.shape.blockSizeC,  self.shape.blockSizeCK)
         self.receivedQueue = deque()
         self.sendQueue = deque()
         self.amIproposer = amIproposer
         self.logger = logger
-        self.validators = validators
-
-        if amIproposer:
-            self.nodeClass = 0
-            self.rowIDs = range(shape.nbRows)
-            self.columnIDs = range(shape.nbCols)
+        if self.shape.chiR < 1 and self.shape.chiC < 1:
+            self.logger.error("Chi has to be greater than 0", extra=self.format)
+        elif self.shape.chiC > self.shape.blockSizeR:
+            self.logger.error("ChiC has to be smaller than %d" % self.shape.blockSizeR, extra=self.format)
+        elif self.shape.chiR > self.shape.blockSizeC:
+            self.logger.error("ChiR has to be smaller than %d" % self.shape.blockSizeC, extra=self.format)
         else:
-            self.nodeClass = 1 if (self.ID <= shape.numberNodes * shape.class1ratio) else 2
-            self.vpn = len(validators)  #TODO: needed by old code, change to fn
-
-            self.rowIDs = set(rows)
-            self.columnIDs = set(columns)
-            if config.validatorBasedCustody:
-                for v in validators:
-                    self.rowIDs = self.rowIDs.union(v.rowIDs)
-                    self.columnIDs = self.columnIDs.union(v.columnIDs)
+            if amIproposer:
+                self.nodeClass = 0
+                self.rowIDs = range(shape.blockSizeC)
+                self.columnIDs = range(shape.blockSizeR)
             else:
-                if (self.vpn * self.shape.custodyRows) > self.shape.nbRows:
-                    self.logger.warning("Row custody (*vpn) larger than number of rows!", extra=self.format)
-                    self.rowIDs = range(self.shape.nbRows)
-                else:
-                    self.rowIDs = set(random.sample(range(self.shape.nbRows), self.vpn*self.shape.custodyRows))
-
-                if (self.vpn * self.shape.custodyCols) > self.shape.nbCols:
-                    self.logger.warning("Column custody (*vpn) larger than number of columns!", extra=self.format)
-                    self.columnIDs = range(self.shape.nbCols)
-                else:
-                    self.columnIDs = set(random.sample(range(self.shape.nbCols), self.vpn*self.shape.custodyCols))
-
+                #if shape.deterministic:
+                #    random.seed(self.ID)
+                self.nodeClass = 1 if (self.ID <= shape.numberNodes * shape.class1ratio) else 2
+                self.vpn = self.shape.vpn1 if (self.nodeClass == 1) else self.shape.vpn2
+                self.vRowIDs = []
+                self.vColumnIDs = []
+                for i in range(self.vpn):
+                    self.vRowIDs.append(set(rows[i*self.shape.chiR:(i+1)*self.shape.chiR]) if rows else set(random.sample(range(self.shape.blockSizeC), self.shape.chiR)))
+                    self.vColumnIDs.append(set(columns[i*self.shape.chiC:(i+1)*self.shape.chiC]) if columns else set(random.sample(range(self.shape.blockSizeR), self.shape.chiC)))
+                self.rowIDs = set.union(*self.vRowIDs)
+                self.columnIDs = set.union(*self.vColumnIDs)
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)
 
@@ -106,7 +89,7 @@ class Node:
         self.statsRxDupInSlot = 0
         self.statsRxDupPerSlot = []
 
-        # Set uplink bandwidth.
+        # Set uplink bandwidth. 
         # Assuming segments of ~560 bytes and timesteps of 50ms, we get
         # 1 Mbps ~= 1e6 mbps * 0.050 s / (560*8) bits ~= 11 segments/timestep
         if self.amIproposer:
@@ -118,8 +101,8 @@ class Node:
         self.bwUplink *= 1e3 / 8 * config.stepDuration / config.segmentSize
 
         self.repairOnTheFly = True
-        self.sendLineUntilR = self.shape.nbColsK # stop sending on a p2p link if at least this amount of samples passed
-        self.sendLineUntilC = self.shape.nbRowsK # stop sending on a p2p link if at least this amount of samples passed
+        self.sendLineUntilR = self.shape.blockSizeRK # stop sending on a p2p link if at least this amount of samples passed
+        self.sendLineUntilC = self.shape.blockSizeCK # stop sending on a p2p link if at least this amount of samples passed
         self.perNeighborQueue = True # queue incoming messages to outgoing connections on arrival (as typical GossipSub impl)
         self.shuffleQueues = True # shuffle the order of picking from active queues of a sender node
         self.perNodeQueue = False # keep a global queue of incoming messages for later sequential dispatch
@@ -132,7 +115,7 @@ class Node:
     def logIDs(self):
         """It logs the assigned rows and columns."""
         if self.amIproposer == 1:
-            self.logger.warning("I am a block proposer.", extra=self.format)
+            self.logger.warning("I am a block proposer."% self.ID)
         else:
             self.logger.debug("Selected rows: "+str(self.rowIDs), extra=self.format)
             self.logger.debug("Selected columns: "+str(self.columnIDs), extra=self.format)
@@ -144,53 +127,53 @@ class Node:
         else:
             self.logger.debug("Creating block...", extra=self.format)
             if self.shape.failureModel == "random":
-                order = [i for i in range(self.shape.nbCols * self.shape.nbRows)]
+                order = [i for i in range(self.shape.blockSizeR * self.shape.blockSizeC)]
                 order = random.sample(order, int((1 - self.shape.failureRate/100) * len(order)))
                 for i in order:
                     self.block.data[i] = 1
             elif self.shape.failureModel == "sequential":
-                order = [i for i in range(self.shape.nbCols * self.shape.nbRows)]
+                order = [i for i in range(self.shape.blockSizeR * self.shape.blockSizeC)]
                 order = order[:int((1 - self.shape.failureRate/100) * len(order))]
                 for i in order:
                     self.block.data[i] = 1
             elif self.shape.failureModel == "MEP": # Minimal size non-recoverable Erasure Pattern
-                for r in range(self.shape.nbCols):
-                    for c in range(self.shape.nbRows):
-                        if r > self.shape.nbColsK or c > self.shape.nbRowsK:
+                for r in range(self.shape.blockSizeR):
+                    for c in range(self.shape.blockSizeC):
+                        if r > self.shape.blockSizeRK or c > self.shape.blockSizeCK:
                             self.block.setSegment(r,c)
             elif self.shape.failureModel == "MEP+1": # MEP +1 segment to make it recoverable
-                for r in range(self.shape.nbCols):
-                    for c in range(self.shape.nbRows):
-                        if r > self.shape.nbColsK or c > self.shape.nbRowsK:
+                for r in range(self.shape.blockSizeR):
+                    for c in range(self.shape.blockSizeC):
+                        if r > self.shape.blockSizeRK or c > self.shape.blockSizeCK:
                             self.block.setSegment(r,c)
                 self.block.setSegment(0, 0)
             elif self.shape.failureModel == "DEP":
-                assert(self.shape.nbCols == self.shape.nbRows and self.shape.nbColsK == self.shape.nbRowsK)
-                for r in range(self.shape.nbCols):
-                    for c in range(self.shape.nbRows):
-                        if (r+c) % self.shape.nbCols > self.shape.nbColsK:
+                assert(self.shape.blockSizeR == self.shape.blockSizeC and self.shape.blockSizeRK == self.shape.blockSizeCK)
+                for r in range(self.shape.blockSizeR):
+                    for c in range(self.shape.blockSizeC):
+                        if (r+c) % self.shape.blockSizeR > self.shape.blockSizeRK:
                             self.block.setSegment(r,c)
             elif self.shape.failureModel == "DEP+1":
-                assert(self.shape.nbCols == self.shape.nbRows and self.shape.nbColsK == self.shape.nbRowsK)
-                for r in range(self.shape.nbCols):
-                    for c in range(self.shape.nbRows):
-                        if (r+c) % self.shape.nbCols > self.shape.nbColsK:
+                assert(self.shape.blockSizeR == self.shape.blockSizeC and self.shape.blockSizeRK == self.shape.blockSizeCK)
+                for r in range(self.shape.blockSizeR):
+                    for c in range(self.shape.blockSizeC):
+                        if (r+c) % self.shape.blockSizeR > self.shape.blockSizeRK:
                             self.block.setSegment(r,c)
                 self.block.setSegment(0, 0)
             elif self.shape.failureModel == "MREP": # Minimum size Recoverable Erasure Pattern
-                for r in range(self.shape.nbCols):
-                    for c in range(self.shape.nbRows):
-                        if r < self.shape.nbColsK or c < self.shape.nbRowsK:
+                for r in range(self.shape.blockSizeR):
+                    for c in range(self.shape.blockSizeC):
+                        if r < self.shape.blockSizeRK or c < self.shape.blockSizeCK:
                             self.block.setSegment(r,c)
             elif self.shape.failureModel == "MREP-1": # make MREP non-recoverable
-                for r in range(self.shape.nbCols):
-                    for c in range(self.shape.nbRows):
-                        if r < self.shape.nbColsK or c < self.shape.nbRowsK:
+                for r in range(self.shape.blockSizeR):
+                    for c in range(self.shape.blockSizeC):
+                        if r < self.shape.blockSizeRK or c < self.shape.blockSizeCK:
                             self.block.setSegment(r,c)
                 self.block.setSegment(0, 0, 0)
 
             nbFailures = self.block.data.count(0)
-            measuredFailureRate = nbFailures * 100 / (self.shape.nbCols * self.shape.nbRows)
+            measuredFailureRate = nbFailures * 100 / (self.shape.blockSizeR * self.shape.blockSizeC)
             self.logger.debug("Number of failures: %d (%0.02f %%)", nbFailures, measuredFailureRate, extra=self.format)
 
     def getColumn(self, index):
@@ -364,7 +347,7 @@ class Node:
                 segmentsToSend = []
                 for rID, neighs in self.rowNeighbors.items():
                     line = self.getRow(rID)
-                    needed = zeros(self.shape.nbCols)
+                    needed = zeros(self.shape.blockSizeR)
                     for neigh in neighs.values():
                         sentOrReceived = neigh.received | neigh.sent
                         if sentOrReceived.count(1) < self.sendLineUntilR:
@@ -377,7 +360,7 @@ class Node:
 
                 for cID, neighs in self.columnNeighbors.items():
                     line = self.getColumn(cID)
-                    needed = zeros(self.shape.nbRows)
+                    needed = zeros(self.shape.blockSizeC)
                     for neigh in neighs.values():
                         sentOrReceived = neigh.received | neigh.sent
                         if sentOrReceived.count(1) < self.sendLineUntilC:
@@ -439,7 +422,7 @@ class Node:
             while t:
                 if self.rowIDs:
                     rID = random.choice(self.rowIDs)
-                    cID = random.randrange(0, self.shape.nbCols)
+                    cID = random.randrange(0, self.shape.blockSizeR)
                     if self.block.getSegment(rID, cID) :
                         neigh = random.choice(list(self.rowNeighbors[rID].values()))
                         if self.checkSegmentToNeigh(rID, cID, neigh):
@@ -447,7 +430,7 @@ class Node:
                             t = tries
                 if self.columnIDs:
                     cID = random.choice(self.columnIDs)
-                    rID = random.randrange(0, self.shape.nbRows)
+                    rID = random.randrange(0, self.shape.blockSizeC)
                     if self.block.getSegment(rID, cID) :
                         neigh = random.choice(list(self.columnNeighbors[cID].values()))
                         if self.checkSegmentToNeigh(rID, cID, neigh):
@@ -554,8 +537,8 @@ class Node:
         self.logger.debug("status: %d / %d", arrived, expected, extra=self.format)
 
         validated = 0
-        for v in self.validators:
-            a, e = checkStatus(v.columnIDs, v.rowIDs)
+        for i in range(self.vpn):
+            a, e = checkStatus(self.vColumnIDs[i], self.vRowIDs[i])
             if a == e:
                 validated+=1
 
