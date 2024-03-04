@@ -16,6 +16,26 @@ class Result:
         self.tta = -1
         self.missingVector = []
         self.metrics = {}
+        self.amImalicious = [0] * shape.numberNodes
+        self.msgSentCount = [0] * shape.numberNodes
+        self.msgRecvCount = [0] * shape.numberNodes
+        self.sampleRecvCount = [0] * shape.numberNodes
+        self.restoreRowCount = [0] * shape.numberNodes
+        self.restoreColumnCount = [0] * shape.numberNodes
+        self.repairedSampleCount = [0] * shape.numberNodes
+        self.numberNodes = shape.numberNodes
+        self.class1ratio = shape.class1ratio
+
+    def copyValidators(self, validators):
+        """Copy information from simulator.validators to result."""
+        for i in range(0,self.shape.numberNodes):
+            self.amImalicious[i] = validators[i].amImalicious
+            self.msgSentCount[i] = validators[i].msgSentCount
+            self.msgRecvCount[i] = validators[i].msgRecvCount
+            self.sampleRecvCount[i] = validators[i].sampleRecvCount
+            self.restoreRowCount[i] = validators[i].restoreRowCount
+            self.restoreColumnCount[i] = validators[i].restoreColumnCount
+            self.repairedSampleCount[i] = validators[i].repairedSampleCount
 
     def populate(self, shape, config, missingVector):
         """It populates part of the result data inside a vector."""
