@@ -5,6 +5,7 @@ import importlib
 import subprocess
 from joblib import Parallel, delayed
 from DAS import *
+from DAS.dequeViz import *
 
 # Parallel execution:
 # The code currently uses 'joblib' to execute on multiple cores. For other options such as 'ray', see
@@ -36,8 +37,9 @@ def runOnce(config, shape, execID):
     tic = time.time()
     result = sim.run()
     toc = time.time()
-    timed = f"(send: {shape.sendDqSize}, received: {shape.receivedDqSize}): {toc - tic}"
-    print(timed)
+    # timed = f"(send: {shape.sendDqSize}, received: {shape.receivedDqSize}): {toc - tic}"
+    # print(timed)
+    dqInfo = (shape.sendDqSize, shape.receivedDqSize, toc - tic)
     sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
 
     if config.dumpXML:
@@ -47,7 +49,7 @@ def runOnce(config, shape, execID):
         visual = Visualizor(execID, config, [result])
         visual.plotAll()
 
-    return result
+    return result, dqInfo
 
 def study():
     if len(sys.argv) < 2:
@@ -89,6 +91,16 @@ def study():
     start = time.time()
     results = Parallel(config.numJobs)(delayed(runOnce)(config, shape ,execID) for shape in config.nextShape())
     end = time.time()
+    dqInfos = []
+    heats = []
+    for r in results:
+        heats.append(r[0])
+        dqInfos.append(r[1])
+    results = heats
+    dqViz = DequeViz(execID, config)
+    for info in dqInfos:
+        dqViz.addData(info[0], info[1], info[2])
+    dqViz.plotIt()
     logger.info("A total of %d simulations ran in %d seconds" % (len(results), end-start), extra=format)
 
     if config.visualization:
@@ -98,5 +110,6 @@ def study():
         visual = Visualizor(execID, config, results)
         visual.plotHeatmaps("nn", "fr")
 
+dqVizInfo = []
 if __name__ == "__main__":
     study()
