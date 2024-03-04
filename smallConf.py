@@ -106,6 +106,22 @@ diagnostics = False
 # True to save git diff and git commit
 saveGit = False
 
+# configure Node options
+repairOnTheFly = True
+sendLineUntilR = "shape.blockSizeRK" # stop sending on a p2p link if at least this amount of samples passed
+sendLineUntilC = lambda shape : shape.blockSizeCK # stop sending on a p2p link if at least this amount of samples passed
+perNeighborQueue = True # queue incoming messages to outgoing connections on arrival (as typical GossipSub impl)
+shuffleQueues = True # shuffle the order of picking from active queues of a sender node
+perNodeQueue = False # keep a global queue of incoming messages for later sequential dispatch
+shuffleLines = True # shuffle the order of rows/columns in each iteration while trying to send
+shuffleNeighbors = True # shuffle the order of neighbors when sending the same segment to each neighbor
+dumbRandomScheduler = False # dumb random scheduler
+segmentShuffleScheduler = True # send each segment that's worth sending once in shuffled order, then repeat
+segmentShuffleSchedulerPersist = True # Persist scheduler state between timesteps
+queueAllOnInit = False # queue up everything in the block producer, without shuffling, at the very beginning
+forwardOnReceive = True # forward segments as soon as received
+forwardOnRepair = False # forward all segments when full line available (repaired segments are always forwarded)
+
 def nextShape():
     for run, fm, fr, class1ratio, chi, vpn1, vpn2, blockSize, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
         runs, failureModels, failureRates, class1ratios, chis, validatorsPerNode1, validatorsPerNode2, blockSizes, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
