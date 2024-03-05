@@ -122,8 +122,35 @@ class Simulator:
 
     def initNetwork(self):
         """It initializes the simulated network."""
+
         rowChannels = [[] for i in range(self.shape.blockSizeC)]
         columnChannels = [[] for i in range(self.shape.blockSizeR)]
+
+        def initGS(id, interestedNodes, degree, addNeighbor, roc):
+            # If the number of nodes in a channel is smaller or equal to the
+            # requested degree, a fully connected graph is used. For n>d, a random
+            # d-regular graph is set up. (For n=d+1, the two are the same.)
+            if not interestedNodes:
+                self.logger.error("No nodes for %s %d !" % (roc, id), extra=self.format)
+                return
+            elif (len(interestedNodes) <= degree):
+                self.logger.debug("Graph fully connected with degree %d !" % (len(interestedNodes) - 1), extra=self.format)
+                G = nx.complete_graph(len(interestedNodes))
+            else:
+                G = nx.random_regular_graph(degree, len(interestedNodes))
+            if not nx.is_connected(G):
+                self.logger.error("Graph not connected for %s %d !" % (roc, id), extra=self.format)
+            for u, v in G.edges:
+                val1=interestedNodes[u]
+                val2=interestedNodes[v]
+                addNeighbor(val1, id, val2) # symmetric
+
+        def initRowGS(id):
+            initGS(id, rowChannels[id], self.shape.netDegree, Node.addRowNeighbor, "row")
+
+        def initColumnGS(id):
+            initGS(id, columnChannels[id], self.shape.netDegree, Node.addColumnNeighbor, "column")
+
         for v in self.validators:
             if not (self.proposerPublishOnly and v.amIproposer):
                 for id in v.rowIDs:
@@ -139,43 +166,13 @@ class Simulator:
         self.logger.debug("Number of validators per row; Min: %d, Max: %d" % (min(self.distR), max(self.distR)), extra=self.format)
         self.logger.debug("Number of validators per column; Min: %d, Max: %d" % (min(self.distC), max(self.distC)), extra=self.format)
 
+        #set up GS for nodes
         for id in range(self.shape.blockSizeC):
-
-            # If the number of nodes in a channel is smaller or equal to the
-            # requested degree, a fully connected graph is used. For n>d, a random
-            # d-regular graph is set up. (For n=d+1, the two are the same.)
-            if not rowChannels[id]:
-                self.logger.error("No nodes for row %d !" % id, extra=self.format)
-                continue
-            elif (len(rowChannels[id]) <= self.shape.netDegree):
-                self.logger.debug("Graph fully connected with degree %d !" % (len(rowChannels[id]) - 1), extra=self.format)
-                G = nx.complete_graph(len(rowChannels[id]))
-            else:
-                G = nx.random_regular_graph(self.shape.netDegree, len(rowChannels[id]))
-            if not nx.is_connected(G):
-                self.logger.error("Graph not connected for row %d !" % id, extra=self.format)
-            for u, v in G.edges:
-                val1=rowChannels[id][u]
-                val2=rowChannels[id][v]
-                val1.addRowNeighbor(id, val2) # symmetric
-
+            initRowGS(id)
         for id in range(self.shape.blockSizeR):
+            initColumnGS(id)
 
-            if not columnChannels[id]:
-                self.logger.error("No nodes for column %d !" % id, extra=self.format)
-                continue
-            elif (len(columnChannels[id]) <= self.shape.netDegree):
-                self.logger.debug("Graph fully connected with degree %d !" % (len(columnChannels[id]) - 1), extra=self.format)
-                G = nx.complete_graph(len(columnChannels[id]))
-            else:
-                G = nx.random_regular_graph(self.shape.netDegree, len(columnChannels[id]))
-            if not nx.is_connected(G):
-                self.logger.error("Graph not connected for column %d !" % id, extra=self.format)
-            for u, v in G.edges:
-                val1=columnChannels[id][u]
-                val2=columnChannels[id][v]
-                val1.addColumnNeighbor(id, val2)
-
+        #set up GS for block producer
         for v in self.validators:
             if (self.proposerPublishOnly and v.amIproposer):
                 for id in v.rowIDs:
