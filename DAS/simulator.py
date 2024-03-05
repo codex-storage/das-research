@@ -126,30 +126,71 @@ class Simulator:
         rowChannels = [[] for i in range(self.shape.blockSizeC)]
         columnChannels = [[] for i in range(self.shape.blockSizeR)]
 
-        def initGS(id, interestedNodes, degree, addNeighbor, roc):
+        def initP2PNeigborhood(nodes, degree):
+            if (len(nodes) <= degree + 1):
+                self.logger.debug("Graph fully connected with degree %d !" % (len(nodes) - 1), extra=self.format)
+                G = nx.complete_graph(len(nodes))
+            else:
+                G = nx.random_regular_graph(degree, len(nodes))
+            if not nx.is_connected(G):
+                self.logger.error("Graph not connected!", extra=self.format)
+            for u, v in G.edges:
+                val1=nodes[u]
+                val2=nodes[v]
+                val1.addNeighbor(val2, symmetric=True) # symmetric
+
+        def initGS(id, interestedNodes, degree, addNeighbor, getNeighbors, roc):
+            nodes = interestedNodes.copy()
+            while nodes:
+                done = set()
+                for node in nodes:
+                    neighs = set(map(P2PNeighbor.getNode, node.neighbors.values()))
+                    gsNeighs = set(map(Neighbor.getPeerNode, getNeighbors(node, id).values()))
+                    if len(gsNeighs) < degree:
+                        #newNeighs = neighs.intersection(nodes).difference(done).difference(gsNeighs)
+                        newNeighs = neighs.intersection(nodes)
+                        newNeighs = neighs.intersection(nodes).difference(done)
+                        newNeighs = neighs.intersection(nodes).difference(done).difference(gsNeighs)
+                        if newNeighs:
+                            n = random.choice(list(newNeighs))
+                            addNeighbor(node, id, n) # symmetric
+                            self.logger.debug("adding %d %d (%d)" % (node.ID, n.ID, len(gsNeighs)), extra=self.format)
+                            if len(getNeighbors(node, id)) >= degree:
+                                done.add(node)
+                            if len(getNeighbors(node, id)) >= degree:
+                                done.add(n)
+                        else:
+                            done.add(node)
+                            self.logger.debug("No more potential neighbors for %d, row %d (%d)" % (node.ID, id, len(gsNeighs)), extra=self.format)
+                    else:
+                        done.add(node)
+                        self.logger.debug("Neighbors for %d, row %d (%d)" % (node.ID, id, len(gsNeighs)), extra=self.format)
+                #nodes = list(filter(lambda n : len(n.getRowNeighbors(id)) < degree, nodes))
+                nodes = list(set(nodes).difference(done))
+
             # If the number of nodes in a channel is smaller or equal to the
             # requested degree, a fully connected graph is used. For n>d, a random
             # d-regular graph is set up. (For n=d+1, the two are the same.)
-            if not interestedNodes:
-                self.logger.error("No nodes for %s %d !" % (roc, id), extra=self.format)
-                return
-            elif (len(interestedNodes) <= degree):
-                self.logger.debug("Graph fully connected with degree %d !" % (len(interestedNodes) - 1), extra=self.format)
-                G = nx.complete_graph(len(interestedNodes))
-            else:
-                G = nx.random_regular_graph(degree, len(interestedNodes))
-            if not nx.is_connected(G):
-                self.logger.error("Graph not connected for %s %d !" % (roc, id), extra=self.format)
-            for u, v in G.edges:
-                val1=interestedNodes[u]
-                val2=interestedNodes[v]
-                addNeighbor(val1, id, val2) # symmetric
+            # if not interestedNodes:
+            #     self.logger.error("No nodes for %s %d !" % (roc, id), extra=self.format)
+            #     return
+            # elif (len(interestedNodes) <= degree):
+            #     self.logger.debug("Graph fully connected with degree %d !" % (len(interestedNodes) - 1), extra=self.format)
+            #     G = nx.complete_graph(len(interestedNodes))
+            # else:
+            #     G = nx.random_regular_graph(degree, len(interestedNodes))
+            # if not nx.is_connected(G):
+            #     self.logger.error("Graph not connected for %s %d !" % (roc, id), extra=self.format)
+            # for u, v in G.edges:
+            #     val1=interestedNodes[u]
+            #     val2=interestedNodes[v]
+            #     addNeighbor(val1, id, val2) # symmetric
 
         def initRowGS(id):
-            initGS(id, rowChannels[id], self.shape.netDegree, Node.addRowNeighbor, "row")
+            initGS(id, rowChannels[id], self.shape.netDegree, Node.addRowNeighbor, Node.getRowNeighbors, "row")
 
         def initColumnGS(id):
-            initGS(id, columnChannels[id], self.shape.netDegree, Node.addColumnNeighbor, "column")
+            initGS(id, columnChannels[id], self.shape.netDegree, Node.addColumnNeighbor, Node.getColumnNeighbors, "column")
 
         for v in self.validators:
             if not (self.proposerPublishOnly and v.amIproposer):
@@ -165,6 +206,8 @@ class Simulator:
             self.distC.append(len(c))
         self.logger.debug("Number of validators per row; Min: %d, Max: %d" % (min(self.distR), max(self.distR)), extra=self.format)
         self.logger.debug("Number of validators per column; Min: %d, Max: %d" % (min(self.distC), max(self.distC)), extra=self.format)
+
+        initP2PNeigborhood(self.validators, 50)#len(self.validators) - 1)
 
         #set up GS for nodes
         for id in range(self.shape.blockSizeC):
