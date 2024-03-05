@@ -15,6 +15,8 @@ class P2PNeighbor:
         self.node = node
     def setPeer(self, peer):
         self.peer = peer
+    def getNode(self):
+        return self.node
 
 class Neighbor:
     """This class implements a node neighbor to monitor sent and received data.
@@ -40,6 +42,11 @@ class Neighbor:
     def setPeer(self, peer):
         self.peer = peer
 
+    def getNode(self):
+        return self.node
+
+    def getPeerNode(self):
+        return self.peer.node
 
 class Validator:
     def __init__(self, rowIDs, columnIDs):
@@ -138,6 +145,12 @@ class Node:
         if symmetric:
             if self.ID not in peer.neighbors:
                 peer.neighbors[self.ID] = n
+
+    def getRowNeighbors(self, id):
+        return self.rowNeighbors[id]
+
+    def getColumnNeighbors(self, id):
+        return self.columnNeighbors[id]
 
     def addRowNeighbor(self, lineID, peer, symmetric = True):
         n = Neighbor(self, 0, self.shape.blockSizeR)
