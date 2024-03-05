@@ -9,6 +9,7 @@ from DAS.tools import *
 from DAS.results import *
 from DAS.observer import *
 from DAS.validator import *
+from time import time
 
 class Simulator:
     """This class implements the main DAS simulator."""
@@ -239,7 +240,9 @@ class Simulator:
         progressVector = []
         trafficStatsVector = []
         steps = 0
+        # stepsLapses = []
         while(True):
+            # tic = time()
             missingVector.append(missingSamples)
             oldMissingSamples = missingSamples
             self.logger.debug("PHASE SEND %d" % steps, extra=self.format)
@@ -264,10 +267,12 @@ class Simulator:
             for i in range(0,self.shape.numberNodes):
                 self.validators[i].updateStats()
             trafficStatsVector.append(trafficStats)
+            # toc = time()
 
             missingSamples, sampleProgress, nodeProgress, validatorAllProgress, validatorProgress = self.glob.getProgress(self.validators)
             self.logger.info("step %d, arrived %0.02f %%, ready %0.02f %%, validatedall %0.02f %%, , validated %0.02f %%"
                               % (steps, sampleProgress*100, nodeProgress*100, validatorAllProgress*100, validatorProgress*100), extra=self.format)
+            # stepsLapses.append(toc - tic)
 
             cnS = "samples received"
             cnN = "nodes ready"
@@ -306,6 +311,8 @@ class Simulator:
                 missingVector.append(missingSamples)
                 break
             steps += 1
+        
+        # print(f"(send: {self.shape.sendDqSize}, receive: {self.shape.receivedDqSize}) => {stepsLapses}")
 
         progress = pd.DataFrame(progressVector)
         if self.config.saveRCdist:
