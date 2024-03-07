@@ -27,7 +27,7 @@ def plotData(conf):
     plt.title(conf["title"])
     plt.ylabel(conf["ylabel"])
     plt.xlabel(conf["xlabel"])
-    plt.ylim(0, conf["yaxismax"]*1.1)
+    plt.ylim(0, conf["yaxismax"]*1.1 if conf["yaxismax"] > 0 else 1)
     plt.legend(loc=conf["legLoc"])
     plt.savefig(conf["path"], bbox_inches="tight")
 
