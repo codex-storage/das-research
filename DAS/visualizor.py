@@ -278,7 +278,8 @@ class Visualizor:
         plt.xlabel(conf["xlabel"])
         plt.ylabel(conf["ylabel"])
         plt.title(conf["title"])
-        plt.xlim(left=0, right=max(result.restoreRowCount) * 1.1)
+        max_val = max(result.restoreRowCount) * 1.1
+        plt.xlim(left=0, right=max_val if max_val > 0 else 1)
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         plt.text(1.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
         plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'], loc=1)
@@ -304,7 +305,8 @@ class Visualizor:
         plt.xlabel(conf["xlabel"])
         plt.ylabel(conf["ylabel"])
         plt.title(conf["title"])
-        plt.xlim(left=0, right=max(result.restoreColumnCount) * 1.1)
+        max_val = max(result.restoreColumnCount) * 1.1
+        plt.xlim(left=0, right=max_val if max_val > 0 else 1) 
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         plt.text(1.05, 0.05, conf["textBox"], fontsize=10, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
         plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'], loc=1)
