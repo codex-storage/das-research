@@ -15,13 +15,16 @@ def plotData(conf):
         transform=plt.gca().transAxes,
         bbox=props,
     )
-    plt.plot(conf["data"])
+    plt.plot(conf["data1"], label=conf["labels"][0])
+    plt.plot(conf["data5"], label=conf["labels"][1])
+    plt.plot(conf["data10"], label=conf["labels"][2])
 
     plt.title(conf["title"])
     plt.ylabel(conf["ylabel"])
     plt.xlabel(conf["xlabel"])
     plt.xticks(fontsize=10)
     plt.yticks(fontsize=10)
+    plt.legend()
     plt.savefig(conf["path"], bbox_inches="tight")
 
 
@@ -29,7 +32,7 @@ plot_dir = "plotts/"
 os.makedirs(plot_dir, exist_ok=True)
 
 # 5k Nodes
-sizes = [
+sizes5 = [
     (39, 395, 103.05640840530396),
     (32, 395, 103.86710143089294),
     (25, 315, 104.80244779586792),
@@ -37,7 +40,7 @@ sizes = [
     (10, 31, 171.9263310432434),
     (7, 10, 191.59916806221008),
 ]
-stepsLapses = [
+stepsLapses5 = [
     [
         0.6611301898956299,
         0.78688645362854,
@@ -133,8 +136,8 @@ stepsLapses = [
 ]
 
 # 10k Nodes
-sizes = [
-    (50, 400, 213.62911701202393),
+sizes10 = [
+    # (50, 400, 213.62911701202393),
     (39, 395, 214.84202361106873),
     (32, 395, 213.54416799545288),
     (25, 315, 217.63313937187195),
@@ -142,23 +145,23 @@ sizes = [
     (10, 31, 343.50494503974915),
     (7, 10, 394.94820404052734),
 ]
-stepsLapses = [
-    [
-        1.3518695831298828,
-        1.4894051551818848,
-        2.389191150665283,
-        6.95463490486145,
-        24.005772352218628,
-        30.02708649635315,
-        30.45380449295044,
-        30.695934772491455,
-        30.31646728515625,
-        29.054046869277954,
-        17.703431129455566,
-        2.720566511154175,
-        2.1709277629852295,
-        1.8627982139587402,
-    ],
+stepsLapses10 = [
+    # [
+    #     1.3518695831298828,
+    #     1.4894051551818848,
+    #     2.389191150665283,
+    #     6.95463490486145,
+    #     24.005772352218628,
+    #     30.02708649635315,
+    #     30.45380449295044,
+    #     30.695934772491455,
+    #     30.31646728515625,
+    #     29.054046869277954,
+    #     17.703431129455566,
+    #     2.720566511154175,
+    #     2.1709277629852295,
+    #     1.8627982139587402,
+    # ],
     [
         1.3505363464355469,
         1.5087687969207764,
@@ -258,7 +261,7 @@ stepsLapses = [
 ]
 
 # 1k Nodes
-sizes = [
+sizes1 = [
     (39, 395, 19.518831253051758),
     (32, 395, 19.62859344482422),
     (25, 315, 20.106651306152344),
@@ -266,7 +269,7 @@ sizes = [
     (10, 31, 33.48099613189697),
     (7, 10, 37.46962857246399),
 ]
-stepsLapses = [
+stepsLapses1 = [
     [
         0.15041708946228027,
         0.2558310031890869,
@@ -351,12 +354,12 @@ stepsLapses = [
     ],
 ]
 
-for size, lapses in zip(sizes, stepsLapses):
-    fname = f"{size[0]}_{size[1]}.png"
+for size1, size5, size10, lapses1, lapses5, lapses10 in zip(sizes1, sizes5, sizes10, stepsLapses1, stepsLapses5, stepsLapses10):
+    fname = f"{size1[0]}_{size1[1]}.png"
 
     conf = {}
     conf["textBox"] = (
-        f"Max Send Deque Size: {size[0]}\nMax Received Deque Size: {size[1]}\nTotal Time Taken: {size[2]:.2f}s"
+        f"Max Send Deque Size: {size1[0]}\nMax Received Deque Size: {size1[1]}"
     )
     conf["title"] = "Step Duration"
     conf["type"] = "plot"
@@ -366,6 +369,13 @@ for size, lapses in zip(sizes, stepsLapses):
     conf["labels"] = ["Step Duration"]
     conf["xlabel"] = "Step"
     conf["ylabel"] = "Time Taken (sec)"
-    conf["data"] = lapses
+    conf["data1"] = lapses1
+    conf["data5"] = lapses5
+    conf["data10"] = lapses10
     conf["path"] = plot_dir + fname
+    conf["labels"] = [
+        f"Nodes: 1000 (Time Taken: {size1[2]:.2f}s)",
+        f"Nodes: 5000 (Time Taken: {size5[2]:.2f}s)",
+        f"Nodes: 10000 (Time Taken: {size10[2]:.2f}s)"
+    ]
     plotData(conf)
