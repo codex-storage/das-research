@@ -127,7 +127,7 @@ segmentShuffleScheduler = True # send each segment that's worth sending once in 
 segmentShuffleSchedulerPersist = True # Persist scheduler state between timesteps
 queueAllOnInit = False # queue up everything in the block producer, without shuffling, at the very beginning
 forwardOnReceive = True # forward segments as soon as received
-forwardOnRepair = False # forward all segments when full line available (repaired segments are always forwarded)
+forwardWhenLineReceived = False # forward all segments when full line available (repaired segments are always forwarded)
 
 cols = range(64, 113, 128)
 rows = range(32, 113, 128)
