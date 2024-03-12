@@ -28,9 +28,15 @@ class Observer:
                     self.columns[c] += 1
 
         for i in range(self.config.nbRows):
-            self.logger.debug("Row/Column %d have %d and %d validators assigned." % (i, self.rows[i], self.columns[i]), extra=self.format)
-            if self.rows[i] == 0 or self.columns[i] == 0:
-                self.logger.warning("There is a row/column that has not been assigned", extra=self.format)
+            self.logger.debug("Row %d has %d validators assigned." % (i, self.rows[i]), extra=self.format)
+            if self.rows[i] == 0:
+                self.logger.warning("There is a row that has not been assigned", extra=self.format)
+
+        for i in range(self.config.nbCols):
+            self.logger.debug("Column %d has %d validators assigned." % (i, self.columns[i]), extra=self.format)
+            if self.columns[i] == 0:
+                self.logger.warning("There is a column that has not been assigned", extra=self.format)
+
 
     def checkBroadcasted(self):
         """It checks how many broadcasted samples are still missing in the network."""
