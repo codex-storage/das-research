@@ -93,6 +93,7 @@ def study():
 
         visual = Visualizor(execID, config, results)
         visual.plotHeatmaps("nn", "fr")
+        visual.plotNWDegVsNodeOnRuntime()
 
 if __name__ == "__main__":
     study()
