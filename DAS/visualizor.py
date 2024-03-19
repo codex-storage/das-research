@@ -1070,6 +1070,7 @@ class Visualizor:
         plt.ylabel(conf['ylabel'])
         plt.title(conf['title'])
         plt.savefig(f"results/{self.execID}/heatmaps/{conf['path']}")
+        plt.clf()
     
     # x -> network degree, y -> number of nodes, weights -> simulation duration
     def plotNWDegVsNodeOnRuntime(self):
@@ -1085,8 +1086,32 @@ class Visualizor:
             'weights': weights,
             'xlabel': 'Net Degree',
             'ylabel': 'Number of Nodes',
-            'title': 'Heatmap of Net Degree, Number of Nodes & Simulation Runtime',
-            'path': 'NWDegNodeDuration.png'
+            'title': 'Net Degree vs. Number of Nodes on Simulation Runtime',
+            'path': 'NWDegVsNodeOnRuntime.png'
+        }
+
+        self.plotHeatMapData(conf)
+    
+    # x -> network degree, y -> % of malicious nodes, weights -> no of missing samples
+    def plotNWDegVsMalNodeOnMissingSamples(self):
+        x = [result.shape.netDegree for result in self.results]
+        y = [result.shape.maliciousNodes for result in self.results]
+        weights = [result.missingVector[-1] for result in self.results]
+
+        if len(set(x)) * len(set(y)) < 2: return # Not enough unique params for heatmap
+        
+        conf = {
+            'x': x,
+            'y': y,
+            'weights': weights,
+            'xlabel': 'Net Degree',
+            'ylabel': 'Malicious Nodes (%)',
+            'title': 'Net Degree vs Malicious Nodes (%) on Missing Samples',
+            'path': 'NWDegVsMalNodeOnMissingSamples.png'
         }
         
         self.plotHeatMapData(conf)
+    
+    def plotAllHeatMaps(self):
+        self.plotNWDegVsNodeOnRuntime()
+        self.plotNWDegVsMalNodeOnMissingSamples()
