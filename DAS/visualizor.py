@@ -1073,16 +1073,11 @@ class Visualizor:
     
     # x -> network degree, y -> number of nodes, weights -> simulation duration
     def plotNWDegVsNodeOnRuntime(self):
-        if len(self.results) < 2: return
-        
-        x, y, weights = [], [], []
-        for result in self.results:
-            _netDegree = result.shape.netDegree
-            _nodes = result.shape.numberNodes
-            _duration = self.config.stepDuration * (len(result.missingVector) - 1)
-            x.append(_netDegree)
-            y.append(_nodes)
-            weights.append(_duration)
+        x = [result.shape.netDegree for result in self.results]
+        y = [result.shape.numberNodes for result in self.results]
+        weights = [self.config.stepDuration * (len(result.missingVector) - 1) for result in self.results]
+
+        if len(set(x)) * len(set(y)) < 2: return # Not enough unique params for heatmap
         
         conf = {
             'x': x,
