@@ -90,6 +90,7 @@ class Observer:
         arrived = 0
         expected = 0
         ready = 0
+        ready1 = ready2 = ready3 = 0
         nodes = 0
         f1 = f2 = f3 = 0
 
@@ -102,10 +103,13 @@ class Observer:
                 f3 += f[0] + f[1] + f[2] + f[3]
                 arrived += a
                 expected += e
-                if a == e:
-                    ready += 1
+                if a == e: ready += 1
+                if f[0] + f[1] == e: ready1 += 1
+                if f[0] + f[1] + f[2] == e: ready2 += 1
+                if f[0] + f[1] + f[2] + f[3] == e: ready3 += 1
                 nodes += 1
-        return (arrived / expected, f3/expected, f2/expected, f1/expected, ready / nodes)
+        return (arrived / expected, f3/expected, f2/expected, f1/expected,
+                ready / nodes, ready3 / nodes, ready2 / nodes, ready1 / nodes)
 
     def getTrafficStats(self, validators):
             """Summary statistics of traffic measurements in a timestep."""

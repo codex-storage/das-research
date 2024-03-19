@@ -297,7 +297,8 @@ class Simulator:
                 self.validators[i].send()
             self.logger.debug("PHASE PROGRESS STATS %d" % steps, extra=self.format)
             missingSamples, sampleProgress, nodeProgress, validatorAllProgress, validatorProgress = self.glob.getProgress(self.validators)
-            samplingProgressAll, samplingProgress3, samplingProgress2, samplingProgress1, _ = self.glob.getSamplingProgress(self.validators)
+            (samplingProgressAll, samplingProgress3, samplingProgress2, samplingProgress1,
+              samplingReadyAll, samplingReady3, samplingReady2, samplingReady1) = self.glob.getSamplingProgress(self.validators)
             self.logger.debug("PHASE RECEIVE %d" % steps, extra=self.format)
             for i in range(1,self.shape.numberNodes):
                 self.validators[i].receiveRowsColumns()
@@ -320,17 +321,24 @@ class Simulator:
                 self.validators[i].updateStats()
             trafficStatsVector.append(trafficStats)
 
-            self.logger.info("step %d, arrived %0.02f %%, ready %0.02f %%, validatedall %0.02f %%, validated %0.02f %%, sampled %0.02f %%"
+            self.logger.info(("step %d, arrived %0.02f %%, ready %0.02f %%, validatedall %0.02f %%, validated %0.02f %%," +
+                             " sampled %0.02f/%0.02f/%0.02f/%0.02f %%, samplingReady %0.02f/%0.02f/%0.02f/%0.02f %%")
                               % (steps, sampleProgress*100, nodeProgress*100, validatorAllProgress*100, validatorProgress*100,
-                                 samplingProgressAll*100), extra=self.format)
+                                 samplingProgressAll*100, samplingProgress3*100, samplingProgress2*100, samplingProgress1*100,
+                                 samplingReadyAll*100, samplingReady3*100, samplingReady2*100, samplingReady1*100
+                                 ), extra=self.format)
 
             cnS = "samples received"
             cnN = "nodes ready"
             cnV = "validators ready"
-            cnDASall = "DASampling ready (query all)"
-            cnDAS3 = "DASampling ready (query 3)"
-            cnDAS2 = "DASampling ready (query 2)"
-            cnDAS1 = "DASampling ready (query 1)"
+            cnDASall = "DASampling progress (query all)"
+            cnDAS3 = "DASampling progress (query 3)"
+            cnDAS2 = "DASampling progress (query 2)"
+            cnDAS1 = "DASampling progress (query 1)"
+            cnDASReadyall = "DASampling ready (query all)"
+            cnDASReady3 = "DASampling ready (query 3)"
+            cnDASReady2 = "DASampling ready (query 2)"
+            cnDASReady1 = "DASampling ready (query 1)"
             cnT0 = "TX builder mean"
             cnT1 = "TX class1 mean"
             cnT2 = "TX class2 mean"
@@ -347,6 +355,10 @@ class Simulator:
                 cnDAS3:samplingProgress3,
                 cnDAS2:samplingProgress2,
                 cnDAS1:samplingProgress1,
+                cnDASReadyall:samplingReadyAll,
+                cnDASReady3:samplingReady3,
+                cnDASReady2:samplingReady2,
+                cnDASReady1:samplingReady1,
                 cnT0: trafficStats[0]["Tx"]["mean"],
                 cnT1: trafficStats[1]["Tx"]["mean"],
                 cnT2: trafficStats[2]["Tx"]["mean"],

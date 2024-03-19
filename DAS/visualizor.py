@@ -112,10 +112,14 @@ class Visualizor:
         vector1 = result.metrics["progress"]["nodes ready"]
         vector2 = result.metrics["progress"]["validators ready"]
         vector3 = result.metrics["progress"]["samples received"]
-        vector4 = result.metrics["progress"]["DASampling ready (query all)"]
-        vector5 = result.metrics["progress"]["DASampling ready (query 3)"]
-        vector6 = result.metrics["progress"]["DASampling ready (query 2)"]
-        vector7 = result.metrics["progress"]["DASampling ready (query 1)"]
+        vector4 = result.metrics["progress"]["DASampling progress (query all)"]
+        vector5 = result.metrics["progress"]["DASampling progress (query 3)"]
+        vector6 = result.metrics["progress"]["DASampling progress (query 2)"]
+        vector7 = result.metrics["progress"]["DASampling progress (query 1)"]
+        vector8 = result.metrics["progress"]["DASampling ready (query all)"]
+        vector9 = result.metrics["progress"]["DASampling ready (query 3)"]
+        vector10 = result.metrics["progress"]["DASampling ready (query 2)"]
+        vector11 = result.metrics["progress"]["DASampling ready (query 1)"]
         conf = {}
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Block Size R: "+attrbs['bsrn']+"\nBlock Size C: "+attrbs['bscn']\
@@ -124,12 +128,13 @@ class Visualizor:
         conf["type"] = "plot"
         conf["legLoc"] = 2
         conf["desLoc"] = 2
-        conf["colors"] = ["g-", "b-", "r-", "m-", "m--", "m-.", "m:"]
+        conf["colors"] = ["g-", "b-", "r-", "m-", "m--", "m-.", "m:", "c-", "c--", "c-.", "c:"]
         conf["labels"] = ["Nodes", "Validators", "Custody samples",
-                          "DASampling (query all)", "DASampling (query 3)", "DASampling (query 2)", "DASampling (query 1)"]
+                          "DASampling progress (query all)", "DASampling progress (query 3)", "DASampling progress (query 2)", "DASampling progress (query 1)",
+                          "DASampling ready (query all)", "DASampling ready (query 3)", "DASampling ready (query 2)", "DASampling ready (query 1)"]
         conf["xlabel"] = "Time (ms)"
         conf["ylabel"] = "Ratio of all (0..1)"
-        conf["data"] = [vector1, vector2, vector3, vector4, vector5, vector6, vector7]
+        conf["data"] = [vector1, vector2, vector3, vector4, vector5, vector6, vector7, vector8, vector9, vector10, vector11 ]
         conf["xdots"] = [x*self.config.stepDuration for x in range(len(vector1))]
         conf["path"] = plotPath+"/nodesReady.png"
         maxi = 0
