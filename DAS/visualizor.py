@@ -1111,7 +1111,28 @@ class Visualizor:
         }
         
         self.plotHeatMapData(conf)
-    
+
+    # x -> network degree, y -> failure rate, weights -> no of missing samples
+    def plotNWDegVsFailureRateOnMissingSamples(self):
+        x = [result.shape.netDegree for result in self.results]
+        y = [result.shape.failureRate for result in self.results]
+        weights = [result.missingVector[-1] for result in self.results]
+
+        if len(set(x)) * len(set(y)) < 2: return  # Not enough unique params for heatmap
+
+        conf = {
+            'x': x,
+            'y': y,
+            'weights': weights,
+            'xlabel': 'Net Degree',
+            'ylabel': 'Failure Rate (%)',
+            'title': 'Net Degree vs Failure Rate (%) on Missing Samples',
+            'path': 'NWDegVsFailureRateOnMissingSamples.png'
+        }
+
+        self.plotHeatMapData(conf)
+         
     def plotAllHeatMaps(self):
         self.plotNWDegVsNodeOnRuntime()
         self.plotNWDegVsMalNodeOnMissingSamples()
+        self.plotNWDegVsFailureRateOnMissingSamples()
