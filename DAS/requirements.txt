@@ -4,5 +4,5 @@ matplotlib==3.6.2
 mplfinance==0.12.9b7
 networkx==3.0
 numpy==1.23.5
-seaborn==0.12.2
+seaborn==0.13.0
 joblib==1.2.0
