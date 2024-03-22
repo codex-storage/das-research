@@ -782,11 +782,7 @@ class Visualizor:
         conf["data"] = [vector1, vector2, vector3]
         conf["xdots"] = [x*self.config.stepDuration for x in range(len(vector1))]
         conf["path"] = plotPath+"/nodesReady.png"
-        maxi = 0
-        for v in conf["data"]:
-            if max(v) > maxi:
-                maxi = max(v)
-        conf["yaxismax"] = maxi
+        conf["yaxismax"] = 1
         plotData(conf)
         print("Plot %s created." % conf["path"])
 
