@@ -113,7 +113,7 @@ deg = 8
 mals = range(5, 100, 5)
 numberOfColumns = 128
 custody = 4
-numberOfNodes = [int(_) for _ in (np.logspace(2, 3, 3, endpoint=True, base=10) * 5)]
+numberOfNodes = [int(_) for _ in (np.logspace(2, 4, 5, endpoint=True, base=10) * 5)]
 numberOfValidators = [int(nn * 2.4) for nn in numberOfNodes] # (0.8 * 1 + 0.2 * 8 = 2.4)
 
 if __name__ == "__main__":

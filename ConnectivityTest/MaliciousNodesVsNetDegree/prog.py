@@ -108,7 +108,7 @@ def study():
 
 # Configuration
 runs = 10
-degs = range(6, 9, 2)
+degs = range(6, 13, 2)
 mals = range(5, 100, 5)
 numberOfColumns = 128
 custody = 4
