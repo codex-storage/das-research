@@ -119,15 +119,27 @@ sendLineUntilR = "shape.nbColsK" # stop sending on a p2p link if at least this a
 sendLineUntilC = lambda shape : shape.nbRowsK # stop sending on a p2p link if at least this amount of samples passed
 perNeighborQueue = True # queue incoming messages to outgoing connections on arrival (as typical GossipSub impl)
 shuffleQueues = True # shuffle the order of picking from active queues of a sender node
-perNodeQueue = False # keep a global queue of incoming messages for later sequential dispatch
 shuffleLines = True # shuffle the order of rows/columns in each iteration while trying to send
 shuffleNeighbors = True # shuffle the order of neighbors when sending the same segment to each neighbor
 dumbRandomScheduler = False # dumb random scheduler
-segmentShuffleScheduler = True # send each segment that's worth sending once in shuffled order, then repeat
-segmentShuffleSchedulerPersist = True # Persist scheduler state between timesteps
-queueAllOnInit = False # queue up everything in the block producer, without shuffling, at the very beginning
-forwardOnReceive = True # forward segments as soon as received
-forwardWhenLineReceived = False # forward all segments when full line available (repaired segments are always forwarded)
+
+messageIsLine = False
+if messageIsLine:
+    # Message is line
+    perNodeQueue = "self.amIproposer" # keep a global queue of incoming messages for later sequential dispatch
+    segmentShuffleScheduler = False # send each segment that's worth sending once in shuffled order, then repeat
+    segmentShuffleSchedulerPersist = True # Persist scheduler state between timesteps
+    queueAllOnInit = True # queue up everything in the block producer, without shuffling, at the very beginning 
+    forwardOnReceive = False # forward segments as soon as received
+    forwardWhenLineReceived = True # forward all segments when full line available (repaired segments are always forwarded)
+else:
+    ## Message is segment
+    perNodeQueue = False # keep a global queue of incoming messages for later sequential dispatch
+    segmentShuffleScheduler = True # send each segment that's worth sending once in shuffled order, then repeat
+    segmentShuffleSchedulerPersist = True # Persist scheduler state between timesteps
+    queueAllOnInit = False # queue up everything in the block producer, without shuffling, at the very beginning
+    forwardOnReceive = True # forward segments as soon as received
+    forwardWhenLineReceived = False # forward all segments when full line available (repaired segments are always forwarded)
 
 cols = range(64, 113, 128)
 rows = range(32, 113, 128)
