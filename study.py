@@ -45,7 +45,50 @@ def runOnce(config, shape, execID):
 
     return result
 
+
+def check_simulation_completion(state_file):
+    backup_dir = os.path.join(os.path.dirname(state_file), "backup")
+    if not os.path.exists(backup_dir):
+        return False
+
+    all_completed = True
+    for filename in sorted(os.listdir(backup_dir), reverse=True):  # Iterate in reverse order
+        if not filename.endswith(".pkl"):
+            continue
+        full_path = os.path.join(backup_dir, filename)
+        try:
+            with open(full_path, 'rb') as f:
+                items = []
+                while True:
+                    try:
+                        item = pickle.load(f)
+                        items.append(item)  # Load all items
+                    except EOFError:  # Reached end of file
+                        break
+                last_item = items[-1]  # Access the last item
+                # print(last_item)
+                if last_item != "completed":
+                    all_completed = False
+                    break  # No need to continue checking other files
+        except (OSError, pickle.UnpicklingError) as e:
+            print(f"Error loading state from {full_path}: {e}")
+            all_completed = False  # Treat errors as incomplete
+            break  # No need to continue checking other files
+    return all_completed
+
+
 def study():
+    restart_path = None
+    for arg in sys.argv[1:]:
+        if arg.startswith("--restart="):
+            restart_path = arg[len("--restart="):]
+
+    if restart_path:
+        execID = restart_path.split("/")[1]
+        state_file = f"results/{execID}/backup"
+        print(check_simulation_completion(state_file))
+        sys.exit(0)
+        
     if len(sys.argv) < 2:
         print("You need to pass a configuration file in parameter")
         exit(1)

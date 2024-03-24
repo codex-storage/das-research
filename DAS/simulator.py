@@ -9,6 +9,9 @@ from DAS.tools import *
 from DAS.results import *
 from DAS.observer import *
 from DAS.node import *
+import os
+import pickle
+import uuid
 
 class Simulator:
     """This class implements the main DAS simulator."""
@@ -273,7 +276,9 @@ class Simulator:
         trafficStatsVector = []
         malicious_nodes_not_added_count = 0
         steps = 0
+        unique_run_id = str(uuid.uuid4())
         while(True):
+            vectors_data = []
             missingVector.append(missingSamples)
             self.logger.debug("Expected Samples: %d" % expected, extra=self.format)
             self.logger.debug("Missing Samples: %d" % missingSamples, extra=self.format)
@@ -350,7 +355,43 @@ class Simulator:
                 self.logger.debug("The entire block is available at step %d, with failure rate %d !" % (steps, self.shape.failureRate), extra=self.format)
                 missingVector.append(missingSamples)
                 break
+
+            for i in range(0, self.shape.numberNodes):
+                validator_data = {
+                    'validator_ID': self.validators[i].ID,
+                    'rowIDs': list(self.validators[i].rowIDs),
+                    'columnIDs': list(self.validators[i].columnIDs),
+                    'amImalicious': self.validators[i].amImalicious,
+                    'amIaddedToQueue': self.validators[i].amIaddedToQueue,
+                    'msgSentCount': self.validators[i].msgSentCount,
+                    'msgRecvCount': self.validators[i].msgRecvCount,
+                    'sampleSentCount': self.validators[i].sampleSentCount,
+                    'sampleRecvCount': self.validators[i].sampleRecvCount,
+                    'restoreRowCount': self.validators[i].restoreRowCount,
+                    'restoreColumnCount': self.validators[i].restoreColumnCount,
+                    'repairedSampleCount': self.validators[i].repairedSampleCount,
+                    'rowNeighbors': list(self.validators[i].rowNeighbors),
+                    'columnNeighbors': list(self.validators[i].columnNeighbors)
+                }
+                vectors_data.append(validator_data)
+            
+            vectors_data += (progressVector,missingVector)
+            backup_folder = f"results/{self.execID}/backup"
+            if not os.path.exists(backup_folder):
+                os.makedirs(backup_folder)  
+            backup_file = os.path.join(backup_folder, f"simulation_data_{unique_run_id}.pkl")
+            with open(backup_file, 'ab') as f:
+                pickle.dump(vectors_data, f)
             steps += 1
+        
+
+        backup_folder = f"results/{self.execID}/backup"
+        if not os.path.exists(backup_folder):
+            os.makedirs(backup_folder)
+        backup_file = os.path.join(backup_folder, f"simulation_data_{unique_run_id}.pkl")
+
+        with open(backup_file, 'ab') as f:  # Open in append binary mode
+            pickle.dump("completed", f)
 
         for i in range(0,self.shape.numberNodes):
             if not self.validators[i].amIaddedToQueue :
