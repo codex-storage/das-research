@@ -52,6 +52,7 @@ def check_simulation_completion(state_file):
         return False
 
     all_completed = True
+    incomplete_files = []
     for filename in sorted(os.listdir(backup_dir), reverse=True):  # Iterate in reverse order
         if not filename.endswith(".pkl"):
             continue
@@ -69,12 +70,12 @@ def check_simulation_completion(state_file):
                 # print(last_item)
                 if last_item != "completed":
                     all_completed = False
-                    break  # No need to continue checking other files
+                    incomplete_files.append(full_path)
         except (OSError, pickle.UnpicklingError) as e:
             print(f"Error loading state from {full_path}: {e}")
             all_completed = False  # Treat errors as incomplete
             break  # No need to continue checking other files
-    return all_completed
+    return all_completed, incomplete_files
 
 
 def study():
@@ -86,8 +87,40 @@ def study():
     if restart_path:
         execID = restart_path.split("/")[1]
         state_file = f"results/{execID}/backup"
-        print(check_simulation_completion(state_file))
-        sys.exit(0)
+        all_completed, incomplete_files = check_simulation_completion(state_file)
+        if all_completed:
+            print("Simulation is already completed.")
+            sys.exit(0)  # Exit gracefully if already completed
+        else:
+            print(incomplete_files)
+            # Load the state (if available)
+            # all_results = []
+            # for incomplete_file in incomplete_files:
+            #     latest_state = None
+            #     try:
+            #         with open(incomplete_file, 'rb') as f:
+            #             items = []
+            #             while True:
+            #                 try:
+            #                     item = pickle.load(f)
+            #                     items.append(item)
+            #                 except EOFError:
+            #                     break
+            #             latest_state = items[-1]  # Assuming state is the last item
+            #     except (OSError, pickle.UnpicklingError) as e:
+            #         print(f"Error loading state from {incomplete_file}: {e}")
+            #     if latest_state:
+            #         try:
+            #             # Assuming configuration file is 'smallConf.py'
+            #             config = importlib.import_module("smallConf")
+            #             results = Parallel(config.numJobs)(delayed(runOnce)(config, shape, execID, latest_state) for shape in config.nextShape())
+            #             all_results.extend(results)  # Collect results from all restarts
+            #         except ModuleNotFoundError as e:
+            #             print(f"Error importing configuration file 'smallConf.py': {e}")
+            #     else:
+            #         print(f"No state found for restart from {incomplete_file}. Skipping.")
+                
+            sys.exit(0)
         
     if len(sys.argv) < 2:
         print("You need to pass a configuration file in parameter")
