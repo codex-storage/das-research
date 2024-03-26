@@ -5,6 +5,7 @@ import sys
 import numpy as np
 from datetime import datetime
 import os
+from joblib import Parallel, delayed
 
 
 def plotData(conf):
@@ -38,8 +39,6 @@ def getValidatorCountPerColumn(numberOfCols, numOfValidators, chiC):
     return validatorCountPerColumn
 
 def runOnce(run_i, runs, deg, validatorCountPerCol, malNodesPercentage):
-    print(f"Running: {run_i + 1} / {runs}")
-    
     isParted = False
     partCount = 0
     isPartedCount = 0
@@ -50,7 +49,6 @@ def runOnce(run_i, runs, deg, validatorCountPerCol, malNodesPercentage):
             partCount += 1
     
     if isParted: isPartedCount += 1
-    sys.stdout.write("\033[F")
     
     return isPartedCount, partCount
 
@@ -66,11 +64,9 @@ def study():
         for mal in mals:
             isPartedCount = partCount = 0
             validatorCountPerColumn = getValidatorCountPerColumn(numberOfColumns, nv, custody)
-            for _run in range(runs):
-                _isPartedCount, _partCount = runOnce(_run, runs, deg, validatorCountPerColumn, mal)
-                isPartedCount += _isPartedCount
-                partCount += _partCount
-            
+            results = Parallel(-1)(delayed(runOnce)(_run, runs, deg, validatorCountPerColumn, mal) for _run in range(runs))
+            isPartedCount = sum([res[0] for res in results])
+            partCount = sum([res[1] for res in results])
             partPercentages.append(isPartedCount * 100 / runs)
             avgDisconnectedCols.append(partCount / runs)
             print(f"Malicious Nodes: {mal}%, Partition Percentage: {partPercentages[-1]}, Avg. Partitions: {avgDisconnectedCols[-1]}")
