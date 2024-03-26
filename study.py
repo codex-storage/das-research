@@ -93,33 +93,6 @@ def study():
             sys.exit(0)  # Exit gracefully if already completed
         else:
             print(incomplete_files)
-            # Load the state (if available)
-            # all_results = []
-            # for incomplete_file in incomplete_files:
-            #     latest_state = None
-            #     try:
-            #         with open(incomplete_file, 'rb') as f:
-            #             items = []
-            #             while True:
-            #                 try:
-            #                     item = pickle.load(f)
-            #                     items.append(item)
-            #                 except EOFError:
-            #                     break
-            #             latest_state = items[-1]  # Assuming state is the last item
-            #     except (OSError, pickle.UnpicklingError) as e:
-            #         print(f"Error loading state from {incomplete_file}: {e}")
-            #     if latest_state:
-            #         try:
-            #             # Assuming configuration file is 'smallConf.py'
-            #             config = importlib.import_module("smallConf")
-            #             results = Parallel(config.numJobs)(delayed(runOnce)(config, shape, execID, latest_state) for shape in config.nextShape())
-            #             all_results.extend(results)  # Collect results from all restarts
-            #         except ModuleNotFoundError as e:
-            #             print(f"Error importing configuration file 'smallConf.py': {e}")
-            #     else:
-            #         print(f"No state found for restart from {incomplete_file}. Skipping.")
-                
             sys.exit(0)
         
     if len(sys.argv) < 2:
