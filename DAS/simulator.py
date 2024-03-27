@@ -277,6 +277,13 @@ class Simulator:
         malicious_nodes_not_added_count = 0
         steps = 0
         unique_run_id = str(uuid.uuid4())
+        backup_folder = f"results/{self.execID}/backup"
+        if not os.path.exists(backup_folder):
+            os.makedirs(backup_folder)
+        backup_file = os.path.join(backup_folder, f"simulation_data_{unique_run_id}.pkl")
+
+        with open(backup_file, 'ab') as f:
+            pickle.dump(self.shape.__dict__, f)
         while(True):
             vectors_data = []
             missingVector.append(missingSamples)
@@ -374,7 +381,7 @@ class Simulator:
                     'columnNeighbors': list(self.validators[i].columnNeighbors)
                 }
                 vectors_data.append(validator_data)
-            
+            # Alse store for initNetwork
             vectors_data += (progressVector,missingVector)
             backup_folder = f"results/{self.execID}/backup"
             if not os.path.exists(backup_folder):
