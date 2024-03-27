@@ -45,7 +45,106 @@ def runOnce(config, shape, execID):
 
     return result
 
+
+def check_simulation_completion(state_file):
+    backup_dir = os.path.join(os.path.dirname(state_file), "backup")
+    if not os.path.exists(backup_dir):
+        return False
+
+    all_completed = True
+    incomplete_files = []
+    completed_files = []
+    completed_shapes = []
+    for filename in sorted(os.listdir(backup_dir), reverse=True):
+        if not filename.endswith(".pkl"):
+            continue
+        full_path = os.path.join(backup_dir, filename)
+        try:
+            with open(full_path, 'rb') as f:
+                items = []
+                while True:
+                    try:
+                        item = pickle.load(f)
+                        items.append(item)
+                    except EOFError:
+                        break
+                last_item = items[-1]  # Access the last item
+                # print(last_item)
+                if last_item != "completed":
+                    all_completed = False
+                    incomplete_files.append(full_path)
+                else:
+                    completed_files.append(full_path)
+                    completed_shapes.append(items[0])
+        except (OSError, pickle.UnpicklingError) as e:
+            print(f"Error loading state from {full_path}: {e}")
+            all_completed = False
+            break
+    return all_completed, incomplete_files, completed_files, completed_shapes
+
+
+def start_simulation(execID, completed_files, completed_shapes, incomplete_files):
+    config = importlib.import_module("smallConf")
+    logger = initLogger(config)
+    format = {"entity": "Study"}
+
+    results = []
+    if not os.path.exists("results"):
+        os.makedirs("results")
+    dir = "results/"+execID
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    if config.saveGit:
+       with open(dir+"/git.diff", 'w') as f:
+           subprocess.run(["git", "diff"], stdout=f)
+       with open(dir+"/git.describe", 'w') as f:
+           subprocess.run(["git", "describe", "--always"], stdout=f)
+    subprocess.run(["cp", sys.argv[1], dir+"/"])
+
+    logger.info("Starting simulations:", extra=format)
+    start = time.time()
+    for shape in config.nextShape():
+        comparison_dict = shape.__dict__.copy()
+        ignore_keys = ['randomSeed']
+        for key in ignore_keys:
+            del comparison_dict[key]
+
+        if any(all(comparison_dict[key] == completed_shape[key] for key in comparison_dict.keys() if key not in ignore_keys) for completed_shape in completed_shapes):
+            print(f"Skipping simulation for shape: {shape.__dict__} (already completed)")
+        else:
+            results.append(delayed(runOnce)(config, shape, execID))
+
+    results = Parallel(config.numJobs)(results)
+    end = time.time()
+    logger.info("A total of %d simulations ran in %d seconds" % (len(results), end-start), extra=format)
+
+    if config.visualization:
+        vis = Visualizer(execID, config)
+        vis.plotHeatmaps()
+
+        visual = Visualizor(execID, config, results)
+        visual.plotHeatmaps("nn", "fr")
+
+
 def study():
+    restart_path = None
+    for arg in sys.argv[1:]:
+        if arg.startswith("--restart="):
+            restart_path = arg[len("--restart="):]
+
+    if restart_path:
+        execID = restart_path.split("/")[1]
+        state_file = f"results/{execID}/backup"
+        all_completed, incomplete_files, completed_files, completed_shapes = check_simulation_completion(state_file)
+        print(completed_shapes)
+        if all_completed:
+            print("Simulation is already completed.")
+            sys.exit(0)
+        else:
+            print("Restarting simulations.")
+            start_simulation(execID, completed_files, completed_shapes, incomplete_files)
+            sys.exit(0)
+        
     if len(sys.argv) < 2:
         print("You need to pass a configuration file in parameter")
         exit(1)

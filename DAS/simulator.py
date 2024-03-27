@@ -9,6 +9,9 @@ from DAS.tools import *
 from DAS.results import *
 from DAS.observer import *
 from DAS.node import *
+import os
+import pickle
+import uuid
 
 class Simulator:
     """This class implements the main DAS simulator."""
@@ -273,6 +276,14 @@ class Simulator:
         trafficStatsVector = []
         malicious_nodes_not_added_count = 0
         steps = 0
+        unique_run_id = str(uuid.uuid4())
+        backup_folder = f"results/{self.execID}/backup"
+        if not os.path.exists(backup_folder):
+            os.makedirs(backup_folder)
+        backup_file = os.path.join(backup_folder, f"simulation_data_{unique_run_id}.pkl")
+        with open(backup_file, 'ab') as f:
+            pickle.dump(self.shape.__dict__, f)
+
         while(True):
             missingVector.append(missingSamples)
             self.logger.debug("Expected Samples: %d" % expected, extra=self.format)
@@ -351,6 +362,9 @@ class Simulator:
                 missingVector.append(missingSamples)
                 break
             steps += 1
+
+        with open(backup_file, 'ab') as f:
+            pickle.dump("completed", f)
 
         for i in range(0,self.shape.numberNodes):
             if not self.validators[i].amIaddedToQueue :
