@@ -14,6 +14,7 @@ def plotData(conf):
     plt.ylabel(conf['ylabel'])
     plt.title(conf['title'])
     plt.legend()
+    plt.grid(True)
     plt.savefig(conf['plotPath'])
     plt.clf()
 
@@ -37,7 +38,7 @@ def getValidatorCountPerColumn(numberOfCols, numOfValidators, chiC):
     
     return validatorCountPerColumn
 
-def runOnce(run_i, runs, deg, validatorCountPerCol, malNodesPercentage):
+def runOnce(deg, validatorCountPerCol, malNodesPercentage):
     isParted = False
     partCount = 0
     isPartedCount = 0
@@ -63,7 +64,7 @@ def study():
         for mal in mals:
             isPartedCount = partCount = 0
             validatorCountPerColumn = getValidatorCountPerColumn(numberOfColumns, numberOfValidators, custody)
-            results = Parallel(-1)(delayed(runOnce)(_run, runs, deg, validatorCountPerColumn, mal) for _run in range(runs))
+            results = Parallel(-1)(delayed(runOnce)(deg, validatorCountPerColumn, mal) for _run in range(runs))
             isPartedCount = sum([res[0] for res in results])
             partCount = sum([res[1] for res in results])
             partPercentages.append(isPartedCount * 100 / runs)
