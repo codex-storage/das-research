@@ -68,8 +68,7 @@ def check_simulation_completion(state_file):
                         items.append(item)
                     except EOFError:
                         break
-                last_item = items[-1]  # Access the last item
-                # print(last_item)
+                last_item = items[-1]
                 if last_item != "completed":
                     all_completed = False
                     incomplete_files.append(full_path)
@@ -110,7 +109,7 @@ def start_simulation(execID, completed_files, completed_shapes, incomplete_files
             del comparison_dict[key]
 
         if any(all(comparison_dict[key] == completed_shape[key] for key in comparison_dict.keys() if key not in ignore_keys) for completed_shape in completed_shapes):
-            print(f"Skipping simulation for shape: {shape.__dict__} (already completed)")
+            logger.info("Skipping simulation for shape (already completed): %s"  % (str(shape.__dict__)), extra=format)
         else:
             results.append(delayed(runOnce)(config, shape, execID))
 
@@ -136,7 +135,6 @@ def study():
         execID = restart_path.split("/")[1]
         state_file = f"results/{execID}/backup"
         all_completed, incomplete_files, completed_files, completed_shapes = check_simulation_completion(state_file)
-        print(completed_shapes)
         if all_completed:
             print("Simulation is already completed.")
             sys.exit(0)
