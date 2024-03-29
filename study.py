@@ -5,6 +5,9 @@ import importlib
 import subprocess
 from joblib import Parallel, delayed
 from DAS import *
+import os
+import pickle
+import uuid
 
 # Parallel execution:
 # The code currently uses 'joblib' to execute on multiple cores. For other options such as 'ray', see
@@ -29,6 +32,14 @@ def runOnce(config, shape, execID):
         shape.setSeed(config.randomSeed+"-"+str(shape))
         random.seed(shape.randomSeed)
 
+    unique_run_id = str(uuid.uuid4())
+    backup_folder = f"results/{execID}/backup"
+    if not os.path.exists(backup_folder):
+        os.makedirs(backup_folder)
+    backup_file = os.path.join(backup_folder, f"simulation_data_{unique_run_id}.pkl")
+    with open(backup_file, 'ab') as f:
+        pickle.dump(shape.__dict__, f)
+    
     sim = Simulator(shape, config, execID)
     sim.initLogger()
     sim.initValidators()
@@ -42,6 +53,9 @@ def runOnce(config, shape, execID):
     if config.visualization:
         visual = Visualizor(execID, config, [result])
         visual.plotAll()
+
+    with open(backup_file, 'ab') as f:
+        pickle.dump("completed", f)
 
     return result
 
@@ -98,7 +112,6 @@ def start_simulation(execID, completed_files, completed_shapes, incomplete_files
            subprocess.run(["git", "diff"], stdout=f)
        with open(dir+"/git.describe", 'w') as f:
            subprocess.run(["git", "describe", "--always"], stdout=f)
-    subprocess.run(["cp", sys.argv[1], dir+"/"])
 
     logger.info("Starting simulations:", extra=format)
     start = time.time()
