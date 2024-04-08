@@ -27,17 +27,21 @@ def isGConnected(deg, nodes, mal):
     
     return nx.is_connected(G)
 
-def getValidatorCountPerColumn(numberOfCols, numOfValidators, chiC):
-    validatorCountPerColumn = dict()
-    for _ in range(numOfValidators):
-        colsSelected = random.sample(list(range(1, numberOfCols + 1)), chiC)
+def getNodeCountPerColumn(config, numOfNodes):
+    numberOfCols = config['numberOfColumns']
+    chiC1 = config['custody'] * config['validatorPerNode1']
+    chiC2 = config['custody'] * config['validatorPerNode2']
+    node1Count = int(numOfNodes * config['class1ratio'])
+    nodeCountPerColumn = dict()
+    for _ in range(numOfNodes):
+        colsSelected = random.sample(list(range(1, numberOfCols + 1)), chiC1 if _ < node1Count else chiC2)
         for col in colsSelected:
-            if col in validatorCountPerColumn.keys():
-                validatorCountPerColumn[col] += 1
+            if col in nodeCountPerColumn.keys():
+                nodeCountPerColumn[col] += 1
             else:
-                validatorCountPerColumn[col] = 0
+                nodeCountPerColumn[col] = 0
     
-    return validatorCountPerColumn
+    return nodeCountPerColumn
 
 def runOnce(deg, validatorCountPerCol, malNodesPercentage):
     isParted = False
@@ -53,23 +57,23 @@ def runOnce(deg, validatorCountPerCol, malNodesPercentage):
     
     return isPartedCount, partCount
 
-def study():
+def study(config):
     nnPartPercentages = dict()
     nnAvgDisconnectedCols = dict()
     
-    for nn, nv in zip(numberOfNodes, numberOfValidators):
+    for nn in config['numberOfNodes']:
         print(f"\nNumber of Nodes: {nn}")
         
         partPercentages = list()
         avgDisconnectedCols = list()
-        for mal in mals:
+        for mal in config['mals']:
             isPartedCount = partCount = 0
-            validatorCountPerColumn = getValidatorCountPerColumn(numberOfColumns, nv, custody)
-            results = Parallel(-1)(delayed(runOnce)(deg, validatorCountPerColumn, mal) for _run in range(runs))
+            nodeCountPerColumn = getNodeCountPerColumn(config, nn)
+            results = Parallel(-1)(delayed(runOnce)(config['deg'], nodeCountPerColumn, mal) for _run in range(config['runs']))
             isPartedCount = sum([res[0] for res in results])
             partCount = sum([res[1] for res in results])
-            partPercentages.append(isPartedCount * 100 / runs)
-            avgDisconnectedCols.append(partCount / runs)
+            partPercentages.append(isPartedCount * 100 / config['runs'])
+            avgDisconnectedCols.append(partCount / config['runs'])
             print(f"Malicious Nodes: {mal}%, Partition Percentage: {partPercentages[-1]}, Avg. Partitions: {avgDisconnectedCols[-1]}")
         
         nnPartPercentages[nn] = partPercentages
@@ -81,7 +85,7 @@ def study():
     if not os.path.exists(newpath): os.makedirs(newpath)
     
     conf1 = {
-        'x': mals,
+        'x': config['mals'],
         'y': nnPartPercentages,
         'label': "Nodes",
         'xlabel': "Malicious Node (%)",
@@ -91,7 +95,7 @@ def study():
     }
     
     conf2 = {
-        'x': mals,
+        'x': config['mals'],
         'y': nnAvgDisconnectedCols,
         'label': "Nodes",
         'xlabel': "Malicious Node (%)",
@@ -105,13 +109,17 @@ def study():
 
 
 # Configuration
-runs = 10
-deg = 8
-mals = range(5, 100, 5)
-numberOfColumns = 128
-custody = 4
-numberOfNodes = [int(_) for _ in (np.logspace(2, 4, 5, endpoint=True, base=10) * 5)]
-numberOfValidators = [int(nn * 2.4) for nn in numberOfNodes] # (0.8 * 1 + 0.2 * 8 = 2.4)
+config = {
+    'runs': 10,
+    'deg': 8,
+    'mals': range(5, 100, 5),
+    'numberOfColumns': 128,
+    'custody': 4,
+    'class1ratio': 0.8,
+    'validatorPerNode1': 1,
+    'validatorPerNode2': 8,
+    'numberOfNodes': [int(_) for _ in (np.logspace(2, 4, 5, endpoint=True, base=10) * 5)]
+}
 
 if __name__ == "__main__":
-    study()
+    study(config)
