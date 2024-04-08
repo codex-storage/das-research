@@ -81,7 +81,7 @@ def study(config):
         nnAvgDisconnectedCols[nn] = avgDisconnectedCols
     
     now = datetime.now()
-    execID = now.strftime("1D-EC_%Y-%m-%d_%H-%M-%S_")+str(random.randint(100,999))
+    execID = now.strftime("%Y-%m-%d_%H-%M-%S_")+str(random.randint(100,999))
     newpath = f"ConnectivityTest/MaliciousNodesVsNumberOfNodes/results/{execID}/"
     if not os.path.exists(newpath): os.makedirs(newpath)
     
