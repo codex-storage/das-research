@@ -29,8 +29,8 @@ def isGConnected(deg, nodes, mal):
 
 def getNodeCountPerColumn(config, numOfNodes):
     numberOfCols = config['numberOfColumns']
-    chiC1 = config['custody'] * config['validatorPerNode1']
-    chiC2 = config['custody'] * config['validatorPerNode2']
+    chiC1 = config['custodyC'] * config['validatorPerNode1']
+    chiC2 = config['custodyC'] * config['validatorPerNode2']
     node1Count = int(numOfNodes * config['class1ratio'])
     nodeCountPerColumn = dict()
     for _ in range(numOfNodes):
@@ -43,12 +43,12 @@ def getNodeCountPerColumn(config, numOfNodes):
     
     return nodeCountPerColumn
 
-def runOnce(deg, validatorCountPerCol, malNodesPercentage):
+def runOnce(deg, nodeCountPerCol, malNodesPercentage):
     isParted = False
     partCount = 0
     isPartedCount = 0
-    for col in validatorCountPerCol.keys():
-        nodes = validatorCountPerCol[col]
+    for col in nodeCountPerCol.keys():
+        nodes = nodeCountPerCol[col]
         if not isGConnected(deg, nodes, malNodesPercentage):
             if not isParted: isParted = True
             partCount += 1
@@ -114,7 +114,7 @@ config = {
     'deg': 8,
     'mals': range(5, 100, 5),
     'numberOfColumns': 128,
-    'custody': 4,
+    'custodyC': 4,
     'class1ratio': 0.8,
     'validatorPerNode1': 1,
     'validatorPerNode2': 8,
