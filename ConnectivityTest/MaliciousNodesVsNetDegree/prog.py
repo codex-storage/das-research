@@ -37,10 +37,10 @@ def getNodeCountPerColumn(config):
         colsSelected = random.sample(list(range(1, numberOfCols + 1)), chiC1 if _ < node1Count else chiC2)
         for col in colsSelected:
             if col in nodeCountPerColumn.keys():
-                nodeCountPerColumn[col][0 if _ < numOfNodes else 1] += 1
+                nodeCountPerColumn[col][0 if _ < node1Count else 1] += 1
             else:
                 nodeCountPerColumn[col] = [0, 0]
-                nodeCountPerColumn[col][0 if _ < numOfNodes else 1] = 1
+                nodeCountPerColumn[col][0 if _ < node1Count else 1] = 1
     
     return nodeCountPerColumn
 

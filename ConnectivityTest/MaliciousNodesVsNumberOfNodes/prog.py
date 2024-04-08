@@ -37,10 +37,10 @@ def getNodeCountPerColumn(config, numOfNodes):
         colsSelected = random.sample(list(range(1, numberOfCols + 1)), chiC1 if _ < node1Count else chiC2)
         for col in colsSelected:
             if col in nodeCountPerColumn.keys():
-                nodeCountPerColumn[col][0 if _ < numOfNodes else 1] += 1
+                nodeCountPerColumn[col][0 if _ < node1Count else 1] += 1
             else:
                 nodeCountPerColumn[col] = [0, 0]
-                nodeCountPerColumn[col][0 if _ < numOfNodes else 1] = 1
+                nodeCountPerColumn[col][0 if _ < node1Count else 1] = 1
     
     return nodeCountPerColumn
 
@@ -81,7 +81,7 @@ def study(config):
         nnAvgDisconnectedCols[nn] = avgDisconnectedCols
     
     now = datetime.now()
-    execID = now.strftime("%Y-%m-%d_%H-%M-%S_")+str(random.randint(100,999))
+    execID = now.strftime("1D-EC_%Y-%m-%d_%H-%M-%S_")+str(random.randint(100,999))
     newpath = f"ConnectivityTest/MaliciousNodesVsNumberOfNodes/results/{execID}/"
     if not os.path.exists(newpath): os.makedirs(newpath)
     
@@ -111,7 +111,7 @@ def study(config):
 
 # Configuration
 config = {
-    'runs': 10,
+    'runs': 20,
     'deg': 8,
     'mals': range(5, 100, 5),
     'numberOfColumns': 128,
