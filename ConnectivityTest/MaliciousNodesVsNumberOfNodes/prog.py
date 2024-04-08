@@ -24,7 +24,7 @@ def isGroupRecoverable(group, nodes, chi1, chi2, size, sizeK):
     for g in group:
         linesSelected += list(random.sample(list(range(1, size + 1)), chi1 if g < nodes[0] else chi2))
     uniqueLines = set(linesSelected)
-    return len(uniqueLines) >= sizeK, len(uniqueLines)
+    return len(uniqueLines) >= sizeK
 
 def isGConnected(deg, nodes, mal, config):
     G = nx.random_regular_graph(deg, sum(nodes))
