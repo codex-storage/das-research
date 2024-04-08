@@ -19,8 +19,8 @@ def plotData(conf):
     plt.clf()
 
 def isGConnected(deg, nodes, mal):
-    G = nx.random_regular_graph(deg, nodes)
-    malNodes = random.sample(list(G.nodes()), k=mal * nodes // 100)
+    G = nx.random_regular_graph(deg, sum(nodes))
+    malNodes = random.sample(list(G.nodes()), k=mal * sum(nodes) // 100)
     for mn in malNodes:
         G.remove_node(mn)
     
@@ -37,9 +37,10 @@ def getNodeCountPerColumn(config):
         colsSelected = random.sample(list(range(1, numberOfCols + 1)), chiC1 if _ < node1Count else chiC2)
         for col in colsSelected:
             if col in nodeCountPerColumn.keys():
-                nodeCountPerColumn[col] += 1
+                nodeCountPerColumn[col][0 if _ < numOfNodes else 1] += 1
             else:
-                nodeCountPerColumn[col] = 0
+                nodeCountPerColumn[col] = [0, 0]
+                nodeCountPerColumn[col][0 if _ < numOfNodes else 1] = 1
     
     return nodeCountPerColumn
 
