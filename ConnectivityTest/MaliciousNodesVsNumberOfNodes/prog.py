@@ -19,13 +19,30 @@ def plotData(conf):
     plt.savefig(conf['plotPath'])
     plt.clf()
 
-def isGConnected(deg, nodes, mal):
+def isGroupRecoverable(group, nodes, chi1, chi2, size, sizeK):
+    uniqueLines = set()
+    for g in group:
+        linesSelected = set(random.sample(list(range(1, size + 1)), chi1 if g < nodes[0] else chi2))
+        uniqueLines.union(linesSelected)
+    return len(uniqueLines) >= sizeK
+
+def isGConnected(deg, nodes, mal, config):
     G = nx.random_regular_graph(deg, sum(nodes))
     malNodes = random.sample(list(G.nodes()), k=mal * sum(nodes) // 100)
     for mn in malNodes:
         G.remove_node(mn)
     
-    return nx.is_connected(G)
+    if nx.is_connected(G): return True
+    else:
+        isRecoverable = True
+        chiR1 = config['custodyR'] * config['validatorPerNode1']
+        chiR2 = config['custodyR'] * config['validatorPerNode2']
+        rows = config['numberOfRows']
+        rowsK = config['numberOfRowsK']
+        for group in nx.connected_components(G):
+            isRecoverable = isRecoverable and isGroupRecoverable(group, nodes, chiR1, chiR2, rows, rowsK)
+        
+        return isRecoverable
 
 def getNodeCountPerColumn(config, numOfNodes):
     numberOfCols = config['numberOfColumns']
@@ -44,13 +61,13 @@ def getNodeCountPerColumn(config, numOfNodes):
     
     return nodeCountPerColumn
 
-def runOnce(deg, nodeCountPerCol, malNodesPercentage):
+def runOnce(deg, nodeCountPerCol, malNodesPercentage, config):
     isParted = False
     partCount = 0
     isPartedCount = 0
     for col in nodeCountPerCol.keys():
         nodes = nodeCountPerCol[col]
-        if not isGConnected(deg, nodes, malNodesPercentage):
+        if not isGConnected(deg, nodes, malNodesPercentage, config):
             if not isParted: isParted = True
             partCount += 1
     
@@ -70,7 +87,7 @@ def study(config):
         for mal in config['mals']:
             isPartedCount = partCount = 0
             nodeCountPerColumn = getNodeCountPerColumn(config, nn)
-            results = Parallel(-1)(delayed(runOnce)(config['deg'], nodeCountPerColumn, mal) for _run in range(config['runs']))
+            results = Parallel(-1)(delayed(runOnce)(config['deg'], nodeCountPerColumn, mal, config) for _run in range(config['runs']))
             isPartedCount = sum([res[0] for res in results])
             partCount = sum([res[1] for res in results])
             partPercentages.append(isPartedCount * 100 / config['runs'])
@@ -111,11 +128,15 @@ def study(config):
 
 # Configuration
 config = {
-    'runs': 10,
+    'runs': 20,
     'deg': 8,
     'mals': range(5, 100, 5),
     'numberOfColumns': 128,
+    'numberOfColumnsK': 64,
+    'numberOfRows': 128,
+    'numberOfRowsK': 64,
     'custodyC': 4,
+    'custodyR': 4,
     'class1ratio': 0.8,
     'validatorPerNode1': 1,
     'validatorPerNode2': 8,
