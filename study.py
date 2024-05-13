@@ -32,11 +32,10 @@ def runOnce(config, shape, execID):
         shape.setSeed(config.randomSeed+"-"+str(shape))
         random.seed(shape.randomSeed)
 
-    unique_run_id = str(uuid.uuid4())
     backup_folder = f"results/{execID}/backup"
     if not os.path.exists(backup_folder):
         os.makedirs(backup_folder)
-    backup_file = os.path.join(backup_folder, f"simulation_data_{unique_run_id}.pkl")
+    backup_file = os.path.join(backup_folder, f"simulation_data_{shape}.pkl")
     with open(backup_file, 'ab') as f:
         pickle.dump(shape.__dict__, f)
     
