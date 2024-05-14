@@ -147,7 +147,23 @@ def study():
         execID = restart_path.split("/")[1]
         state_file = f"results/{execID}/backup"
         all_completed, incomplete_files, completed_files, completed_shapes = check_simulation_completion(state_file)
-        if all_completed:
+
+        current_shapes = []
+        config = importlib.import_module("smallConf")
+
+        completed_shapes_without_seed = completed_shapes
+        for shape in config.nextShape():
+            shape_dict = copy.deepcopy(shape.__dict__)
+            del shape_dict['randomSeed']
+            current_shapes.append(shape_dict)
+        for shape in completed_shapes_without_seed:
+            if 'randomSeed' in shape:
+                del shape['randomSeed']
+
+        completed_set = {frozenset(shape.items()) for shape in completed_shapes_without_seed}
+        current_set = {frozenset(shape.items()) for shape in current_shapes}
+
+        if all_completed and completed_set == current_set:
             print("Simulation is already completed.")
             sys.exit(0)
         else:
