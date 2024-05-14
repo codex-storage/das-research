@@ -271,6 +271,7 @@ class Simulator:
         missingVector = []
         progressVector = []
         trafficStatsVector = []
+        stepCustodyCountsRow, stepCustodyCountsCol = [], [] # Count of custody in each step
         malicious_nodes_not_added_count = 0
         steps = 0
         while(True):
@@ -278,6 +279,7 @@ class Simulator:
             self.logger.debug("Expected Samples: %d" % expected, extra=self.format)
             self.logger.debug("Missing Samples: %d" % missingSamples, extra=self.format)
             oldMissingSamples = missingSamples
+            custodyCountsRow, custodyCountsCol = [] # Count of custody of current step
             self.logger.debug("PHASE SEND %d" % steps, extra=self.format)
             for i in range(0,self.shape.numberNodes):
                 if not self.validators[i].amImalicious:
@@ -293,7 +295,15 @@ class Simulator:
             for i in range(0,self.shape.numberNodes):
                 self.validators[i].logRows()
                 self.validators[i].logColumns()
+            self.logger.debug("PHASE CUSTODY %d" % steps, extra=self.format)
+            for i in range(0,self.shape.numberNodes):
+                if not self.validators[i].amIproposer:
+                    custodyCountsCol.append(len(self.validators[i].columnIDs))
+                    custodyCountsRow.append(len(self.validators[i].rowIDs))
 
+            stepCustodyCountsRow.append(custodyCountsRow)
+            stepCustodyCountsCol.append(custodyCountsCol)
+            
             # log TX and RX statistics
             trafficStats = self.glob.getTrafficStats(self.validators)
             self.logger.debug("step %d: %s" %
@@ -351,6 +361,10 @@ class Simulator:
                 missingVector.append(missingSamples)
                 break
             steps += 1
+        
+        # adding custody stats in result
+        self.result.addMetric("rowCustody", stepCustodyCountsRow)
+        self.result.addMetric("colCustody", stepCustodyCountsCol)
 
         for i in range(0,self.shape.numberNodes):
             if not self.validators[i].amIaddedToQueue :
