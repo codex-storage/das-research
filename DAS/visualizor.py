@@ -1069,68 +1069,193 @@ class Visualizor:
         plt.xlabel(conf['xlabel'])
         plt.ylabel(conf['ylabel'])
         plt.title(conf['title'])
-        plt.savefig(f"results/{self.execID}/heatmaps/{conf['path']}")
+        folder = f"results/{self.execID}/heatmaps/{conf['folder']}"
+        os.makedirs(folder, exist_ok=True)
+        plt.savefig(f"{folder}/{conf['path']}")
         plt.clf()
     
     # x -> network degree, y -> number of nodes, weights -> simulation duration
     def plotNWDegVsNodeOnRuntime(self):
-        x = [result.shape.netDegree for result in self.results]
-        y = [result.shape.numberNodes for result in self.results]
-        weights = [self.config.stepDuration * (len(result.missingVector) - 1) for result in self.results]
-
-        if len(set(x)) * len(set(y)) < 2: return # Not enough unique params for heatmap
+        xyS = dict()
+        for result in self.results: 
+            attrbs = self.__get_attrbs__(result)
+            textBox = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
+                +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
+                +"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"\
+                +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']\
+                +"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+            filename = "bsrn_" + attrbs['bsrn'] +\
+                "_bsrk_" + attrbs['bsrk'] +\
+                "_bscn_" + attrbs['bscn' ] +\
+                "_bsck_" + attrbs['bsck'] +\
+                "_fr_" + attrbs['fr'] +\
+                "_mn_" + attrbs['mn'] +\
+                "_cusr_" + attrbs['cusr'] +\
+                "_cusc_" + attrbs['cusc'] +\
+                "_vpn1_" + attrbs['vpn1'] +\
+                "_vpn2_" + attrbs['vpn2'] +\
+                "_r_" + attrbs['r']
+            identifier = (
+                attrbs['bsrn'], attrbs['bsrk'], attrbs['bscn'],
+                attrbs['bsck'], attrbs['fr'], attrbs['mn'],
+                attrbs['cusr'], attrbs['cusc'], attrbs['vpn1'],
+                attrbs['vpn2'], attrbs['r']
+            )
+            if identifier in xyS.keys():
+                xyS[identifier]['x'].append(result.shape.netDegree)
+                xyS[identifier]['y'].append(result.shape.numberNodes)
+                xyS[identifier]['w'].append(self.config.stepDuration * (len(result.missingVector) - 1))
+            else:
+                xyS[identifier] = {
+                    'x': [result.shape.netDegree],
+                    'y': [result.shape.numberNodes],
+                    'w': [self.config.stepDuration * (len(result.missingVector) - 1)],
+                    'textBox': textBox,
+                    'filename': filename
+                }
         
-        conf = {
-            'x': x,
-            'y': y,
-            'weights': weights,
-            'xlabel': 'Net Degree',
-            'ylabel': 'Number of Nodes',
-            'title': 'Net Degree vs. Number of Nodes on Simulation Runtime',
-            'path': 'NWDegVsNodeOnRuntime.png'
-        }
-
-        self.plotHeatMapData(conf)
+        for v in xyS.values():
+            x = v['x']
+            y = v['y']
+            weights = v['w']
+            
+            if len(set(x)) * len(set(y)) < 2: return # Not enough unique params for heatmap
+            
+            conf = {
+                'x': x,
+                'y': y,
+                'weights': weights,
+                'xlabel': 'Net Degree',
+                'ylabel': 'Number of Nodes',
+                'title': 'Net Degree vs. Number of Nodes on Simulation Runtime (ms)',
+                'folder': 'NWDegVsNodeOnRuntime',
+                'textBox': v['textBox'],
+                'path': f"{v['filename']}.png"
+            }
+            
+            self.plotHeatMapData(conf)
     
     # x -> network degree, y -> % of malicious nodes, weights -> no of missing samples
     def plotNWDegVsMalNodeOnMissingSamples(self):
-        x = [result.shape.netDegree for result in self.results]
-        y = [result.shape.maliciousNodes for result in self.results]
-        weights = [result.missingVector[-1] for result in self.results]
-
-        if len(set(x)) * len(set(y)) < 2: return # Not enough unique params for heatmap
+        xyS = dict()
+        for result in self.results: 
+            attrbs = self.__get_attrbs__(result)
+            textBox = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
+                +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
+                +"\nFailure rate: "+attrbs['fr']+"%"+"\nNodes: "+attrbs['nn']\
+                +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']\
+                +"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+            filename = "bsrn_" + attrbs['bsrn'] +\
+                "_bsrk_" + attrbs['bsrk'] +\
+                "_bscn_" + attrbs['bscn' ] +\
+                "_bsck_" + attrbs['bsck'] +\
+                "-nn-" + attrbs['nn'] +\
+                "_fr_" + attrbs['fr'] +\
+                "_cusr_" + attrbs['cusr'] +\
+                "_cusc_" + attrbs['cusc'] +\
+                "_vpn1_" + attrbs['vpn1'] +\
+                "_vpn2_" + attrbs['vpn2'] +\
+                "_r_" + attrbs['r']
+            identifier = (
+                attrbs['bsrn'], attrbs['bsrk'], attrbs['bscn'],
+                attrbs['bsck'], attrbs['fr'], attrbs['nn'],
+                attrbs['cusr'], attrbs['cusc'], attrbs['vpn1'],
+                attrbs['vpn2'], attrbs['r']
+            )
+            if identifier in xyS.keys():
+                xyS[identifier]['x'].append(result.shape.netDegree)
+                xyS[identifier]['y'].append(result.shape.maliciousNodes)
+                xyS[identifier]['w'].append(result.missingVector[-1])
+            else:
+                xyS[identifier] = {
+                    'x': [result.shape.netDegree],
+                    'y': [result.shape.maliciousNodes],
+                    'w': [result.missingVector[-1]],
+                    'textBox': textBox,
+                    'filename': filename
+                }
         
-        conf = {
-            'x': x,
-            'y': y,
-            'weights': weights,
-            'xlabel': 'Net Degree',
-            'ylabel': 'Malicious Nodes (%)',
-            'title': 'Net Degree vs Malicious Nodes (%) on Missing Samples',
-            'path': 'NWDegVsMalNodeOnMissingSamples.png'
-        }
-        
-        self.plotHeatMapData(conf)
+        for v in xyS.values():
+            x = v['x']
+            y = v['y']
+            weights = v['w']
+            
+            if len(set(x)) * len(set(y)) < 2: return # Not enough unique params for heatmap
+            
+            conf = {
+                'x': x,
+                'y': y,
+                'weights': weights,
+                'xlabel': 'Net Degree',
+                'ylabel': 'Malicious Nodes (%)',
+                'title': 'Net Degree vs Malicious Nodes (%) on Missing Samples',
+                'folder': 'NWDegVsMalNodeOnMissingSamples',
+                'textBox': v['textBox'],
+                'path': f"{v['filename']}.png"
+            }
+            
+            self.plotHeatMapData(conf)
 
     # x -> network degree, y -> failure rate, weights -> no of missing samples
     def plotNWDegVsFailureRateOnMissingSamples(self):
-        x = [result.shape.netDegree for result in self.results]
-        y = [result.shape.failureRate for result in self.results]
-        weights = [result.missingVector[-1] for result in self.results]
-
-        if len(set(x)) * len(set(y)) < 2: return  # Not enough unique params for heatmap
-
-        conf = {
-            'x': x,
-            'y': y,
-            'weights': weights,
-            'xlabel': 'Net Degree',
-            'ylabel': 'Failure Rate (%)',
-            'title': 'Net Degree vs Failure Rate (%) on Missing Samples',
-            'path': 'NWDegVsFailureRateOnMissingSamples.png'
-        }
-
-        self.plotHeatMapData(conf)
+        xyS = dict()
+        for result in self.results: 
+            attrbs = self.__get_attrbs__(result)
+            textBox = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
+                +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
+                +"\nNodes: "+attrbs['nn']+"\nMalicious Node: "+attrbs['mn']+"%"\
+                +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']\
+                +"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+            filename = "bsrn_" + attrbs['bsrn'] +\
+                "_bsrk_" + attrbs['bsrk'] +\
+                "_bscn_" + attrbs['bscn' ] +\
+                "_bsck_" + attrbs['bsck'] +\
+                "-nn-" + attrbs['nn'] +\
+                "_mn_" + attrbs['mn'] +\
+                "_cusr_" + attrbs['cusr'] +\
+                "_cusc_" + attrbs['cusc'] +\
+                "_vpn1_" + attrbs['vpn1'] +\
+                "_vpn2_" + attrbs['vpn2'] +\
+                "_r_" + attrbs['r']
+            identifier = (
+                attrbs['bsrn'], attrbs['bsrk'], attrbs['bscn'],
+                attrbs['bsck'], attrbs['mn'], attrbs['nn'],
+                attrbs['cusr'], attrbs['cusc'], attrbs['vpn1'],
+                attrbs['vpn2'], attrbs['r']
+            )
+            if identifier in xyS.keys():
+                xyS[identifier]['x'].append(result.shape.netDegree)
+                xyS[identifier]['y'].append(result.shape.failureRate)
+                xyS[identifier]['w'].append(result.missingVector[-1])
+            else:
+                xyS[identifier] = {
+                    'x': [result.shape.netDegree],
+                    'y': [result.shape.failureRate],
+                    'w': [result.missingVector[-1]],
+                    'textBox': textBox,
+                    'filename': filename
+                }
+        
+        for v in xyS.values():
+            x = v['x']
+            y = v['y']
+            weights = v['w']
+            
+            if len(set(x)) * len(set(y)) < 2: return # Not enough unique params for heatmap
+            
+            conf = {
+                'x': x,
+                'y': y,
+                'weights': weights,
+                'xlabel': 'Net Degree',
+                'ylabel': 'Failure Rate (%)',
+                'title': 'Net Degree vs Failure Rate (%) on Missing Samples',
+                'folder': 'NWDegVsFailureRateOnMissingSamples',
+                'textBox': v['textBox'],
+                'path': f"{v['filename']}.png"
+            }
+            
+            self.plotHeatMapData(conf)
          
     def plotAllHeatMaps(self):
         self.plotNWDegVsNodeOnRuntime()
