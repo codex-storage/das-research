@@ -121,7 +121,7 @@ class Visualizor:
         for result in self.results:
             plotPath = "results/"+self.execID+"/plots/"+str(result.shape)
             os.makedirs(plotPath, exist_ok=True)
-            self.plotMissingSamples(result, plotPath)
+            self.plotMissingSegments(result, plotPath)
             self.plotProgress(result, plotPath)
             self.plotSentData(result, plotPath)
             self.plotRecvData(result, plotPath)
@@ -753,27 +753,27 @@ class Visualizor:
         plotBoxData(conf)
         print("Plot %s created." % conf["path"])
     
-    def plotMissingSamples(self, result, plotPath):
-        """Plots the missing samples in the network"""
+    def plotMissingSegments(self, result, plotPath):
+        """Plots the missing segments in the network"""
         conf = {}
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
         +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
-        +"\nSegment Size: "+str(self.config.segmentSize)+"\nMissing Sample: "+str(min(result.missingVector) * 100 / max(result.missingVector))+"%"\
-        +"\nMissing Samples: "+str(result.missingVector[-1])
-        conf["title"] = "Missing Samples"
+        +"\nSegment Size: "+str(self.config.segmentSize)+"\nMissing Segment: "+str(round(min(result.missingVector) * 100 / max(result.missingVector), 3))+"%"\
+        +"\nMissing Segments: "+str(result.missingVector[-1])
+        conf["title"] = "Missing Segments"
         conf["type"] = "plot_with_1line"
         conf["legLoc"] = 1
         conf["desLoc"] = 1
         conf["colors"] = ["m-"]
-        conf["labels"] = ["Missing Samples"]
+        conf["labels"] = ["Missing Segments"]
         conf["xlabel"] = "Time (ms)"
-        conf["ylabel"] = "Number of Missing Samples"
+        conf["ylabel"] = "Number of Missing Segments"
         conf["data"] = [result.missingVector]
         conf["xdots"] = [x*self.config.stepDuration for x in range(len(result.missingVector))]
-        conf["path"] = plotPath+"/missingSamples.png"
+        conf["path"] = plotPath+"/missingSegments.png"
         maxi = 0
         for v in conf["data"]:
             if max(v) > maxi:
@@ -781,7 +781,7 @@ class Visualizor:
         conf["yaxismax"] = maxi
         x = result.shape.nbCols * result.shape.custodyRows + result.shape.nbRows * result.shape.custodyCols
         conf["expected_value"] = (result.shape.numberNodes - 1) * (result.shape.class1ratio * result.shape.vpn1 * x + (1 - result.shape.class1ratio) * result.shape.vpn2 * x)
-        conf["line_label"] = "Total samples to deliver"
+        conf["line_label"] = "Total segments to deliver"
         plotData(conf)
         print("Plot %s created." % conf["path"])
 
