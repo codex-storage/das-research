@@ -1087,6 +1087,15 @@ class Visualizor:
         plt.clf()
         plt.close()
     
+    # Number of simulation runs with the same parameters for statistical relevance
+    def totalRuns(self):
+        rs = []
+        for result in self.results: 
+            attrbs = self.__get_attrbs__(result)
+            rs.append(int(attrbs['r']))
+        
+        return max(rs) - min(rs) + 1
+    
     # x -> network degree, y -> number of nodes, weights -> simulation duration
     def plotNWDegVsNodeOnRuntime(self):
         xyS = dict()
@@ -1106,13 +1115,12 @@ class Visualizor:
                 "_cusr_" + attrbs['cusr'] +\
                 "_cusc_" + attrbs['cusc'] +\
                 "_vpn1_" + attrbs['vpn1'] +\
-                "_vpn2_" + attrbs['vpn2'] +\
-                "_r_" + attrbs['r']
+                "_vpn2_" + attrbs['vpn2']
             identifier = (
                 attrbs['bsrn'], attrbs['bsrk'], attrbs['bscn'],
                 attrbs['bsck'], attrbs['fr'], attrbs['mn'],
                 attrbs['cusr'], attrbs['cusc'], attrbs['vpn1'],
-                attrbs['vpn2'], attrbs['r']
+                attrbs['vpn2']
             )
             if identifier in xyS.keys():
                 xyS[identifier]['x'].append(result.shape.netDegree)
@@ -1127,10 +1135,11 @@ class Visualizor:
                     'filename': filename
                 }
         
+        runs = self.totalRuns()
         for v in xyS.values():
             x = v['x']
             y = v['y']
-            weights = v['w']
+            weights = [(w / runs) for w in v['w']]
             
             if len(set(x)) * len(set(y)) < 2: return # Not enough unique params for heatmap
             
@@ -1167,13 +1176,12 @@ class Visualizor:
                 "_cusr_" + attrbs['cusr'] +\
                 "_cusc_" + attrbs['cusc'] +\
                 "_vpn1_" + attrbs['vpn1'] +\
-                "_vpn2_" + attrbs['vpn2'] +\
-                "_r_" + attrbs['r']
+                "_vpn2_" + attrbs['vpn2']
             identifier = (
                 attrbs['bsrn'], attrbs['bsrk'], attrbs['bscn'],
                 attrbs['bsck'], attrbs['fr'], attrbs['nn'],
                 attrbs['cusr'], attrbs['cusc'], attrbs['vpn1'],
-                attrbs['vpn2'], attrbs['r']
+                attrbs['vpn2']
             )
             if identifier in xyS.keys():
                 xyS[identifier]['x'].append(result.shape.netDegree)
@@ -1188,10 +1196,11 @@ class Visualizor:
                     'filename': filename
                 }
         
+        runs = self.totalRuns()
         for v in xyS.values():
             x = v['x']
             y = v['y']
-            weights = v['w']
+            weights = [(w / runs) for w in v['w']]
             
             if len(set(x)) * len(set(y)) < 2: return # Not enough unique params for heatmap
             
@@ -1228,13 +1237,12 @@ class Visualizor:
                 "_cusr_" + attrbs['cusr'] +\
                 "_cusc_" + attrbs['cusc'] +\
                 "_vpn1_" + attrbs['vpn1'] +\
-                "_vpn2_" + attrbs['vpn2'] +\
-                "_r_" + attrbs['r']
+                "_vpn2_" + attrbs['vpn2']
             identifier = (
                 attrbs['bsrn'], attrbs['bsrk'], attrbs['bscn'],
                 attrbs['bsck'], attrbs['mn'], attrbs['nn'],
                 attrbs['cusr'], attrbs['cusc'], attrbs['vpn1'],
-                attrbs['vpn2'], attrbs['r']
+                attrbs['vpn2']
             )
             if identifier in xyS.keys():
                 xyS[identifier]['x'].append(result.shape.netDegree)
@@ -1249,10 +1257,11 @@ class Visualizor:
                     'filename': filename
                 }
         
+        runs = self.totalRuns()
         for v in xyS.values():
             x = v['x']
             y = v['y']
-            weights = v['w']
+            weights = [(w / runs) for w in v['w']]
             
             if len(set(x)) * len(set(y)) < 2: return # Not enough unique params for heatmap
             
