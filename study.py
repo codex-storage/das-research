@@ -218,6 +218,7 @@ def study():
 
         visual = Visualizor(execID, config, results)
         visual.plotHeatmaps("nn", "fr")
+        visual.plotAllHeatMaps()
 
 if __name__ == "__main__":
     study()

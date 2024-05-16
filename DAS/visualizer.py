@@ -182,6 +182,7 @@ class Visualizer:
         """Average the runs if needed"""
         if(len(self.config.runs) > 1):
             data = self.averageRuns(data, len(self.config.runs))
+        else: return
         filteredKeys = self.similarKeys(data)
         vmin, vmax = 0, self.maxTTA+1000
         print("Plotting heatmaps...")

@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import os
+import pandas as pd
 
 def plotData(conf):
     plt.clf()
@@ -120,7 +121,7 @@ class Visualizor:
         for result in self.results:
             plotPath = "results/"+self.execID+"/plots/"+str(result.shape)
             os.makedirs(plotPath, exist_ok=True)
-            self.plotMissingSamples(result, plotPath)
+            self.plotMissingSegments(result, plotPath)
             self.plotProgress(result, plotPath)
             self.plotSentData(result, plotPath)
             self.plotRecvData(result, plotPath)
@@ -170,8 +171,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Box Plot of Restore Row Count by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Restore Row Count"
@@ -196,8 +198,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Box Plot of Restore Column Count by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Restore Column Count"
@@ -222,8 +225,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Boxen Plot of Restore Row Count by Nodes"
         conf["xlabel"] = "Restore Row Count"
         conf["ylabel"] = "Nodes"
@@ -246,8 +250,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Boxen Plot of Restore Column Count by Nodes"
         conf["xlabel"] = "Restore Column Count"
         conf["ylabel"] = "Nodes"
@@ -270,8 +275,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Restore Row Count by Nodes"
         conf["xlabel"] = "Restore Row Count"
         conf["ylabel"] = "ECDF"
@@ -298,8 +304,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Restore Column Count by Nodes"
         conf["xlabel"] = "Restore Column Count"
         conf["ylabel"] = "ECDF"
@@ -326,8 +333,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Messages Sent by Nodes"
         conf["xlabel"] = "Number of Messages Sent"
         conf["ylabel"] = "ECDF"
@@ -353,8 +361,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Messages Received by Nodes"
         conf["xlabel"] = "Number of Messages Received"
         conf["ylabel"] = "ECDF"
@@ -380,8 +389,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Samples Received by Nodes"
         conf["xlabel"] = "Number of Samples Received"
         conf["ylabel"] = "ECDF"
@@ -407,8 +417,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Row-Col Distribution by Nodes"
         conf["xlabel"] = "Row-Col Distribution"
         conf["ylabel"] = "ECDF"
@@ -434,8 +445,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Samples Repaired by Nodes"
         conf["xlabel"] = "Number of Samples Repaired"
         conf["ylabel"] = "ECDF"
@@ -461,8 +473,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Samples Received by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Samples Received"
@@ -487,8 +500,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Samples Repaired by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Samples Repaired"
@@ -513,8 +527,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Row/Column Distribution"
         conf["xlabel"] = "Row/Column Type"
         conf["ylabel"] = "Validators Subscribed"
@@ -544,8 +559,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Sent by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Messages Sent"
@@ -568,8 +584,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Received by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Messages Received"
@@ -592,8 +609,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Samples Repaired by Nodes"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
@@ -613,8 +631,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Row/Column Distribution"
         conf["xlabel"] = ""
         conf["ylabel"] = "Validators Subscribed"
@@ -636,8 +655,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Restore Row Count for Each Node"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
@@ -658,8 +678,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Restore Column Count for Each Node"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
@@ -680,8 +701,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Percentage of Samples Received by Nodes"
         conf["type"] = "individual_bar_with_2line"
         conf["legLoc"] = 1
@@ -715,8 +737,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Samples Received by Nodes"
         conf["type"] = "individual_bar_with_2line"
         conf["legLoc"] = 1
@@ -730,25 +753,27 @@ class Visualizor:
         plotBoxData(conf)
         print("Plot %s created." % conf["path"])
     
-    def plotMissingSamples(self, result, plotPath):
-        """Plots the missing samples in the network"""
+    def plotMissingSegments(self, result, plotPath):
+        """Plots the missing segments in the network"""
         conf = {}
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
-        conf["title"] = "Missing Samples"
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)+"\nMissing Segment: "+str(round(min(result.missingVector) * 100 / max(result.missingVector), 3))+"%"\
+        +"\nMissing Segments: "+str(result.missingVector[-1])
+        conf["title"] = "Missing Segments"
         conf["type"] = "plot_with_1line"
         conf["legLoc"] = 1
         conf["desLoc"] = 1
         conf["colors"] = ["m-"]
-        conf["labels"] = ["Missing Samples"]
+        conf["labels"] = ["Missing Segments"]
         conf["xlabel"] = "Time (ms)"
-        conf["ylabel"] = "Number of Missing Samples"
+        conf["ylabel"] = "Number of Missing Segments"
         conf["data"] = [result.missingVector]
         conf["xdots"] = [x*self.config.stepDuration for x in range(len(result.missingVector))]
-        conf["path"] = plotPath+"/missingSamples.png"
+        conf["path"] = plotPath+"/missingSegments.png"
         maxi = 0
         for v in conf["data"]:
             if max(v) > maxi:
@@ -756,7 +781,7 @@ class Visualizor:
         conf["yaxismax"] = maxi
         x = result.shape.nbCols * result.shape.custodyRows + result.shape.nbRows * result.shape.custodyCols
         conf["expected_value"] = (result.shape.numberNodes - 1) * (result.shape.class1ratio * result.shape.vpn1 * x + (1 - result.shape.class1ratio) * result.shape.vpn2 * x)
-        conf["line_label"] = "Total samples to deliver"
+        conf["line_label"] = "Total segments to deliver"
         plotData(conf)
         print("Plot %s created." % conf["path"])
 
@@ -769,8 +794,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Nodes/validators ready"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -799,8 +825,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Sent data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -831,8 +858,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Received data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -863,8 +891,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Duplicated data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
@@ -896,8 +925,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Row/Column distribution"
         conf["type"] = "grouped_bar"
         conf["legLoc"] = 2
@@ -923,8 +953,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Sent by Nodes"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
@@ -945,8 +976,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Sent by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Messages Sent"
@@ -962,8 +994,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Received by Nodes"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
@@ -984,8 +1017,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Received by Nodes"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
@@ -1007,8 +1041,9 @@ class Visualizor:
         attrbs = self.__get_attrbs__(result)
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
-        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Samples Repaired by Nodes"
         conf["type"] = "individual_bar"
         conf["legLoc"] = 1
@@ -1022,3 +1057,225 @@ class Visualizor:
         conf["yaxismax"] = maxi
         plotData(conf)
         print("Plot %s created." % conf["path"])
+    
+    def plotHeatMapData(self, conf):
+        data = {'x': conf['x'], 'y': conf['y'], 'weights': conf['weights']}
+        df = pd.DataFrame(data)
+        pivot_df = df.pivot_table(index='y', columns='x', values='weights', aggfunc="sum")
+        
+        # Create subplots
+        fig, (ax_heatmap, ax_textbox) = plt.subplots(1, 2, figsize=(18, 6))
+        
+        # Plot heatmap
+        sns.heatmap(pivot_df, annot=True, cmap='viridis', fmt='.0f', ax=ax_heatmap)
+        ax_heatmap.set_xlabel(conf['xlabel'])
+        ax_heatmap.set_ylabel(conf['ylabel'])
+        ax_heatmap.set_title(conf['title'])
+        
+        # Plot textbox
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        ax_textbox.text(0.5, 0.5, conf["textBox"], fontsize=14, verticalalignment='center', transform=ax_textbox.transAxes, bbox=props)
+        ax_textbox.axis('off')  # Turn off axis for the textbox subplot
+        
+        folder = f"results/{self.execID}/heatmaps/{conf['folder']}"
+        os.makedirs(folder, exist_ok=True)
+        plt.savefig(f"{folder}/{conf['path']}")
+        plt.clf()
+        plt.close()
+    
+    # Number of simulation runs with the same parameters for statistical relevance
+    def totalRuns(self):
+        rs = []
+        for result in self.results: 
+            attrbs = self.__get_attrbs__(result)
+            rs.append(int(attrbs['r']))
+        
+        return max(rs) - min(rs) + 1
+    
+    # x -> network degree, y -> number of nodes, weights -> simulation duration
+    def plotNWDegVsNodeOnRuntime(self):
+        xyS = dict()
+        for result in self.results: 
+            attrbs = self.__get_attrbs__(result)
+            textBox = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
+                +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
+                +"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"\
+                +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']\
+                +"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+            filename = "bsrn_" + attrbs['bsrn'] +\
+                "_bsrk_" + attrbs['bsrk'] +\
+                "_bscn_" + attrbs['bscn' ] +\
+                "_bsck_" + attrbs['bsck'] +\
+                "_fr_" + attrbs['fr'] +\
+                "_mn_" + attrbs['mn'] +\
+                "_cusr_" + attrbs['cusr'] +\
+                "_cusc_" + attrbs['cusc'] +\
+                "_vpn1_" + attrbs['vpn1'] +\
+                "_vpn2_" + attrbs['vpn2']
+            identifier = (
+                attrbs['bsrn'], attrbs['bsrk'], attrbs['bscn'],
+                attrbs['bsck'], attrbs['fr'], attrbs['mn'],
+                attrbs['cusr'], attrbs['cusc'], attrbs['vpn1'],
+                attrbs['vpn2']
+            )
+            if identifier in xyS.keys():
+                xyS[identifier]['x'].append(result.shape.netDegree)
+                xyS[identifier]['y'].append(result.shape.numberNodes)
+                xyS[identifier]['w'].append(self.config.stepDuration * (len(result.missingVector) - 1))
+            else:
+                xyS[identifier] = {
+                    'x': [result.shape.netDegree],
+                    'y': [result.shape.numberNodes],
+                    'w': [self.config.stepDuration * (len(result.missingVector) - 1)],
+                    'textBox': textBox,
+                    'filename': filename
+                }
+        
+        runs = self.totalRuns()
+        for v in xyS.values():
+            x = v['x']
+            y = v['y']
+            weights = [(w / runs) for w in v['w']]
+            
+            if len(set(x)) * len(set(y)) < 2: return # Not enough unique params for heatmap
+            
+            conf = {
+                'x': x,
+                'y': y,
+                'weights': weights,
+                'xlabel': 'Net Degree',
+                'ylabel': 'Number of Nodes',
+                'title': 'Net Degree vs. Number of Nodes on Simulation Runtime (ms)',
+                'folder': 'NWDegVsNodeOnRuntime',
+                'textBox': v['textBox'],
+                'path': f"{v['filename']}.png"
+            }
+            
+            self.plotHeatMapData(conf)
+    
+    # x -> network degree, y -> % of malicious nodes, weights -> no of missing samples
+    def plotNWDegVsMalNodeOnMissingSamples(self):
+        xyS = dict()
+        for result in self.results: 
+            attrbs = self.__get_attrbs__(result)
+            textBox = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
+                +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
+                +"\nFailure rate: "+attrbs['fr']+"%"+"\nNodes: "+attrbs['nn']\
+                +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']\
+                +"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+            filename = "bsrn_" + attrbs['bsrn'] +\
+                "_bsrk_" + attrbs['bsrk'] +\
+                "_bscn_" + attrbs['bscn' ] +\
+                "_bsck_" + attrbs['bsck'] +\
+                "-nn-" + attrbs['nn'] +\
+                "_fr_" + attrbs['fr'] +\
+                "_cusr_" + attrbs['cusr'] +\
+                "_cusc_" + attrbs['cusc'] +\
+                "_vpn1_" + attrbs['vpn1'] +\
+                "_vpn2_" + attrbs['vpn2']
+            identifier = (
+                attrbs['bsrn'], attrbs['bsrk'], attrbs['bscn'],
+                attrbs['bsck'], attrbs['fr'], attrbs['nn'],
+                attrbs['cusr'], attrbs['cusc'], attrbs['vpn1'],
+                attrbs['vpn2']
+            )
+            if identifier in xyS.keys():
+                xyS[identifier]['x'].append(result.shape.netDegree)
+                xyS[identifier]['y'].append(result.shape.maliciousNodes)
+                xyS[identifier]['w'].append(result.missingVector[-1])
+            else:
+                xyS[identifier] = {
+                    'x': [result.shape.netDegree],
+                    'y': [result.shape.maliciousNodes],
+                    'w': [result.missingVector[-1]],
+                    'textBox': textBox,
+                    'filename': filename
+                }
+        
+        runs = self.totalRuns()
+        for v in xyS.values():
+            x = v['x']
+            y = v['y']
+            weights = [(w / runs) for w in v['w']]
+            
+            if len(set(x)) * len(set(y)) < 2: return # Not enough unique params for heatmap
+            
+            conf = {
+                'x': x,
+                'y': y,
+                'weights': weights,
+                'xlabel': 'Net Degree',
+                'ylabel': 'Malicious Nodes (%)',
+                'title': 'Net Degree vs Malicious Nodes (%) on Missing Samples',
+                'folder': 'NWDegVsMalNodeOnMissingSamples',
+                'textBox': v['textBox'],
+                'path': f"{v['filename']}.png"
+            }
+            
+            self.plotHeatMapData(conf)
+
+    # x -> network degree, y -> failure rate, weights -> no of missing samples
+    def plotNWDegVsFailureRateOnMissingSamples(self):
+        xyS = dict()
+        for result in self.results: 
+            attrbs = self.__get_attrbs__(result)
+            textBox = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
+                +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
+                +"\nNodes: "+attrbs['nn']+"\nMalicious Node: "+attrbs['mn']+"%"\
+                +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']\
+                +"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+            filename = "bsrn_" + attrbs['bsrn'] +\
+                "_bsrk_" + attrbs['bsrk'] +\
+                "_bscn_" + attrbs['bscn' ] +\
+                "_bsck_" + attrbs['bsck'] +\
+                "-nn-" + attrbs['nn'] +\
+                "_mn_" + attrbs['mn'] +\
+                "_cusr_" + attrbs['cusr'] +\
+                "_cusc_" + attrbs['cusc'] +\
+                "_vpn1_" + attrbs['vpn1'] +\
+                "_vpn2_" + attrbs['vpn2']
+            identifier = (
+                attrbs['bsrn'], attrbs['bsrk'], attrbs['bscn'],
+                attrbs['bsck'], attrbs['mn'], attrbs['nn'],
+                attrbs['cusr'], attrbs['cusc'], attrbs['vpn1'],
+                attrbs['vpn2']
+            )
+            if identifier in xyS.keys():
+                xyS[identifier]['x'].append(result.shape.netDegree)
+                xyS[identifier]['y'].append(result.shape.failureRate)
+                xyS[identifier]['w'].append(result.missingVector[-1])
+            else:
+                xyS[identifier] = {
+                    'x': [result.shape.netDegree],
+                    'y': [result.shape.failureRate],
+                    'w': [result.missingVector[-1]],
+                    'textBox': textBox,
+                    'filename': filename
+                }
+        
+        runs = self.totalRuns()
+        for v in xyS.values():
+            x = v['x']
+            y = v['y']
+            weights = [(w / runs) for w in v['w']]
+            
+            if len(set(x)) * len(set(y)) < 2: return # Not enough unique params for heatmap
+            
+            conf = {
+                'x': x,
+                'y': y,
+                'weights': weights,
+                'xlabel': 'Net Degree',
+                'ylabel': 'Failure Rate (%)',
+                'title': 'Net Degree vs Failure Rate (%) on Missing Samples',
+                'folder': 'NWDegVsFailureRateOnMissingSamples',
+                'textBox': v['textBox'],
+                'path': f"{v['filename']}.png"
+            }
+            
+            self.plotHeatMapData(conf)
+         
+    def plotAllHeatMaps(self):
+        self.plotNWDegVsNodeOnRuntime()
+        self.plotNWDegVsMalNodeOnMissingSamples()
+        self.plotNWDegVsFailureRateOnMissingSamples()
