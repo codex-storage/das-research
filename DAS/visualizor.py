@@ -761,7 +761,8 @@ class Visualizor:
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
         +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
-        +"\nSegment Size: "+str(self.config.segmentSize)+"\nMissing Sample: "+str(min(result.missingVector) * 100 / max(result.missingVector))+"%"
+        +"\nSegment Size: "+str(self.config.segmentSize)+"\nMissing Sample: "+str(min(result.missingVector) * 100 / max(result.missingVector))+"%"\
+        +"\nMissing Samples: "+str(result.missingVector[-1])
         conf["title"] = "Missing Samples"
         conf["type"] = "plot_with_1line"
         conf["legLoc"] = 1
