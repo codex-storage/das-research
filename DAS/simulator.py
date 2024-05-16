@@ -279,7 +279,7 @@ class Simulator:
             self.logger.debug("Expected Samples: %d" % expected, extra=self.format)
             self.logger.debug("Missing Samples: %d" % missingSamples, extra=self.format)
             oldMissingSamples = missingSamples
-            custodyCountsRow, custodyCountsCol = [] # Count of custody of current step
+            custodyCountsRow, custodyCountsCol = [[], []], [[], []] # Count of custody of current step
             self.logger.debug("PHASE SEND %d" % steps, extra=self.format)
             for i in range(0,self.shape.numberNodes):
                 if not self.validators[i].amImalicious:
@@ -298,9 +298,18 @@ class Simulator:
             self.logger.debug("PHASE CUSTODY %d" % steps, extra=self.format)
             for i in range(0,self.shape.numberNodes):
                 if not self.validators[i].amIproposer:
-                    custodyCountsCol.append(len(self.validators[i].columnIDs))
-                    custodyCountsRow.append(len(self.validators[i].rowIDs))
-
+                    nodeType = 0 if i < (self.shape.numberNodes * self.shape.class1ratio) else 1
+                    _count = 0
+                    for id in self.validators[i].columnIDs:
+                        line = self.validators[i].getColumn(id)
+                        if line.count(1) == len(line): _count += 1
+                    custodyCountsCol[nodeType].append(_count)
+                    _count = 0
+                    for id in self.validators[i].rowIDs:
+                        line = self.validators[i].getRow(id)
+                        if line.count(1) == len(line): _count += 1
+                    custodyCountsRow[nodeType].append(_count)
+            
             stepCustodyCountsRow.append(custodyCountsRow)
             stepCustodyCountsCol.append(custodyCountsCol)
             
