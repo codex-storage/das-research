@@ -1065,14 +1065,26 @@ class Visualizor:
         data = {'x': conf['x'], 'y': conf['y'], 'weights': conf['weights']}
         df = pd.DataFrame(data)
         pivot_df = df.pivot_table(index='y', columns='x', values='weights', aggfunc="sum")
-        sns.heatmap(pivot_df, annot=True, cmap='viridis', fmt='.0f')
-        plt.xlabel(conf['xlabel'])
-        plt.ylabel(conf['ylabel'])
-        plt.title(conf['title'])
+        
+        # Create subplots
+        fig, (ax_heatmap, ax_textbox) = plt.subplots(1, 2, figsize=(18, 6))
+        
+        # Plot heatmap
+        sns.heatmap(pivot_df, annot=True, cmap='viridis', fmt='.0f', ax=ax_heatmap)
+        ax_heatmap.set_xlabel(conf['xlabel'])
+        ax_heatmap.set_ylabel(conf['ylabel'])
+        ax_heatmap.set_title(conf['title'])
+        
+        # Plot textbox
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        ax_textbox.text(0.5, 0.5, conf["textBox"], fontsize=14, verticalalignment='center', transform=ax_textbox.transAxes, bbox=props)
+        ax_textbox.axis('off')  # Turn off axis for the textbox subplot
+        
         folder = f"results/{self.execID}/heatmaps/{conf['folder']}"
         os.makedirs(folder, exist_ok=True)
         plt.savefig(f"{folder}/{conf['path']}")
         plt.clf()
+        plt.close()
     
     # x -> network degree, y -> number of nodes, weights -> simulation duration
     def plotNWDegVsNodeOnRuntime(self):
