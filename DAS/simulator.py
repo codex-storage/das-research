@@ -274,6 +274,7 @@ class Simulator:
         stepCustodyCountsRow, stepCustodyCountsCol = [], [] # Count of custody in each step
         malicious_nodes_not_added_count = 0
         steps = 0
+
         while(True):
             missingVector.append(missingSamples)
             self.logger.debug("Expected Samples: %d" % expected, extra=self.format)
@@ -374,6 +375,7 @@ class Simulator:
         # adding custody stats in result
         self.result.addMetric("rowCustody", stepCustodyCountsRow)
         self.result.addMetric("colCustody", stepCustodyCountsCol)
+
 
         for i in range(0,self.shape.numberNodes):
             if not self.validators[i].amIaddedToQueue :
