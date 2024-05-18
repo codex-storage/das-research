@@ -6,3 +6,4 @@ networkx==3.0
 numpy==1.23.5
 seaborn==0.13.0
 joblib==1.2.0
+pillow==10.2.0

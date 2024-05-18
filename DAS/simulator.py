@@ -271,6 +271,7 @@ class Simulator:
         missingVector = []
         progressVector = []
         trafficStatsVector = []
+        stepCustodyCountsRow, stepCustodyCountsCol = [], [] # Count of custody in each step
         malicious_nodes_not_added_count = 0
         steps = 0
 
@@ -279,6 +280,7 @@ class Simulator:
             self.logger.debug("Expected Samples: %d" % expected, extra=self.format)
             self.logger.debug("Missing Samples: %d" % missingSamples, extra=self.format)
             oldMissingSamples = missingSamples
+            custodyCountsRow, custodyCountsCol = [[], []], [[], []] # Count of custody of current step
             self.logger.debug("PHASE SEND %d" % steps, extra=self.format)
             for i in range(0,self.shape.numberNodes):
                 if not self.validators[i].amImalicious:
@@ -294,7 +296,24 @@ class Simulator:
             for i in range(0,self.shape.numberNodes):
                 self.validators[i].logRows()
                 self.validators[i].logColumns()
-
+            self.logger.debug("PHASE CUSTODY %d" % steps, extra=self.format)
+            for i in range(0,self.shape.numberNodes):
+                if not self.validators[i].amIproposer:
+                    nodeType = 0 if i < (self.shape.numberNodes * self.shape.class1ratio) else 1
+                    _count = 0
+                    for id in self.validators[i].columnIDs:
+                        line = self.validators[i].getColumn(id)
+                        if line.count(1) == len(line): _count += 1
+                    custodyCountsCol[nodeType].append(_count)
+                    _count = 0
+                    for id in self.validators[i].rowIDs:
+                        line = self.validators[i].getRow(id)
+                        if line.count(1) == len(line): _count += 1
+                    custodyCountsRow[nodeType].append(_count)
+            
+            stepCustodyCountsRow.append(custodyCountsRow)
+            stepCustodyCountsCol.append(custodyCountsCol)
+            
             # log TX and RX statistics
             trafficStats = self.glob.getTrafficStats(self.validators)
             self.logger.debug("step %d: %s" %
@@ -352,6 +371,10 @@ class Simulator:
                 missingVector.append(missingSamples)
                 break
             steps += 1
+        
+        # adding custody stats in result
+        self.result.addMetric("rowCustody", stepCustodyCountsRow)
+        self.result.addMetric("colCustody", stepCustodyCountsCol)
 
 
         for i in range(0,self.shape.numberNodes):

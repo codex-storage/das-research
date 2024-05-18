@@ -5,6 +5,7 @@ import seaborn as sns
 import numpy as np
 import os
 import pandas as pd
+from PIL import Image
 
 def plotData(conf):
     plt.clf()
@@ -161,9 +162,101 @@ class Visualizor:
             self.plotECDFRestoreRowCount(result, plotPath)
             self.plotECDFRestoreColumnCount(result, plotPath)
             if self.config.saveRCdist:
-                self.plotECDFRowColDist(result, plotPath)        
-
-
+                self.plotECDFRowColDist(result, plotPath)
+            
+            self.plotCustodyStatsCol(result, plotPath)
+            self.plotCustodyStatsRow(result, plotPath)
+    
+    def plotCustodyStatsCol(self, result, plotPath):
+        """line plot of col custody requirement fulfilled in each step"""
+        types = ["Type 1", "Type 2"]
+        colCustody = result.metrics["colCustody"]
+        
+        for i in range(2):
+            medians = [np.median(l[i]) for l in colCustody]
+            q25s = [np.percentile(l[i], 25) for l in colCustody]
+            q75s = [np.percentile(l[i], 75) for l in colCustody]
+            
+            plt.clf()
+            conf = {}
+            conf["type"] = "plot"
+            attrbs = self.__get_attrbs__(result)
+            conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
+            +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
+            +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
+            +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+            conf["title"] = f"Column Custody Requirements Fulfilled ({types[i]})"
+            conf["xlabel"] = "Time (ms)"
+            conf["ylabel"] = "Custody Fulfilled"
+            conf["labels"] = ["Median", "Quartile (25%)", "Quartile (75)%"]
+            conf["colors"] = ["g-", "b-", "r-"]
+            conf["legLoc"] = 2
+            conf["path"] = plotPath + f"/temp_custodyStatCol_{i}.png"
+            conf['data'] = [medians, q25s, q75s]
+            conf["xdots"] = [x * self.config.stepDuration for x in range(len(medians))]
+            maxi = 0
+            for v in conf["data"]:
+                if np.nanmax(v) > maxi:
+                    maxi = max(v)
+            conf["yaxismax"] = maxi
+            
+            plotData(conf)
+        
+        ims = []
+        for i in range(2):
+            ims.append(Image.open(plotPath + f"/temp_custodyStatCol_{i}.png"))
+            os.remove(plotPath + f"/temp_custodyStatCol_{i}.png")
+        im = Image.new('RGB', (max(ims[0].width, ims[1].width), ims[0].height + ims[1].height))
+        im.paste(ims[0], (0, 0))
+        im.paste(ims[1], (0, ims[0].height))
+        im.save(plotPath + f"/custodyStatCol.png")
+        print("Plot %s created." % conf["path"])
+    
+    def plotCustodyStatsRow(self, result, plotPath):
+        """line plot of row custody requirement fulfilled in each step"""
+        types = ["Type 1", "Type 2"]
+        rowCustodys = result.metrics["rowCustody"]
+        
+        for i in range(2):
+            medians = [np.median(l[i]) for l in rowCustodys]
+            q25s = [np.percentile(l[i], 25) for l in rowCustodys]
+            q75s = [np.percentile(l[i], 75) for l in rowCustodys]
+            
+            plt.clf()
+            conf = {}
+            conf["type"] = "plot"
+            attrbs = self.__get_attrbs__(result)
+            conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
+            +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
+            +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"\nMalicious Node: "+attrbs['mn']+"\nNetwork degree: "+attrbs['nd']\
+            +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+            conf["title"] = f"Row Custody Requirements Fulfilled ({types[i]})"
+            conf["xlabel"] = "Time (ms)"
+            conf["ylabel"] = "Custody Fulfilled"
+            conf["labels"] = ["Median", "Quartile (25%)", "Quartile (75)%"]
+            conf["colors"] = ["g-", "b-", "r-"]
+            conf["legLoc"] = 2
+            conf["path"] = plotPath + f"/temp_custodyStatRow_{i}.png"
+            conf['data'] = [medians, q25s, q75s]
+            conf["xdots"] = [x * self.config.stepDuration for x in range(len(medians))]
+            maxi = 0
+            for v in conf["data"]:
+                if np.nanmax(v) > maxi:
+                    maxi = max(v)
+            conf["yaxismax"] = maxi
+            
+            plotData(conf)
+        
+        ims = []
+        for i in range(2):
+            ims.append(Image.open(plotPath + f"/temp_custodyStatRow_{i}.png"))
+            os.remove(plotPath + f"/temp_custodyStatRow_{i}.png")
+        im = Image.new('RGB', (max(ims[0].width, ims[1].width), ims[0].height + ims[1].height))
+        im.paste(ims[0], (0, 0))
+        im.paste(ims[1], (0, ims[0].height))
+        im.save(plotPath + f"/custodyStatRow.png")
+        print("Plot %s created." % conf["path"])
+    
     def plotBoxRestoreRowCount(self, result, plotPath):
         """Box Plot of restoreRowCount for all nodes"""
         plt.clf()
