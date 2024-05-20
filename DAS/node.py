@@ -246,6 +246,14 @@ class Node:
             self.statsRxDupInSlot += 1
         self.statsRxInSlot += 1
 
+    def receiveSegmentViaGossip(self, rID, cID):
+        """Receive a segment via gossipsub protocol."""
+        if not self.amImalicious:
+            self.logger.trace("Recv via gossipsub: %d: %d,%d", self.ID, rID, cID, extra=self.format)
+            self.receivedBlock.setSegment(rID, cID)
+            self.sampleRecvCount += 1
+        self.statsRxInSlot += 1
+
     def addToSendQueue(self, rID, cID):
         """Queue a segment for forwarding."""
         if self.perNodeQueue and not self.amImalicious:
@@ -504,7 +512,26 @@ class Node:
             if self.statsTxInSlot >= self.bwUplink:
                 return
 
-    def send(self):
+    def gossipSub(self, rows, cols):
+        """ This function facilitates the Gossipsub protocol for segment distribution among nodes.
+        It ensures that each node receives any missing segments by checking other nodes in the network.
+
+        Args:
+            rows (dict): A hash table where the keys are row IDs and the values are lists of nodes that contain these rows.
+            cols (dict): A hash table where the keys are column IDs and the values are lists of nodes that contain these columns.
+        
+        Description:
+            - The function iterates through all row IDs and column IDs.
+            - For each segment identified by a row ID (rID) and a column ID (cID):
+                - It checks if the current node (self) already has the segment.
+                - If the segment is missing, it attempts to receive the segment from other nodes using the Gossipsub protocol via the receiveSegmentViaGossip method.
+        """
+        for rID in rows:
+            for cID in cols:
+                if not self.receivedBlock.getSegment(rID, cID):
+                    self.receiveSegmentViaGossip(rID, cID)
+    
+    def send(self, rows, cols):
         """ Send as much as we can in the timestep, limited by bwUplink."""
 
         # process node level send queue
@@ -527,6 +554,11 @@ class Node:
 
         if self.dumbRandomScheduler and not self.amImalicious:
             self.runDumbRandomScheduler()
+        if self.statsTxInSlot >= self.bwUplink:
+            return
+        
+        if not self.amImalicious:
+            self.gossipSub(rows, cols)
         if self.statsTxInSlot >= self.bwUplink:
             return
 
