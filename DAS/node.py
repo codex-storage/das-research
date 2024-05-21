@@ -246,10 +246,10 @@ class Node:
             self.statsRxDupInSlot += 1
         self.statsRxInSlot += 1
 
-    def receiveSegmentViaGossip(self, rID, cID):
-        """Receive a segment via gossipsub protocol."""
+    def receiveSegmentViaGossip(self, rID, cID, source):
+        """Receive a segment via gossipsub protocol from a specific source."""
         if not self.amImalicious:
-            self.logger.trace("Recv via gossipsub: %d: %d,%d", self.ID, rID, cID, extra=self.format)
+            self.logger.trace("Recv via gossipsub %d-> %d: %d,%d", source, self.ID, rID, cID, extra=self.format)
             self.receivedBlock.setSegment(rID, cID)
             self.sampleRecvCount += 1
         self.statsRxInSlot += 1
@@ -526,41 +526,48 @@ class Node:
                 - It checks if the current node (self) already has the segment.
                 - If the segment is missing, it attempts to receive the segment from other nodes using the Gossipsub protocol via the receiveSegmentViaGossip method.
         """
-        for rID in rows:
-            for cID in cols:
+        for rID, rSources in rows.items():
+            for cID, cSources in cols.items():
                 if not self.receivedBlock.getSegment(rID, cID):
-                    self.receiveSegmentViaGossip(rID, cID)
+                    sources = list(set(rSources).intersection(cSources))
+                    if sources:
+                        source = sources[0]  # Pick the first source from the intersection
+                        self.receiveSegmentViaGossip(rID, cID, source)
+                        self.statsTxInSlot += 1  # request sent to receive segment via gossip
+
     
-    def send(self, rows, cols):
+    def send(self, gossipsub, rows, cols):
         """ Send as much as we can in the timestep, limited by bwUplink."""
 
-        # process node level send queue
-        if not self.amImalicious:
-            self.processSendQueue()
-        if self.statsTxInSlot >= self.bwUplink:
-            return
+        if gossipsub:
+            if not self.amImalicious:
+                self.gossipSub(rows, cols)
+            if self.statsTxInSlot >= self.bwUplink:
+                return
 
-        # process neighbor level send queues in shuffled breadth-first order
-        if not self.amImalicious:
-            self.processPerNeighborSendQueue()
-        if self.statsTxInSlot >= self.bwUplink:
-            return
+        else:
+            # process node level send queue
+            if not self.amImalicious:
+                self.processSendQueue()
+            if self.statsTxInSlot >= self.bwUplink:
+                return
 
-        # process possible segments to send in shuffled breadth-first order
-        if self.segmentShuffleScheduler and not self.amImalicious:
-            self.runSegmentShuffleScheduler()
-        if self.statsTxInSlot >= self.bwUplink:
-            return
+            # process neighbor level send queues in shuffled breadth-first order
+            if not self.amImalicious:
+                self.processPerNeighborSendQueue()
+            if self.statsTxInSlot >= self.bwUplink:
+                return
 
-        if self.dumbRandomScheduler and not self.amImalicious:
-            self.runDumbRandomScheduler()
-        if self.statsTxInSlot >= self.bwUplink:
-            return
-        
-        if not self.amImalicious:
-            self.gossipSub(rows, cols)
-        if self.statsTxInSlot >= self.bwUplink:
-            return
+            # process possible segments to send in shuffled breadth-first order
+            if self.segmentShuffleScheduler and not self.amImalicious:
+                self.runSegmentShuffleScheduler()
+            if self.statsTxInSlot >= self.bwUplink:
+                return
+
+            if self.dumbRandomScheduler and not self.amImalicious:
+                self.runDumbRandomScheduler()
+            if self.statsTxInSlot >= self.bwUplink:
+                return
 
     def logRows(self):
         """It logs the rows assigned to the validator."""

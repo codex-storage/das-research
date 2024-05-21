@@ -59,6 +59,9 @@ maliciousNodes = range(40,41,20)
 # If True, the malicious nodes will be assigned randomly; if False, a predefined pattern may be used
 randomizeMaliciousNodes = True
 
+# When set to True, nodes will use the Gossipsub protocol for communication
+gossipsub = False
+
 # Per-topic mesh neighborhood size
 netDegrees = range(8, 9, 2)
 

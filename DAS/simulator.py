@@ -293,7 +293,7 @@ class Simulator:
             self.logger.debug("PHASE SEND %d" % steps, extra=self.format)
             for i in range(0,self.shape.numberNodes):
                 if not self.validators[i].amImalicious:
-                    self.validators[i].send(rows, cols)
+                    self.validators[i].send(self.config.gossipsub, rows, cols)
             self.logger.debug("PHASE RECEIVE %d" % steps, extra=self.format)
             for i in range(1,self.shape.numberNodes):
                 self.validators[i].receiveRowsColumns()
