@@ -60,7 +60,10 @@ maliciousNodes = range(40,41,20)
 randomizeMaliciousNodes = True
 
 # When set to True, nodes will use the Gossipsub protocol for communication
-gossipsub = False
+gossip = True
+
+# Heartbeat interval for gossip messages in simulation steps
+heartbeat = 10
 
 # Per-topic mesh neighborhood size
 netDegrees = range(8, 9, 2)
