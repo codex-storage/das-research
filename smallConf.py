@@ -63,7 +63,7 @@ randomizeMaliciousNodes = True
 gossip = True
 
 # Heartbeat interval for gossip messages in simulation steps
-heartbeat = 10
+heartbeat = 20
 
 # Per-topic mesh neighborhood size
 netDegrees = range(8, 9, 2)
