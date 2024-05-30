@@ -77,17 +77,17 @@ validatorBasedCustody = False
 custodyRows = range(2, 3, 2)
 custodyCols = range(2, 3, 2)
 
-# ratio of class1 nodes (see below for parameters per class)
-class1ratios = [0.8]
-
-# Number of validators per beacon node
-validatorsPerNode1 = [1]
-validatorsPerNode2 = [5]
-
 # Set uplink bandwidth in megabits/second
 bwUplinksProd = [200]
-bwUplinks1 = [10]
-bwUplinks2 = [200]
+
+nodeTypesGroup = [
+    {
+        "group": "g1",
+        # nodeClass: node config
+        1: {'validatorsPerNode': 1, 'bwUplinks': 10, 'ratio': 8},
+        2: {'validatorsPerNode': 5, 'bwUplinks': 200, 'ratio': 2}
+    }
+]
 
 # Step duration in miliseconds (Classic RTT is about 100ms)
 stepDuration = 50
@@ -135,11 +135,11 @@ colsK = range(32, 65, 128)
 rowsK = range(32, 65, 128)
 
 def nextShape():
-    for nbCols, nbColsK, nbRows, nbRowsK, run, fm, fr, mn, class1ratio, chR, chC, vpn1, vpn2, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
-        cols, colsK, rows, rowsK, runs, failureModels, failureRates, maliciousNodes, class1ratios,  custodyRows, custodyCols, validatorsPerNode1, validatorsPerNode2, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
+    for nbCols, nbColsK, nbRows, nbRowsK, run, fm, fr, mn, chR, chC, nn, netDegree, bwUplinkProd, nodeTypes in itertools.product(
+        cols, colsK, rows, rowsK, runs, failureModels, failureRates, maliciousNodes,  custodyRows, custodyCols, numberNodes, netDegrees, bwUplinksProd, nodeTypesGroup):
         # Network Degree has to be an even number
         if netDegree % 2 == 0:
-            shape = Shape(nbCols, nbColsK, nbRows, nbRowsK, nn, fm, fr, mn, class1ratio, chR, chC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
+            shape = Shape(nbCols, nbColsK, nbRows, nbRowsK, nn, fm, fr, mn, chR, chC, netDegree, bwUplinkProd, run, nodeTypes)
             yield shape
 
 def evalConf(self, param, shape = None):

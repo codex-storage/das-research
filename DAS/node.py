@@ -48,7 +48,7 @@ class Node:
         """It returns the node ID."""
         return str(self.ID)
 
-    def __init__(self, ID, amIproposer, amImalicious, logger, shape, config,
+    def __init__(self, ID, amIproposer, nodeClass, amImalicious, logger, shape, config,
                  validators, rows = set(), columns = set()):
         """It initializes the node, and eventual validators, following the simulation configuration in shape and config.
 
@@ -82,7 +82,7 @@ class Node:
             self.rowIDs = range(shape.nbRows)
             self.columnIDs = range(shape.nbCols)
         else:
-            self.nodeClass = 1 if (self.ID <= shape.numberNodes * shape.class1ratio) else 2
+            self.nodeClass = nodeClass
             self.vpn = len(validators)  #TODO: needed by old code, change to fn
 
             self.rowIDs = set(rows)
@@ -120,10 +120,8 @@ class Node:
         # 1 Mbps ~= 1e6 mbps * 0.050 s / (560*8) bits ~= 11 segments/timestep
         if self.amIproposer:
             self.bwUplink = shape.bwUplinkProd
-        elif self.nodeClass == 1:
-            self.bwUplink = shape.bwUplink1
         else:
-            self.bwUplink = shape.bwUplink2
+            self.bwUplink = shape.nodeTypes[self.nodeClass]['bwUplinks']
         self.bwUplink *= 1e3 / 8 * config.stepDuration / config.segmentSize
 
         self.repairOnTheFly = config.evalConf(self, config.repairOnTheFly, shape)

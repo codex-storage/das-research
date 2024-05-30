@@ -44,6 +44,19 @@ class Simulator:
         self.proposerPublishToR = config.evalConf(self, config.proposerPublishToR, shape)
         self.proposerPublishToC = config.evalConf(self, config.proposerPublishToR, shape)
 
+    def getNodeClass(self, nodeIdx):
+        nodeRatios = []
+        for _k, _v in self.shape.nodeTypes.items():
+            if _k != "group": nodeRatios.append(_v['ratio'])
+        nodeCounts = [int(self.shape.numberNodes * ratio / sum(nodeRatios)) for ratio in nodeRatios]
+        commulativeSum = [nodeCounts[0]]
+        for count in nodeCounts[1: ]:
+            commulativeSum.append(commulativeSum[-1] + count)
+        commulativeSum[-1] = self.shape.numberNodes
+        for i, idx in enumerate(commulativeSum):
+            if nodeIdx < idx:
+                return i + 1
+
     def initValidators(self):
         """It initializes all the validators in the network."""
         self.glob = Observer(self.logger, self.shape)
@@ -125,11 +138,11 @@ class Simulator:
                     self.logger.error("custodyRows has to be smaller than %d" % self.shape.nbRows)
 
                 vs = []
-                nodeClass = 1 if (i <= self.shape.numberNodes * self.shape.class1ratio) else 2
-                vpn = self.shape.vpn1 if (nodeClass == 1) else self.shape.vpn2
+                nodeClass = self.getNodeClass(i)
+                vpn = self.shape.nodeTypes[nodeClass]['validatorsPerNode']
                 for v in range(vpn):
                     vs.append(initValidator(self.shape.nbRows, self.shape.custodyRows, self.shape.nbCols, self.shape.custodyCols))
-                val = Node(i, int(not i!=0), amImalicious_value, self.logger, self.shape, self.config, vs)
+                val = Node(i, int(not i!=0), nodeClass, amImalicious_value, self.logger, self.shape, self.config, vs)
             if i == self.proposerID:
                 val.initBlock()
             else:
