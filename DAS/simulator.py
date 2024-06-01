@@ -45,13 +45,9 @@ class Simulator:
         self.proposerPublishToC = config.evalConf(self, config.proposerPublishToR, shape)
 
     def getNodeClass(self, nodeIdx):
-        nodeRatios = []
-        for _k, _v in self.shape.nodeTypes.items():
-            if _k != "group": nodeRatios.append(_v['ratio'])
+        nodeRatios = [_v['ratio'] for _k, _v in self.shape.nodeTypes.items() if _k != "group"]
         nodeCounts = [int(self.shape.numberNodes * ratio / sum(nodeRatios)) for ratio in nodeRatios]
-        commulativeSum = [nodeCounts[0]]
-        for count in nodeCounts[1: ]:
-            commulativeSum.append(commulativeSum[-1] + count)
+        commulativeSum = [sum(nodeCounts[:i+1]) for i in range(len(nodeCounts))]
         commulativeSum[-1] = self.shape.numberNodes
         for i, idx in enumerate(commulativeSum):
             if nodeIdx < idx:
