@@ -72,7 +72,8 @@ class Visualizor:
                     if _k != 'group':
                         theGroup[_k] = {
                             "vpn": _v["validatorsPerNode"],
-                            "bw": _v["bwUplinks"]
+                            "bw": _v["bwUplinks"],
+                            "r": _v["ratio"]
                         }
                 break
         
@@ -909,7 +910,7 @@ class Visualizor:
                 maxi = max(v)
         conf["yaxismax"] = maxi
         x = result.shape.nbCols * result.shape.custodyRows + result.shape.nbRows * result.shape.custodyCols
-        conf["expected_value"] = (result.shape.numberNodes - 1) * (result.shape.class1ratio * result.shape.vpn1 * x + (1 - result.shape.class1ratio) * result.shape.vpn2 * x)
+        conf["expected_value"] = (result.shape.numberNodes - 1) * x * sum([(_v['r'] * _v['vpn']) for _v in nodeTypes.values()]) / sum([_v['r'] for _v in nodeTypes.values()])
         conf["line_label"] = "Total segments to deliver"
         plotData(conf)
         print("Plot %s created." % conf["path"])
