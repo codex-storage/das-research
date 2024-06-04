@@ -14,7 +14,8 @@ def plotData(conf):
     plt.text(1.05, 0.05, conf["textBox"], fontsize=14, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
     if conf["type"] == "plot" or conf["type"] == "plot_with_1line":
         for i in range(len(conf["data"])):
-            plt.plot(conf["xdots"], conf["data"][i], conf["colors"][i], label=conf["labels"][i])
+            # plt.plot(conf["xdots"], conf["data"][i], conf["colors"][i], label=conf["labels"][i])
+            plt.plot(conf["xdots"], conf["data"][i], label=conf["labels"][i])
     elif conf["type"] == "individual_bar" or conf["type"] == "individual_bar_with_2line":
         plt.bar(conf["xdots"], conf["data"])
     elif conf["type"] == "grouped_bar":
@@ -949,13 +950,12 @@ class Visualizor:
 
     def plotSentData(self, result, plotPath):
         """Plots the percentage of nodes ready in the network"""
-        vector1 = result.metrics["progress"]["TX builder mean"]
-        vector2 = result.metrics["progress"]["TX class1 mean"]
-        vector3 = result.metrics["progress"]["TX class2 mean"]
-        for i in range(len(vector1)):
-            vector1[i] = (vector1[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
-            vector2[i] = (vector2[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
-            vector3[i] = (vector3[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
+        vectors = { 0: result.metrics["progress"]["TX builder mean"] }
+        for nc in result.shape.nodeClasses:
+            if nc != 0: vectors[nc] = result.metrics["progress"][f"TX class{nc} mean"]
+        for _k in vectors.keys():
+            for i in range(len(vectors[0])):
+                vectors[_k][i] = (vectors[_k][i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
         conf = {}
         attrbs = self.__get_attrbs__(result)
         nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
@@ -972,12 +972,16 @@ class Visualizor:
         conf["type"] = "plot"
         conf["legLoc"] = 2
         conf["desLoc"] = 2
-        conf["colors"] = ["y-", "c-", "m-"]
-        conf["labels"] = ["Block Builder", "Solo stakers", "Staking pools"]
+        # conf["colors"] = ["y-", "c-", "m-"]
+        conf["labels"] = ["Block Builder"]
+        conf["data"] = [vectors[0]]
+        for _k, _v in vectors.items():
+            if _k != 0:
+                conf["labels"].append(f"Node Class: {_k}")
+                conf["data"].append(_v)
         conf["xlabel"] = "Time (ms)"
         conf["ylabel"] = "Bandwidth (MBits/s)"
-        conf["data"] = [vector1, vector2, vector3]
-        conf["xdots"] = [x*self.config.stepDuration for x in range(len(vector1))]
+        conf["xdots"] = [x*self.config.stepDuration for x in range(len(vectors[0]))]
         conf["path"] = plotPath+"/sentData.png"
         maxi = 0
         for v in conf["data"]:
