@@ -80,6 +80,18 @@ class Visualizor:
         
         return theGroup
     
+    def __getNodeRanges(self, shape):
+        nodeClasses, nodeRatios = [], []
+        for _k, _v in shape.nodeTypes.items():
+            if _k != "group":
+                nodeClasses.append(_k)
+                nodeRatios.append(_v['ratio'])
+        nodeCounts = [int(shape.numberNodes * ratio / sum(nodeRatios)) for ratio in nodeRatios]
+        commulativeSum = [sum(nodeCounts[:i+1]) for i in range(len(nodeCounts))]
+        commulativeSum[-1] = shape.numberNodes
+        
+        return nodeClasses, commulativeSum
+    
     def plotHeatmaps(self, x, y):
         """Plot the heatmap using the parameters given as x axis and y axis"""
         print("Plotting heatmap "+x+" vs "+y)
@@ -587,10 +599,22 @@ class Visualizor:
         conf["title"] = "Number of Samples Repaired by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Samples Repaired"
-        n1 = int(result.numberNodes * result.class1ratio)
-        data = [result.repairedSampleCount[1: n1], result.repairedSampleCount[n1+1: ]]
+        data = []
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        _start = 1
+        for _range in nodeRanges:
+            data.append(result.repairedSampleCount[_start: _range])
+            _start = _range
+        _values, _categories = [], []
+        for _d, _nc in zip(data, nodeClasses):
+            _values += _d
+            _categories += [f'Class {_nc}'] * len(_d)
+        data = pd.DataFrame({
+            'values': _values,
+            'category': _categories
+        })
         plt.figure(figsize=(8, 6))
-        sns.boxenplot(data=data, width=0.8)
+        sns.boxenplot(x='category', y='values', data=data, width=0.8)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
