@@ -96,7 +96,7 @@ class Observer:
                 return np.mean(l) if l else np.NaN
 
             trafficStats = {}
-            for cl in range(0,3):
+            for cl in self.config.nodeClasses:
                 Tx = [v.statsTxInSlot for v in validators if v.nodeClass == cl]
                 Rx = [v.statsRxInSlot for v in validators if v.nodeClass == cl]
                 RxDup = [v.statsRxDupInSlot for v in validators if v.nodeClass == cl]

@@ -320,12 +320,9 @@ class Simulator:
             cnN = "nodes ready"
             cnV = "validators ready"
             cnT0 = "TX builder mean"
-            cnT1 = "TX class1 mean"
-            cnT2 = "TX class2 mean"
-            cnR1 = "RX class1 mean"
-            cnR2 = "RX class2 mean"
-            cnD1 = "Dup class1 mean"
-            cnD2 = "Dup class2 mean"
+            cnT = lambda i: f"TX class{i} mean"
+            cnR = lambda i: f"RX class{i} mean"
+            cnD = lambda i: f"Dup class{i} mean"
 
             # if custody is based on the requirements of underlying individual
             # validators, we can get detailed data on how many validated.
@@ -334,19 +331,20 @@ class Simulator:
               cnVv = validatorProgress
             else:
               cnVv = validatorAllProgress
-
-            progressVector.append({
-                cnS:sampleProgress,
-                cnN:nodeProgress,
-                cnV:cnVv,
-                cnT0: trafficStats[0]["Tx"]["mean"],
-                cnT1: trafficStats[1]["Tx"]["mean"],
-                cnT2: trafficStats[2]["Tx"]["mean"],
-                cnR1: trafficStats[1]["Rx"]["mean"],
-                cnR2: trafficStats[2]["Rx"]["mean"],
-                cnD1: trafficStats[1]["RxDup"]["mean"],
-                cnD2: trafficStats[2]["RxDup"]["mean"],
-                })
+            
+            progressDict = {
+                cnS: sampleProgress,
+                cnN: nodeProgress,
+                cnV: cnVv,
+                cnT0: trafficStats[0]["Tx"]["mean"]
+            }
+            for nc in self.shape.nodeClasses:
+                if nc != 0:
+                    progressDict[cnT(nc)] = trafficStats[nc]["Tx"]["mean"]
+                    progressDict[cnR(nc)] = trafficStats[nc]["Rx"]["mean"]
+                    progressDict[cnD(nc)] = trafficStats[nc]["RxDup"]["mean"]
+            
+            progressVector.append(progressDict)
 
             if missingSamples == oldMissingSamples:
                 if len(missingVector) > self.config.steps4StopCondition:
