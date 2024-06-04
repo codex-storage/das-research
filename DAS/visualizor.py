@@ -680,10 +680,21 @@ class Visualizor:
         conf["title"] = "Number of Messages Sent by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Messages Sent"
-        n1 = int(result.numberNodes * result.class1ratio)
-        data = [result.msgSentCount[1: n1], result.msgSentCount[n1+1: ]]
-        labels = ["Class 1", "Class 2"]
-        sns.boxenplot(data=data, palette="Set2", ax=plt.gca())
+        data = []
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        _start = 1
+        for _range in nodeRanges:
+            data.append(result.msgSentCount[_start: _range])
+            _start = _range
+        _values, _categories = [], []
+        for _d, _nc in zip(data, nodeClasses):
+            _values += _d
+            _categories += [f'Class {_nc}'] * len(_d)
+        data = pd.DataFrame({
+            'values': _values,
+            'category': _categories
+        })
+        sns.boxenplot(x='category', y='values', data=data, width=0.8)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
