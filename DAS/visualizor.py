@@ -614,7 +614,7 @@ class Visualizor:
             'category': _categories
         })
         plt.figure(figsize=(8, 6))
-        sns.boxenplot(x='category', y='values', data=data, width=0.8)
+        sns.boxenplot(x='category', y='values', data=data, width=0.8, palette="Set2", ax=plt.gca())
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -694,7 +694,7 @@ class Visualizor:
             'values': _values,
             'category': _categories
         })
-        sns.boxenplot(x='category', y='values', data=data, width=0.8)
+        sns.boxenplot(x='category', y='values', data=data, width=0.8, palette="Set2", ax=plt.gca())
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -721,10 +721,21 @@ class Visualizor:
         conf["title"] = "Number of Messages Received by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Messages Received"
-        n1 = int(result.numberNodes * result.class1ratio)
-        data = [result.msgRecvCount[1: n1], result.msgRecvCount[n1+1: ]]
-        labels = ["Class 1", "Class 2"]
-        sns.boxenplot(data=data, palette="Set2", ax=plt.gca())
+        data = []
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        _start = 1
+        for _range in nodeRanges:
+            data.append(result.msgRecvCount[_start: _range])
+            _start = _range
+        _values, _categories = [], []
+        for _d, _nc in zip(data, nodeClasses):
+            _values += _d
+            _categories += [f'Class {_nc}'] * len(_d)
+        data = pd.DataFrame({
+            'values': _values,
+            'category': _categories
+        })
+        sns.boxenplot(x='category', y='values', data=data, palette="Set2", ax=plt.gca())
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
