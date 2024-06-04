@@ -954,7 +954,7 @@ class Visualizor:
         for nc in result.shape.nodeClasses:
             if nc != 0: vectors[nc] = result.metrics["progress"][f"TX class{nc} mean"]
         for _k in vectors.keys():
-            for i in range(len(vectors[0])):
+            for i in range(len(list(vectors.values())[0])):
                 vectors[_k][i] = (vectors[_k][i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
         conf = {}
         attrbs = self.__get_attrbs__(result)
@@ -981,7 +981,7 @@ class Visualizor:
                 conf["data"].append(_v)
         conf["xlabel"] = "Time (ms)"
         conf["ylabel"] = "Bandwidth (MBits/s)"
-        conf["xdots"] = [x*self.config.stepDuration for x in range(len(vectors[0]))]
+        conf["xdots"] = [x*self.config.stepDuration for x in range(len(list(vectors.values())[0]))]
         conf["path"] = plotPath+"/sentData.png"
         maxi = 0
         for v in conf["data"]:
@@ -993,11 +993,12 @@ class Visualizor:
 
     def plotRecvData(self, result, plotPath):
         """Plots the percentage of nodes ready in the network"""
-        vector1 = result.metrics["progress"]["RX class1 mean"]
-        vector2 = result.metrics["progress"]["RX class2 mean"]
-        for i in range(len(vector1)):
-            vector1[i] = (vector1[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
-            vector2[i] = (vector2[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
+        vectors = {}
+        for nc in result.shape.nodeClasses:
+            if nc != 0: vectors[nc] = result.metrics["progress"][f"RX class{nc} mean"]
+        for _k in vectors.keys():
+            for i in range(len(list(vectors.values())[0])):
+                vectors[_k][i] = (vectors[_k][i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
         conf = {}
         attrbs = self.__get_attrbs__(result)
         nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
@@ -1014,12 +1015,15 @@ class Visualizor:
         conf["type"] = "plot"
         conf["legLoc"] = 2
         conf["desLoc"] = 2
-        conf["colors"] = ["c-", "m-"]
-        conf["labels"] = ["Solo stakers", "Staking pools"]
+        # conf["colors"] = ["c-", "m-"]
+        conf["labels"] = []
+        conf["data"] = []
+        for _k, _v in vectors.items():
+            conf["labels"].append(f"Node Class: {_k}")
+            conf["data"].append(_v)
         conf["xlabel"] = "Time (ms)"
         conf["ylabel"] = "Bandwidth (MBits/s)"
-        conf["data"] = [vector1, vector2]
-        conf["xdots"] = [x*self.config.stepDuration for x in range(len(vector1))]
+        conf["xdots"] = [x*self.config.stepDuration for x in range(len(list(vectors.values())[0]))]
         conf["path"] = plotPath+"/recvData.png"
         maxi = 0
         for v in conf["data"]:
