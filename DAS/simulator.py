@@ -279,10 +279,16 @@ class Simulator:
             self.logger.debug("Expected Samples: %d" % expected, extra=self.format)
             self.logger.debug("Missing Samples: %d" % missingSamples, extra=self.format)
             oldMissingSamples = missingSamples
+
             self.logger.debug("PHASE SEND %d" % steps, extra=self.format)
             for i in range(0,self.shape.numberNodes):
                 if not self.validators[i].amImalicious:
                     self.validators[i].send()
+            if steps % self.config.heartbeat == 0 and self.config.gossip:
+                self.logger.debug("PHASE GOSSIP %d" % steps, extra=self.format)
+                for i in range(1,self.shape.numberNodes):
+                    if not self.validators[i].amImalicious:
+                        self.validators[i].gossip(self)
             self.logger.debug("PHASE RECEIVE %d" % steps, extra=self.format)
             for i in range(1,self.shape.numberNodes):
                 self.validators[i].receiveRowsColumns()

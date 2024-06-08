@@ -3,6 +3,8 @@
 import random
 import collections
 import logging
+from collections import defaultdict
+import threading
 from DAS.block import *
 from DAS.tools import shuffled, shuffledDict, unionOfSamples
 from bitarray.util import zeros
@@ -76,6 +78,7 @@ class Node:
         self.repairedSampleCount = 0
         self.logger = logger
         self.validators = validators
+        self.received_gossip = defaultdict(list)
 
         if amIproposer:
             self.nodeClass = 0
@@ -503,6 +506,63 @@ class Node:
 
             if self.statsTxInSlot >= self.bwUplink:
                 return
+
+    def sendGossip(self, peer, segments_to_send):
+        """Simulate sending row and column IDs to a peer."""
+        have_info = {'source': self.ID, 'segments': segments_to_send}
+        peer.received_gossip[self.ID].append(have_info)
+        peer.msgRecvCount += 1
+        self.logger.debug(f"Gossip sent to {peer.ID}: {peer.received_gossip}", extra=self.format)
+
+    def processReceivedGossip(self, simulator):
+        """
+        Processes received gossip messages to request and receive data segments.
+        For each segment not already received, it simulates requesting the segment,
+        logs the request and receipt, and updates the segment status and relevant counters.
+        """
+        for sender, have_infos in self.received_gossip.items():
+            for have_info in have_infos:
+                for rowID, columnID in have_info['segments']:
+                    if not self.receivedBlock.getSegment(rowID, columnID):
+                        # request for the segment
+                        self.logger.debug(f"Requesting segment ({rowID}, {columnID}) from {have_info['source']}", extra=self.format)
+                        self.msgSentCount += 1
+                        # source sends the segment
+                        self.logger.debug(f"Sending segment ({rowID}, {columnID}) to {self.ID} from {have_info['source']}", extra=self.format)
+                        simulator.validators[have_info['source']].sampleSentCount += 1
+                        simulator.validators[have_info['source']].statsTxInSlot += 1
+                        # receive the segment
+                        self.receivedBlock.setSegment(rowID, columnID)
+                        self.sampleRecvCount += 1
+                        self.logger.debug(f"Received segment ({rowID}, {columnID}) via gossip from {have_info['source']}", extra=self.format)
+        self.received_gossip.clear()
+
+    def gossip(self, simulator):
+        """
+        Periodically sends gossip messages to a random subset of nodes to share information 
+        about data segments. The process involves:
+        1. Selecting a random subset of nodes.
+        2. Sending the node's current state (row and column IDs) to these nodes.
+        3. Process the received gossip and update their state accordingly.
+        
+        This ensures data dissemination across the network, 
+        occurring at intervals defined by the HEARTBEAT timer.
+        """
+        total_nodes = simulator.shape.numberNodes
+        num_peers = random.randint(1, total_nodes - 1)
+        peers = random.sample(range(1, total_nodes), num_peers)
+        segments_to_send = []
+        for rID in range(0, self.shape.nbRows):
+            for cID in range(0, self.shape.nbCols):
+                if self.block.getSegment(rID, cID):
+                    segments_to_send.append((rID, cID))
+        if segments_to_send:
+            for peer in peers:
+                self.sendGossip(simulator.validators[peer], segments_to_send)
+                self.msgSentCount += 1
+                simulator.validators[peer].processReceivedGossip(simulator)
+                if self.statsTxInSlot >= self.bwUplink:
+                    return
 
     def send(self):
         """ Send as much as we can in the timestep, limited by bwUplink."""
