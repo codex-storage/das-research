@@ -22,7 +22,7 @@ def plotData(conf):
         for i in range(len(conf["data"])):
             plt.bar(conf["xdots"], conf["data"][i], label=conf["labels"][i])
     if conf["type"] == "individual_bar_with_2line":
-        plt.axhline(y = conf["expected_value1"], color='r', linestyle='--', label=conf["line_label1"])
+        plt.axhline(y = conf["expected_value1"], color='w', linestyle='--', label=conf["line_label1"])
         plt.axhline(y = conf["expected_value2"], color='g', linestyle='--', label=conf["line_label2"]) 
     if conf["type"] == "plot_with_1line":
         plt.axhline(y = conf["expected_value"], color='g', linestyle='--', label=conf["line_label"])
@@ -69,23 +69,21 @@ class Visualizor:
         theGroup = dict()
         for nt in self.config.nodeTypesGroup:
             if nt['group'] == group:
-                for _k, _v in nt.items():
-                    if _k != 'group':
-                        theGroup[_k] = {
-                            "vpn": _v["validatorsPerNode"],
-                            "bw": _v["bwUplinks"],
-                            "r": _v["ratio"]
-                        }
+                for _k, _v in nt["classes"].items():
+                    theGroup[_k] = {
+                        "vpn": _v["def"]["validatorsPerNode"],
+                        "bw": _v["def"]["bwUplinks"],
+                        "w": _v["weight"]
+                    }
                 break
         
         return theGroup
     
     def __getNodeRanges(self, shape):
         nodeClasses, nodeRatios = [], []
-        for _k, _v in shape.nodeTypes.items():
-            if _k != "group":
-                nodeClasses.append(_k)
-                nodeRatios.append(_v['ratio'])
+        for _k, _v in shape.nodeTypes["classes"].items():
+            nodeClasses.append(_k)
+            nodeRatios.append(_v['weight'])
         nodeCounts = [int(shape.numberNodes * ratio / sum(nodeRatios)) for ratio in nodeRatios]
         commulativeSum = [sum(nodeCounts[:i+1]) for i in range(len(nodeCounts))]
         commulativeSum[-1] = shape.numberNodes
@@ -993,7 +991,7 @@ class Visualizor:
                 maxi = max(v)
         conf["yaxismax"] = maxi
         x = result.shape.nbCols * result.shape.custodyRows + result.shape.nbRows * result.shape.custodyCols
-        conf["expected_value"] = (result.shape.numberNodes - 1) * x * sum([(_v['r'] * _v['vpn']) for _v in nodeTypes.values()]) / sum([_v['r'] for _v in nodeTypes.values()])
+        conf["expected_value"] = (result.shape.numberNodes - 1) * x * sum([(_v['w'] * _v['vpn']) for _v in nodeTypes.values()]) / sum([_v['w'] for _v in nodeTypes.values()])
         conf["line_label"] = "Total segments to deliver"
         plotData(conf)
         print("Plot %s created." % conf["path"])
@@ -1362,7 +1360,7 @@ class Visualizor:
         rs = []
         for result in self.results: 
             attrbs = self.__get_attrbs__(result)
-            rs.append(int(attrbs['r']))
+            rs.append(int(attrbs['w']))
         
         return max(rs) - min(rs) + 1
     

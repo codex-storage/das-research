@@ -83,9 +83,20 @@ bwUplinksProd = [200]
 nodeTypesGroup = [
     {
         "group": "g1",
-        # nodeClass: node config
-        1: {'validatorsPerNode': 1, 'bwUplinks': 10, 'ratio': 8},
-        2: {'validatorsPerNode': 5, 'bwUplinks': 200, 'ratio': 2}
+        "classes": {
+            1: {
+                "weight": 70,
+                "def": {'validatorsPerNode': 1, 'bwUplinks': 10}
+            },
+            2: {
+                "weight": 20,
+                "def": {'validatorsPerNode': 5, 'bwUplinks': 200}
+            },
+            3: {
+                "weight": 10,
+                "def": {'validatorsPerNode': 10, 'bwUplinks': 500}
+            }
+        }
     }
 ]
 

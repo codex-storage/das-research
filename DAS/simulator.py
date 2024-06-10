@@ -45,7 +45,7 @@ class Simulator:
         self.proposerPublishToC = config.evalConf(self, config.proposerPublishToR, shape)
 
     def getNodeClass(self, nodeIdx):
-        nodeRatios = [_v['ratio'] for _k, _v in self.shape.nodeTypes.items() if _k != "group"]
+        nodeRatios = [_v['weight'] for _k, _v in self.shape.nodeTypes["classes"].items()]
         nodeCounts = [int(self.shape.numberNodes * ratio / sum(nodeRatios)) for ratio in nodeRatios]
         commulativeSum = [sum(nodeCounts[:i+1]) for i in range(len(nodeCounts))]
         commulativeSum[-1] = self.shape.numberNodes
@@ -135,7 +135,7 @@ class Simulator:
 
                 vs = []
                 nodeClass = self.getNodeClass(i)
-                vpn = self.shape.nodeTypes[nodeClass]['validatorsPerNode']
+                vpn = self.shape.nodeTypes["classes"][nodeClass]["def"]['validatorsPerNode']
                 for v in range(vpn):
                     vs.append(initValidator(self.shape.nbRows, self.shape.custodyRows, self.shape.nbCols, self.shape.custodyCols))
                 val = Node(i, int(not i!=0), nodeClass, amImalicious_value, self.logger, self.shape, self.config, vs)

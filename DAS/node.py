@@ -121,7 +121,7 @@ class Node:
         if self.amIproposer:
             self.bwUplink = shape.bwUplinkProd
         else:
-            self.bwUplink = shape.nodeTypes[self.nodeClass]['bwUplinks']
+            self.bwUplink = shape.nodeTypes["classes"][self.nodeClass]["def"]['bwUplinks']
         self.bwUplink *= 1e3 / 8 * config.stepDuration / config.segmentSize
 
         self.repairOnTheFly = config.evalConf(self, config.repairOnTheFly, shape)

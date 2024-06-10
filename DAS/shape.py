@@ -19,7 +19,7 @@ class Shape:
         self.custodyCols = custodyCols
         self.bwUplinkProd = bwUplinkProd
         self.nodeTypes = nodeTypes
-        self.nodeClasses = [0] + [_k for _k in nodeTypes.keys() if _k != "group"]
+        self.nodeClasses = [0] + [_k for _k in nodeTypes["classes"].keys()]
         self.randomSeed = ""
 
     def __repr__(self):
