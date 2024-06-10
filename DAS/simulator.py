@@ -50,8 +50,8 @@ class Simulator:
         commulativeSum = [sum(nodeCounts[:i+1]) for i in range(len(nodeCounts))]
         commulativeSum[-1] = self.shape.numberNodes
         for i, idx in enumerate(commulativeSum):
-            if nodeIdx < idx:
-                return i + 1
+            if nodeIdx <= idx:
+                return self.shape.nodeClasses[i + 1]
 
     def initValidators(self):
         """It initializes all the validators in the network."""
