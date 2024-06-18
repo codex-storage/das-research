@@ -32,11 +32,13 @@ class Neighbor:
 
 
 class Validator:
+    i = 0
     def __init__(self, rowIDs, columnIDs):
         self.rowIDs = rowIDs
         self.columnIDs = columnIDs
 
 def initValidator(nbRows, custodyRows, nbCols, custodyCols):
+        random.seed(10 + Validator.i); Validator.i += 1
         rowIDs = set(random.sample(range(nbRows), custodyRows))
         columnIDs = set(random.sample(range(nbCols), custodyCols))
         return Validator(rowIDs, columnIDs)
