@@ -98,13 +98,13 @@ class Node:
                     self.logger.warning("Row custody (*vpn) larger than number of rows!", extra=self.format)
                     self.rowIDs = range(self.shape.nbRows)
                 else:
-                    self.rowIDs = set(random.sample(range(self.shape.nbRows), self.vpn*self.shape.custodyRows))
+                    self.rowIDs = set(random.sample(range(self.shape.nbRows), max(self.vpn*self.shape.custodyRows, self.shape.minCustodyRows)))
 
                 if (self.vpn * self.shape.custodyCols) > self.shape.nbCols:
                     self.logger.warning("Column custody (*vpn) larger than number of columns!", extra=self.format)
                     self.columnIDs = range(self.shape.nbCols)
                 else:
-                    self.columnIDs = set(random.sample(range(self.shape.nbCols), self.vpn*self.shape.custodyCols))
+                    self.columnIDs = set(random.sample(range(self.shape.nbCols), max(self.vpn*self.shape.custodyCols, self.shape.minCustodyCols)))
 
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)

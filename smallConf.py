@@ -76,6 +76,8 @@ proposerPublishToC = "shape.netDegree"
 validatorBasedCustody = False
 custodyRows = range(2, 3, 2)
 custodyCols = range(2, 3, 2)
+minCustodyRows = range(2, 3, 2)
+minCustodyCols = range(2, 3, 2)
 
 # Set uplink bandwidth in megabits/second
 bwUplinksProd = [200]
@@ -146,11 +148,11 @@ colsK = range(32, 65, 128)
 rowsK = range(32, 65, 128)
 
 def nextShape():
-    for nbCols, nbColsK, nbRows, nbRowsK, run, fm, fr, mn, chR, chC, nn, netDegree, bwUplinkProd, nodeTypes in itertools.product(
-        cols, colsK, rows, rowsK, runs, failureModels, failureRates, maliciousNodes,  custodyRows, custodyCols, numberNodes, netDegrees, bwUplinksProd, nodeTypesGroup):
+    for nbCols, nbColsK, nbRows, nbRowsK, run, fm, fr, mn, chR, chC, minChR, minChC, nn, netDegree, bwUplinkProd, nodeTypes in itertools.product(
+        cols, colsK, rows, rowsK, runs, failureModels, failureRates, maliciousNodes,  custodyRows, custodyCols, minCustodyRows, minCustodyCols, numberNodes, netDegrees, bwUplinksProd, nodeTypesGroup):
         # Network Degree has to be an even number
         if netDegree % 2 == 0:
-            shape = Shape(nbCols, nbColsK, nbRows, nbRowsK, nn, fm, fr, mn, chR, chC, netDegree, bwUplinkProd, run, nodeTypes)
+            shape = Shape(nbCols, nbColsK, nbRows, nbRowsK, nn, fm, fr, mn, chR, chC, minChR, minChC, netDegree, bwUplinkProd, run, nodeTypes)
             yield shape
 
 def evalConf(self, param, shape = None):

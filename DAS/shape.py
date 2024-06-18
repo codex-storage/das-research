@@ -3,7 +3,7 @@
 class Shape:
     """This class represents a set of parameters for a specific simulation."""
     def __init__(self, nbCols, nbColsK, nbRows, nbRowsK, 
-    numberNodes, failureModel, failureRate, maliciousNodes, custodyRows, custodyCols, netDegree, bwUplinkProd, run, nodeTypes):
+    numberNodes, failureModel, failureRate, maliciousNodes, custodyRows, custodyCols, minCustodyRows, minCustodyCols, netDegree, bwUplinkProd, run, nodeTypes):
         """Initializes the shape with the parameters passed in argument."""
         self.run = run
         self.numberNodes = numberNodes
@@ -17,6 +17,8 @@ class Shape:
         self.netDegree = netDegree
         self.custodyRows = custodyRows
         self.custodyCols = custodyCols
+        self.minCustodyRows = minCustodyRows
+        self.minCustodyCols = minCustodyCols
         self.bwUplinkProd = bwUplinkProd
         self.nodeTypes = nodeTypes
         self.nodeClasses = [0] + [_k for _k in nodeTypes["classes"].keys()]
@@ -34,6 +36,8 @@ class Shape:
         shastr += "-fr-"+str(self.failureRate)
         shastr += "-cusr-"+str(self.custodyRows)
         shastr += "-cusc-"+str(self.custodyCols)
+        shastr += "-mcusr-"+str(self.minCustodyRows)
+        shastr += "-mcusc-"+str(self.minCustodyCols)
         shastr += "-bwupprod-"+str(self.bwUplinkProd)
         shastr += "-nd-"+str(self.netDegree)
         shastr += "-r-"+str(self.run)
