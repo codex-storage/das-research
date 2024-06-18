@@ -213,11 +213,11 @@ def study():
     logger.info("A total of %d simulations ran in %d seconds" % (len(results), end-start), extra=format)
 
     if config.visualization:
-        vis = Visualizer(execID, config)
-        vis.plotHeatmaps()
+        # vis = Visualizer(execID, config)
+        # vis.plotHeatmaps()
 
         visual = Visualizor(execID, config, results)
-        visual.plotHeatmaps("nn", "fr")
+        # visual.plotHeatmaps("nn", "fr")
         visual.plotAllHeatMaps()
 
 if __name__ == "__main__":

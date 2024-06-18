@@ -1383,7 +1383,7 @@ class Visualizor:
         rs = []
         for result in self.results: 
             attrbs = self.__get_attrbs__(result)
-            rs.append(int(attrbs['w']))
+            rs.append(int(attrbs['r']))
         
         return max(rs) - min(rs) + 1
     
@@ -1410,13 +1410,11 @@ class Visualizor:
                 "_mn_" + attrbs['mn'] +\
                 "_cusr_" + attrbs['cusr'] +\
                 "_cusc_" + attrbs['cusc'] +\
-                "_vpn1_" + attrbs['vpn1'] +\
-                "_vpn2_" + attrbs['vpn2']
+                "_ntypes_" + attrbs['ntypes']
             identifier = (
                 attrbs['bsrn'], attrbs['bsrk'], attrbs['bscn'],
                 attrbs['bsck'], attrbs['fr'], attrbs['mn'],
-                attrbs['cusr'], attrbs['cusc'], attrbs['vpn1'],
-                attrbs['vpn2']
+                attrbs['cusr'], attrbs['cusc'], attrbs['ntypes']
             )
             if identifier in xyS.keys():
                 xyS[identifier]['x'].append(result.shape.netDegree)
@@ -1476,13 +1474,11 @@ class Visualizor:
                 "_fr_" + attrbs['fr'] +\
                 "_cusr_" + attrbs['cusr'] +\
                 "_cusc_" + attrbs['cusc'] +\
-                "_vpn1_" + attrbs['vpn1'] +\
-                "_vpn2_" + attrbs['vpn2']
+                "_ntypes_" + attrbs['ntypes']
             identifier = (
                 attrbs['bsrn'], attrbs['bsrk'], attrbs['bscn'],
                 attrbs['bsck'], attrbs['fr'], attrbs['nn'],
-                attrbs['cusr'], attrbs['cusc'], attrbs['vpn1'],
-                attrbs['vpn2']
+                attrbs['cusr'], attrbs['cusc'], attrbs['ntypes']
             )
             if identifier in xyS.keys():
                 xyS[identifier]['x'].append(result.shape.netDegree)
@@ -1542,13 +1538,11 @@ class Visualizor:
                 "_mn_" + attrbs['mn'] +\
                 "_cusr_" + attrbs['cusr'] +\
                 "_cusc_" + attrbs['cusc'] +\
-                "_vpn1_" + attrbs['vpn1'] +\
-                "_vpn2_" + attrbs['vpn2']
+                "_ntypes_" + attrbs['ntypes']
             identifier = (
                 attrbs['bsrn'], attrbs['bsrk'], attrbs['bscn'],
                 attrbs['bsck'], attrbs['mn'], attrbs['nn'],
-                attrbs['cusr'], attrbs['cusc'], attrbs['vpn1'],
-                attrbs['vpn2']
+                attrbs['cusr'], attrbs['cusc'], attrbs['ntypes']
             )
             if identifier in xyS.keys():
                 xyS[identifier]['x'].append(result.shape.netDegree)
