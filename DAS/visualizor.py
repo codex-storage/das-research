@@ -356,11 +356,15 @@ class Visualizor:
         conf["title"] = "ECDF of Restore Row Count by Nodes"
         conf["xlabel"] = "Restore Row Count"
         conf["ylabel"] = "ECDF"
-        n1 = int(result.numberNodes * result.class1ratio)
-        class1_data = result.restoreRowCount[1: n1]
-        class2_data = result.restoreRowCount[n1+1: ]
-        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
-        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        start = 1
+        labels = []
+        for i, rng in enumerate(nodeRanges):
+            class_data = result.repairedSampleCount[start: rng + 1]
+            label = f"Class {nodeClasses[i]} Nodes"
+            labels.append(label)
+            start = rng + 1
+            sns.ecdfplot(data=class_data, label=label)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -368,7 +372,7 @@ class Visualizor:
         plt.xlim(left=0, right=max_val if max_val > 0 else 1)
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         plt.text(1.05, 0.05, conf["textBox"], fontsize=14, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
-        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'], loc=1)
+        plt.legend(title='Node Class', labels=labels, loc=1)
         plt.savefig(plotPath + "/ecdf_restoreRowCount.png", bbox_inches="tight")
         print("Plot %s created." % (plotPath + "/ecdf_restoreRowCount.png"))
 
@@ -390,11 +394,15 @@ class Visualizor:
         conf["title"] = "ECDF of Restore Column Count by Nodes"
         conf["xlabel"] = "Restore Column Count"
         conf["ylabel"] = "ECDF"
-        n1 = int(result.numberNodes * result.class1ratio)
-        class1_data = result.restoreColumnCount[1: n1]
-        class2_data = result.restoreColumnCount[n1+1: ]
-        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
-        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        start = 1
+        labels = []
+        for i, rng in enumerate(nodeRanges):
+            class_data = result.repairedSampleCount[start: rng + 1]
+            label = f"Class {nodeClasses[i]} Nodes"
+            labels.append(label)
+            start = rng + 1
+            sns.ecdfplot(data=class_data, label=label)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -402,7 +410,7 @@ class Visualizor:
         plt.xlim(left=0, right=max_val if max_val > 0 else 1) 
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         plt.text(1.05, 0.05, conf["textBox"], fontsize=14, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
-        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'], loc=1)
+        plt.legend(title='Node Class', labels=labels, loc=1)
         plt.savefig(plotPath + "/ecdf_restoreColumnCount.png", bbox_inches="tight")
         print("Plot %s created." % (plotPath + "/ecdf_restoreColumnCount.png"))
     
@@ -424,12 +432,16 @@ class Visualizor:
         conf["title"] = "ECDF of Messages Sent by Nodes"
         conf["xlabel"] = "Number of Messages Sent"
         conf["ylabel"] = "ECDF"
-        n1 = int(result.numberNodes * result.class1ratio)
-        class1_data = result.msgSentCount[1: n1]
-        class2_data = result.msgSentCount[n1+1: ]
-        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
-        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
-        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'], loc=1)
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        start = 1
+        labels = []
+        for i, rng in enumerate(nodeRanges):
+            class_data = result.msgSentCount[start: rng + 1]
+            label = f"Class {nodeClasses[i]} Nodes"
+            labels.append(label)
+            start = rng + 1
+            sns.ecdfplot(data=class_data, label=label)
+        plt.legend(title='Node Class', labels=labels)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -457,12 +469,16 @@ class Visualizor:
         conf["title"] = "ECDF of Messages Received by Nodes"
         conf["xlabel"] = "Number of Messages Received"
         conf["ylabel"] = "ECDF"
-        n1 = int(result.numberNodes * result.class1ratio)
-        class1_data = result.msgRecvCount[1: n1]
-        class2_data = result.msgRecvCount[n1+1: ]
-        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
-        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
-        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'], loc=1)
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        start = 1
+        labels = []
+        for i, rng in enumerate(nodeRanges):
+            class_data = result.msgRecvCount[start: rng + 1]
+            label = f"Class {nodeClasses[i]} Nodes"
+            labels.append(label)
+            start = rng + 1
+            sns.ecdfplot(data=class_data, label=label)
+        plt.legend(title='Node Class', labels=labels)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -490,12 +506,16 @@ class Visualizor:
         conf["title"] = "ECDF of Samples Received by Nodes"
         conf["xlabel"] = "Number of Samples Received"
         conf["ylabel"] = "ECDF"
-        n1 = int(result.numberNodes * result.class1ratio)
-        class1_data = result.sampleRecvCount[1: n1]
-        class2_data = result.sampleRecvCount[n1+1: ]
-        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
-        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
-        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'], loc=1)
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        start = 1
+        labels = []
+        for i, rng in enumerate(nodeRanges):
+            class_data = result.sampleRecvCount[start: rng + 1]
+            label = f"Class {nodeClasses[i]} Nodes"
+            labels.append(label)
+            start = rng + 1
+            sns.ecdfplot(data=class_data, label=label)
+        plt.legend(title='Node Class', labels=labels)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -525,7 +545,6 @@ class Visualizor:
         conf["ylabel"] = "ECDF"
         vector1 = result.metrics["rowDist"]
         vector2 = result.metrics["columnDist"]
-        n1 = int(result.numberNodes * result.class1ratio)
         sns.ecdfplot(data=vector1, label='Rows')
         sns.ecdfplot(data=vector2, label='Columns')
         plt.xlabel(conf["xlabel"], fontsize=12)
@@ -556,12 +575,16 @@ class Visualizor:
         conf["title"] = "ECDF of Samples Repaired by Nodes"
         conf["xlabel"] = "Number of Samples Repaired"
         conf["ylabel"] = "ECDF"
-        n1 = int(result.numberNodes * result.class1ratio)
-        class1_data = result.repairedSampleCount[1: n1]
-        class2_data = result.repairedSampleCount[n1+1: ]
-        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
-        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
-        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'])
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        start = 1
+        labels = []
+        for i, rng in enumerate(nodeRanges):
+            class_data = result.repairedSampleCount[start: rng + 1]
+            label = f"Class {nodeClasses[i]} Nodes"
+            labels.append(label)
+            start = rng + 1
+            sns.ecdfplot(data=class_data, label=label)
+        plt.legend(title='Node Class', labels=labels)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
