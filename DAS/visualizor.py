@@ -287,7 +287,7 @@ class Visualizor:
             'category': _categories
         })
         plt.figure(figsize=(8, 6))
-        sns.boxenplot(x='category', y='values', data=data, palette="Set2", ax=plt.gca(), width=0.8)
+        sns.boxenplot(x='category', y='values', hue='category', data=data, palette="Set2", ax=plt.gca(), width=0.8)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -329,7 +329,7 @@ class Visualizor:
             'category': _categories
         })
         plt.figure(figsize=(8, 6))
-        sns.boxenplot(x='category', y='values', data=data, palette="Set2", ax=plt.gca(), width=0.8)
+        sns.boxenplot(x='category', y='values', hue='category', data=data, palette="Set2", ax=plt.gca(), width=0.8)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -627,7 +627,7 @@ class Visualizor:
             'category': _categories
         })
         plt.figure(figsize=(8, 6))
-        sns.boxenplot(x='category', y='values', data=data, palette="Set2", ax=plt.gca(), width=0.8)
+        sns.boxenplot(x='category', y='values', hue='category', data=data, palette="Set2", ax=plt.gca(), width=0.8)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -671,7 +671,7 @@ class Visualizor:
             'category': _categories
         })
         plt.figure(figsize=(8, 6))
-        sns.boxenplot(x='category', y='values', data=data, width=0.8, palette="Set2", ax=plt.gca())
+        sns.boxenplot(x='category', y='values', hue='category', data=data, width=0.8, palette="Set2", ax=plt.gca())
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -751,7 +751,7 @@ class Visualizor:
             'values': _values,
             'category': _categories
         })
-        sns.boxenplot(x='category', y='values', data=data, width=0.8, palette="Set2", ax=plt.gca())
+        sns.boxenplot(x='category', y='values', hue='category', data=data, width=0.8, palette="Set2", ax=plt.gca())
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -792,7 +792,7 @@ class Visualizor:
             'values': _values,
             'category': _categories
         })
-        sns.boxenplot(x='category', y='values', data=data, palette="Set2", ax=plt.gca())
+        sns.boxenplot(x='category', y='values', hue='category', data=data, palette="Set2", ax=plt.gca())
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
