@@ -159,8 +159,8 @@ class Visualizor:
             # self.plotSampleRecv(result, plotPath)
             # self.plotRestoreRowCount(result, plotPath)
             # self.plotRestoreColumnCount(result, plotPath)
-            # if self.config.saveRCdist:
-            #     self.plotRowCol(result, plotPath)
+            if self.config.saveRCdist:
+                self.plotRowCol(result, plotPath)
 
             # self.plotBoxSamplesRepaired(result, plotPath)
             # self.plotBoxMessagesSent(result, plotPath)
@@ -203,7 +203,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Box Plot of Restore Row Count by Nodes"
         conf["xlabel"] = "Node Type"
@@ -235,7 +235,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Box Plot of Restore Column Count by Nodes"
         conf["xlabel"] = "Node Type"
@@ -267,7 +267,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Boxen Plot of Restore Row Count by Nodes"
         conf["xlabel"] = "Restore Row Count"
@@ -309,7 +309,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Boxen Plot of Restore Column Count by Nodes"
         conf["xlabel"] = "Restore Column Count"
@@ -351,7 +351,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Restore Row Count by Nodes"
         conf["xlabel"] = "Restore Row Count"
@@ -389,7 +389,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Restore Column Count by Nodes"
         conf["xlabel"] = "Restore Column Count"
@@ -427,7 +427,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Messages Sent by Nodes"
         conf["xlabel"] = "Number of Messages Sent"
@@ -464,7 +464,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Messages Received by Nodes"
         conf["xlabel"] = "Number of Messages Received"
@@ -501,7 +501,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Samples Received by Nodes"
         conf["xlabel"] = "Number of Samples Received"
@@ -538,7 +538,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Row-Col Distribution by Nodes"
         conf["xlabel"] = "Row-Col Distribution"
@@ -570,7 +570,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Samples Repaired by Nodes"
         conf["xlabel"] = "Number of Samples Repaired"
@@ -607,7 +607,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Samples Received by Nodes"
         conf["xlabel"] = "Node Type"
@@ -651,7 +651,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Samples Repaired by Nodes"
         conf["xlabel"] = "Node Type"
@@ -695,7 +695,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Row/Column Distribution"
         conf["xlabel"] = "Row/Column Type"
@@ -732,7 +732,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Sent by Nodes"
         conf["xlabel"] = "Node Type"
@@ -773,7 +773,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Received by Nodes"
         conf["xlabel"] = "Node Type"
@@ -814,7 +814,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Samples Repaired by Nodes"
         conf["type"] = "individual_bar"
@@ -841,7 +841,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Row/Column Distribution"
         conf["xlabel"] = ""
@@ -870,7 +870,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Restore Row Count for Each Node"
         conf["type"] = "individual_bar"
@@ -898,7 +898,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Restore Column Count for Each Node"
         conf["type"] = "individual_bar"
@@ -926,7 +926,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Percentage of Samples Received by Nodes"
         conf["type"] = "individual_bar_with_2line"
@@ -967,7 +967,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Samples Received by Nodes"
         conf["type"] = "individual_bar_with_2line"
@@ -994,7 +994,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)+"\nMissing Segment: "+str(round(min(result.missingVector) * 100 / max(result.missingVector), 3))+"%"\
         +"\nMissing Segments: "+str(result.missingVector[-1])
         conf["title"] = "Missing Segments"
@@ -1034,7 +1034,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Nodes/validators ready"
         conf["type"] = "plot"
@@ -1069,7 +1069,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Sent data"
         conf["type"] = "plot"
@@ -1112,7 +1112,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Received data"
         conf["type"] = "plot"
@@ -1154,7 +1154,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Duplicated data"
         conf["type"] = "plot"
@@ -1196,7 +1196,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Row/Column distribution"
         conf["type"] = "grouped_bar"
@@ -1229,7 +1229,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Sent by Nodes"
         conf["type"] = "individual_bar"
@@ -1257,7 +1257,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Sent by Nodes"
         conf["xlabel"] = "Node Type"
@@ -1280,7 +1280,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Received by Nodes"
         conf["type"] = "individual_bar"
@@ -1308,7 +1308,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Received by Nodes"
         conf["type"] = "individual_bar"
@@ -1337,7 +1337,7 @@ class Visualizor:
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\n"+nodeTypesTxt\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Samples Repaired by Nodes"
         conf["type"] = "individual_bar"
@@ -1400,7 +1400,7 @@ class Visualizor:
             textBox = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
                 +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
                 +"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"\
-                +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']\
+                +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"\
                 +"\n"+nodeTypesTxt
             filename = "bsrn_" + attrbs['bsrn'] +\
                 "_bsrk_" + attrbs['bsrk'] +\
@@ -1464,7 +1464,7 @@ class Visualizor:
             textBox = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
                 +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
                 +"\nFailure rate: "+attrbs['fr']+"%"+"\nNodes: "+attrbs['nn']\
-                +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']\
+                +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"\
                 +"\n"+nodeTypesTxt
             filename = "bsrn_" + attrbs['bsrn'] +\
                 "_bsrk_" + attrbs['bsrk'] +\
@@ -1528,7 +1528,7 @@ class Visualizor:
             textBox = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
                 +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
                 +"\nNodes: "+attrbs['nn']+"\nMalicious Node: "+attrbs['mn']+"%"\
-                +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']\
+                +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"\
                 +"\n"+nodeTypesTxt
             filename = "bsrn_" + attrbs['bsrn'] +\
                 "_bsrk_" + attrbs['bsrk'] +\
