@@ -76,18 +76,31 @@ proposerPublishToC = "shape.netDegree"
 validatorBasedCustody = False
 custodyRows = range(2, 3, 2)
 custodyCols = range(2, 3, 2)
-
-# ratio of class1 nodes (see below for parameters per class)
-class1ratios = [0.8]
-
-# Number of validators per beacon node
-validatorsPerNode1 = [1]
-validatorsPerNode2 = [5]
+minCustodyRows = range(2, 3, 2)
+minCustodyCols = range(2, 3, 2)
 
 # Set uplink bandwidth in megabits/second
 bwUplinksProd = [200]
-bwUplinks1 = [10]
-bwUplinks2 = [200]
+
+nodeTypesGroup = [
+    {
+        "group": "g1",
+        "classes": {
+            1: {
+                "weight": 70,
+                "def": {'validatorsPerNode': 1, 'bwUplinks': 10}
+            },
+            2: {
+                "weight": 20,
+                "def": {'validatorsPerNode': 5, 'bwUplinks': 200}
+            },
+            3: {
+                "weight": 10,
+                "def": {'validatorsPerNode': 10, 'bwUplinks': 500}
+            }
+        }
+    }
+]
 
 # Step duration in miliseconds (Classic RTT is about 100ms)
 stepDuration = 50
@@ -135,11 +148,11 @@ colsK = range(32, 65, 128)
 rowsK = range(32, 65, 128)
 
 def nextShape():
-    for nbCols, nbColsK, nbRows, nbRowsK, run, fm, fr, mn, class1ratio, chR, chC, vpn1, vpn2, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
-        cols, colsK, rows, rowsK, runs, failureModels, failureRates, maliciousNodes, class1ratios,  custodyRows, custodyCols, validatorsPerNode1, validatorsPerNode2, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
+    for nbCols, nbColsK, nbRows, nbRowsK, run, fm, fr, mn, chR, chC, minChR, minChC, nn, netDegree, bwUplinkProd, nodeTypes in itertools.product(
+        cols, colsK, rows, rowsK, runs, failureModels, failureRates, maliciousNodes,  custodyRows, custodyCols, minCustodyRows, minCustodyCols, numberNodes, netDegrees, bwUplinksProd, nodeTypesGroup):
         # Network Degree has to be an even number
         if netDegree % 2 == 0:
-            shape = Shape(nbCols, nbColsK, nbRows, nbRowsK, nn, fm, fr, mn, class1ratio, chR, chC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
+            shape = Shape(nbCols, nbColsK, nbRows, nbRowsK, nn, fm, fr, mn, chR, chC, minChR, minChC, netDegree, bwUplinkProd, run, nodeTypes)
             yield shape
 
 def evalConf(self, param, shape = None):
