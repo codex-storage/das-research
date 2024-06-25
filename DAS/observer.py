@@ -83,8 +83,8 @@ class Observer:
             sampleProgress = arrived / expected
             nodeProgress = ready / (len(validators)-1)
             validatorCnt = sum([v.vpn for v in validators[1:]])
-            validatorAllProgress = validatedall / validatorCnt
-            validatorProgress = validated / validatorCnt
+            validatorAllProgress = (validatedall / validatorCnt) if validatorCnt != 0 else 1
+            validatorProgress = (validated / validatorCnt) if validatorCnt != 0 else 1
 
             return missingSamples, sampleProgress, nodeProgress, validatorAllProgress, validatorProgress
 
