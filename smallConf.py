@@ -59,6 +59,12 @@ maliciousNodes = range(40,41,20)
 # If True, the malicious nodes will be assigned randomly; if False, a predefined pattern may be used
 randomizeMaliciousNodes = True
 
+# When set to True, nodes will use the Gossip for communication
+gossip = True
+
+# Heartbeat interval for gossip messages in simulation steps
+heartbeat = 20
+
 # Per-topic mesh neighborhood size
 netDegrees = range(8, 9, 2)
 
