@@ -523,7 +523,7 @@ class Node:
         for sender, have_infos in self.received_gossip.items():
             for have_info in have_infos:
                 for rowID, columnID in have_info['segments']:
-                    if not self.receivedBlock.getSegment(rowID, columnID):
+                    if not self.receivedBlock.getSegment(rowID, columnID) and (rowID in self.rowIDs or columnID in self.columnIDs):
                         # request for the segment
                         self.logger.debug(f"Requesting segment ({rowID}, {columnID}) from {have_info['source']}", extra=self.format)
                         self.msgSentCount += 1
