@@ -149,6 +149,7 @@ class Visualizor:
             os.makedirs(plotPath, exist_ok=True)
             self.plotMissingSegments(result, plotPath)
             self.plotProgress(result, plotPath)
+            self.plotSamplesReceived(result, plotPath)
             self.plotSentData(result, plotPath)
             self.plotRecvData(result, plotPath)
             self.plotDupData(result, plotPath)
@@ -1047,7 +1048,46 @@ class Visualizor:
         conf["data"] = [vector1, vector2, vector3]
         conf["xdots"] = [x*self.config.stepDuration for x in range(len(vector1))]
         conf["path"] = plotPath+"/nodesReady.png"
-        conf["yaxismax"] = 1
+        conf["yaxismax"] = 100
+        plotData(conf)
+        print("Plot %s created." % conf["path"])
+    
+    def plotSamplesReceived(self, result, plotPath):
+        """Plots the min, max, avg percentage of samples recived by nodes"""
+        samplesReceived = result.metrics["samplesReceived"]
+        expectedSamples = result.metrics["expectedSamples"]
+        vector1, vector2, vector3 = [], [], []
+        for i in range(len(samplesReceived)):
+            percentages = []
+            for j in range(1, result.numberNodes):
+                percentages.append(samplesReceived[i][j - 1] * 100 / expectedSamples[j - 1])
+            vector1.append(max(percentages))
+            vector2.append(min(percentages))
+            vector3.append(sum(percentages) / len(percentages))
+        conf = {}
+        attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
+        conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
+        +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
+        +"\nSegment Size: "+str(self.config.segmentSize)
+        conf["title"] = "Percentages of Samples Received"
+        conf["type"] = "plot"
+        conf["legLoc"] = 2
+        conf["desLoc"] = 2
+        conf["colors"] = ["g-", "b-", "r-"]
+        conf["labels"] = ["Max", "Min", "Average"]
+        conf["xlabel"] = "Time (ms)"
+        conf["ylabel"] = "Percentage (%)"
+        conf["data"] = [vector1, vector2, vector3]
+        conf["xdots"] = [x*self.config.stepDuration for x in range(len(vector1))]
+        conf["path"] = plotPath+"/samplesReceivedPercentages.png"
+        conf["yaxismax"] = 100
         plotData(conf)
         print("Plot %s created." % conf["path"])
 

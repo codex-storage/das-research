@@ -86,6 +86,7 @@ class Simulator:
         assignedCols = []
         maliciousNodesCount = int((self.shape.maliciousNodes / 100) * self.shape.numberNodes)
         remainingMaliciousNodes = maliciousNodesCount
+        expectedSamples = []
 
         for i in range(self.shape.numberNodes):
             if i == 0:
@@ -139,12 +140,16 @@ class Simulator:
                 for v in range(vpn):
                     vs.append(initValidator(self.shape.nbRows, self.shape.custodyRows, self.shape.nbCols, self.shape.custodyCols))
                 val = Node(i, int(not i!=0), nodeClass, amImalicious_value, self.logger, self.shape, self.config, vs)
+                if i != 0:
+                    i_expectedSamples = len(val.columnIDs) * self.shape.nbRows + len(val.rowIDs) * self.shape.nbCols - len(val.columnIDs) * len(val.rowIDs)
+                    expectedSamples.append(i_expectedSamples)
             if i == self.proposerID:
                 val.initBlock()
             else:
                 val.logIDs()
             self.validators.append(val)
-
+        
+        self.result.addMetric("expectedSamples", expectedSamples)
         assignedRows.sort()
         assignedCols.sort()
         self.logger.debug("Rows assigned: %s" % str(assignedRows), extra=self.format)
@@ -282,12 +287,14 @@ class Simulator:
         trafficStatsVector = []
         malicious_nodes_not_added_count = 0
         steps = 0
-
+        samplesReceived = []
+        
         while(True):
             missingVector.append(missingSamples)
             self.logger.debug("Expected Samples: %d" % expected, extra=self.format)
             self.logger.debug("Missing Samples: %d" % missingSamples, extra=self.format)
             oldMissingSamples = missingSamples
+            i_sampleReceived = []
 
             self.logger.debug("PHASE SEND %d" % steps, extra=self.format)
             for i in range(0,self.shape.numberNodes):
@@ -301,6 +308,9 @@ class Simulator:
             self.logger.debug("PHASE RECEIVE %d" % steps, extra=self.format)
             for i in range(1,self.shape.numberNodes):
                 self.validators[i].receiveRowsColumns()
+            self.logger.debug("PHASE SAMPLE COUNT %d" % steps, extra=self.format)
+            for i in range(1,self.shape.numberNodes):
+                i_sampleReceived.append(self.validators[i].sampleRecvCount)
             self.logger.debug("PHASE RESTORE %d" % steps, extra=self.format)
             for i in range(1,self.shape.numberNodes):
                 self.validators[i].restoreRows()
@@ -309,7 +319,10 @@ class Simulator:
             for i in range(0,self.shape.numberNodes):
                 self.validators[i].logRows()
                 self.validators[i].logColumns()
-
+            
+            # Store sample received count by each node in current step
+            samplesReceived.append(i_sampleReceived)
+            
             # log TX and RX statistics
             trafficStats = self.glob.getTrafficStats(self.validators)
             self.logger.debug("step %d: %s" %
@@ -365,8 +378,10 @@ class Simulator:
                 missingVector.append(missingSamples)
                 break
             steps += 1
-
-
+        
+        # Store sample received count by each node in each step
+        self.result.addMetric("samplesReceived", samplesReceived)
+        
         for i in range(0,self.shape.numberNodes):
             if not self.validators[i].amIaddedToQueue :
                 malicious_nodes_not_added_count += 1
