@@ -23,6 +23,13 @@ class Result:
         self.restoreRowCount = [0] * shape.numberNodes
         self.restoreColumnCount = [0] * shape.numberNodes
         self.repairedSampleCount = [0] * shape.numberNodes
+        
+        self.query_times = [[] for _ in range(shape.numberNodes)]  # List of empty lists
+        self.query_total_time = [None] * shape.numberNodes  # List of None values, or empty lists if needed
+        self.all_original_retries = [[] for _ in range(shape.numberNodes)]  # List of empty lists
+        self.query_results = [''] * shape.numberNodes  # List of empty strings
+        self.original_retries_sum = [None] * shape.numberNodes  # List of None values
+
         self.numberNodes = shape.numberNodes
 
     def copyValidators(self, validators):
@@ -35,6 +42,18 @@ class Result:
             self.restoreRowCount[i] = validators[i].restoreRowCount
             self.restoreColumnCount[i] = validators[i].restoreColumnCount
             self.repairedSampleCount[i] = validators[i].repairedSampleCount
+            if not validators[i].amImalicious or not validators[i].amIproposer:
+                self.query_times[i] = validators[i].query_times[:]
+                self.query_total_time[i] = validators[i].query_total_time
+                self.all_original_retries[i] = validators[i].all_original_retries[:]
+                self.query_results[i] = validators[i].query_results
+                self.original_retries_sum[i] = validators[i].original_retries_sum
+            else:
+                self.query_times[i] = None
+                self.query_total_time[i] = None
+                self.all_original_retries[i] = None
+                self.query_results[i] = None
+                self.original_retries_sum[i] = None
 
     def populate(self, shape, config, missingVector):
         """It populates part of the result data inside a vector."""

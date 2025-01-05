@@ -188,8 +188,125 @@ class Visualizor:
             self.plotECDFRestoreRowCount(result, plotPath)
             self.plotECDFRestoreColumnCount(result, plotPath)
             if self.config.saveRCdist:
-                self.plotECDFRowColDist(result, plotPath)        
+                self.plotECDFRowColDist(result, plotPath)  
 
+            # plots for query results
+            self.plot_query_times_boxplot_all(result, plotPath)
+            self.plot_query_results(result, plotPath)
+            self.plot_retries_boxplot(result, plotPath)
+            self.plot_retries_sum_per_node_boxplot(result, plotPath)
+
+
+    def plot_query_times_boxplot_all(self, result, plotPath):
+        """Plot boxplots for query times for all nodes."""
+        attrbs = self.__get_attrbs__(result)
+        plt.figure(figsize=(14, 7))
+        
+        all_query_times = [time for time in result.query_total_time if time is not None]
+        
+        plt.boxplot(all_query_times, patch_artist=True, boxprops=dict(facecolor="lightblue"))
+        plt.title(f"Query Times for Different Connection Ranges", fontsize=16)
+        plt.ylabel("Query Time (seconds)", fontsize=16)
+        plt.grid(True, axis='y', color='gray', linestyle='--', linewidth=0.5)
+        plt.tick_params(axis='both', which='major', labelsize=16)
+        plt.axhline(y=12, color='red', linestyle='--', linewidth=1)
+        plt.subplots_adjust(top=0.85)
+        plt.figtext(
+            0.3, 0.96,
+            f"Custody Rows: {attrbs['cusr']}, Custody Columns: {attrbs['cusc']} Malicious nodes: {attrbs['mn']}%",
+            fontsize=16,
+            ha='center',
+            bbox=dict(facecolor='white', edgecolor='black', boxstyle='round')
+        )
+        os.makedirs(plotPath, exist_ok=True)
+        plt.savefig(os.path.join(plotPath, 'query_times_all_connections_boxplot.png'))
+        plt.close()
+
+
+
+    def plot_query_results(self, result, plotPath):
+        """Plot a single pie chart for block availability based on query results."""
+        attrbs = self.__get_attrbs__(result)
+        query_results = result.query_results
+       
+        available_count = query_results.count('success')
+        not_available_count = query_results.count('failure')
+
+        sizes = [available_count, not_available_count]
+        colors = ['lightgreen', 'salmon']
+        
+        fig, ax = plt.subplots(figsize=(7, 7))
+        wedges, texts, autotexts = ax.pie(
+            sizes, autopct='%1.1f%%', startangle=140, colors=colors, textprops={'fontsize': 16}
+        )
+        for autotext in autotexts:
+            autotext.set_fontsize(16)
+        
+        ax.set_title("Block Availability", fontsize=16)
+        plt.figtext(
+            0.5, 0.96,
+            f"Custody Rows: {attrbs['cusr']}, Custody Columns: {attrbs['cusc']} Malicious Nodes: {attrbs['mn']}%",
+            fontsize=16,
+            ha='center',
+            bbox=dict(facecolor='white', edgecolor='black', boxstyle='round')
+        )
+        os.makedirs(plotPath, exist_ok=True)
+        output_path = os.path.join(plotPath, 'query_results_pie_chart.png')
+        plt.savefig(output_path)
+        plt.close()
+
+
+
+    def plot_retries_boxplot(self, result, plotPath):
+        """Plot boxplots for original retries for all nodes."""
+        attrbs = self.__get_attrbs__(result)
+        plt.figure(figsize=(14, 7))
+
+        all_original_retries = [
+            retry for sublist in result.all_original_retries for retry in sublist if retry is not None
+        ]
+
+        plt.boxplot(all_original_retries, patch_artist=True, boxprops=dict(facecolor="lightgreen"))
+        
+        plt.title("Number of peers queried by each node for a sample across connection ranges", fontsize=16)
+        plt.ylabel("Count of Queried Peers", fontsize=16)
+        plt.grid(True, axis='y', color='gray', linestyle='--', linewidth=0.5)
+        plt.tick_params(axis='both', which='major', labelsize=16)
+        plt.figtext(
+            0.3, 0.96,
+            f"Custody Rows: {attrbs['cusr']}, Custody Columns: {attrbs['cusc']} Malicious nodes: {attrbs['mn']}%",
+            fontsize=16,
+            ha='center',
+            bbox=dict(facecolor='white', edgecolor='black', boxstyle='round')
+        )
+        os.makedirs(plotPath, exist_ok=True)
+        plt.savefig(os.path.join(plotPath, 'original_retries_all_connections_boxplot.png'))
+        plt.close()
+
+
+    def plot_retries_sum_per_node_boxplot(self, result, plotPath):
+        attrbs = self.__get_attrbs__(result)
+        plt.figure(figsize=(14, 7))
+
+        all_retries_sum = [retries for retries in result.original_retries_sum if retries is not None]
+    
+        plt.boxplot(all_retries_sum, patch_artist=True, 
+                    boxprops=dict(facecolor="lightgreen"))
+        plt.title("Total Sampling Requests Sent by Each Node", fontsize=16)
+        plt.ylabel("Sum of all sampling requests for each node", fontsize=16)
+        plt.grid(True, axis='y', color='gray', linestyle='--', linewidth=0.5)
+        plt.tick_params(axis='both', which='major', labelsize=16)
+        plt.figtext(
+            0.3, 0.96,
+            f"Custody Rows: {attrbs['cusr']}, Custody Columns: {attrbs['cusc']} Malicious nodes: {attrbs['mn']}%",
+            fontsize=16,
+            ha='center',
+            bbox=dict(facecolor='white', edgecolor='black', boxstyle='round')
+        )
+        output_path = os.path.join(plotPath, 'retries_sum_boxplot_per_node.png')
+        plt.savefig(output_path)
+        plt.close()
+    
 
     def plotBoxRestoreRowCount(self, result, plotPath):
         """Box Plot of restoreRowCount for all nodes"""

@@ -158,6 +158,8 @@ class Simulator:
 
     def initNetwork(self):
         """It initializes the simulated network."""
+        # rowChannels and columnChannels stores the nodes that have the custody of each row/col. 
+        # rowChannel[rowID]->node ids that have the custody of that row
         rowChannels = [[] for i in range(self.shape.nbRows)]
         columnChannels = [[] for i in range(self.shape.nbCols)]
         for v in self.validators:
@@ -168,6 +170,8 @@ class Simulator:
                     columnChannels[id].append(v)
 
         # Check rows/columns distribution
+        # distR and distC has how many nodes have the custody of every row
+        # len(r) gives how many nodes have the custody of that row
         for r in rowChannels:
             self.distR.append(len(r))
         for c in columnChannels:
@@ -379,6 +383,11 @@ class Simulator:
                 break
             steps += 1
         
+        self.logger.debug("PHASE QUERY SAMPLE %d" % steps, extra=self.format)
+        for i in range(1,self.shape.numberNodes):
+            if not self.validators[i].amImalicious:
+                self.validators[i].query_peer_for_samples(self)
+
         # Store sample received count by each node in each step
         self.result.addMetric("samplesReceived", samplesReceived)
         
