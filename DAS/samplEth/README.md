@@ -1,6 +1,6 @@
 # samplEth Simulator
 
-`samplEth` is a simulator designed to model and analyze peer-to-peer network connections, custodianship behaviors, and different node configurations. It allows you to tweak various parameters to simulate different conditions like connection establishment, data poisoning, and query growth. 
+`samplEth` is a simulator designed to model and analyze how different sampling methods impact the query times and bandwidth requirements in the network. It allows you to tweak various parameters to simulate different conditions. 
 
 ## How to Run the Simulator
 

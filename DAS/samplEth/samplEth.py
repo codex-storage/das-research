@@ -1464,7 +1464,6 @@ def query_peer_with_retries(peers_with_custody, peers_with_custody_level_2, peer
 
 def query_all_nodes(peerIDs, peer_custody, peer_connections, peer_horizon_level_1, peer_horizon_level_2, peer_poison_map):
     num_queries = 75
-    samples = generate_random_samples(num_queries)
     all_query_times = []
     all_results = []
     all_original_retries = []
@@ -1484,6 +1483,7 @@ def query_all_nodes(peerIDs, peer_custody, peer_connections, peer_horizon_level_
         results = 'success'
         original_retries_sum = 0
         queried_peers[peer] = []
+        samples = generate_random_samples(num_queries)
 
         for sample_row, sample_col in samples:
             
