@@ -205,7 +205,7 @@ class Visualizor:
         all_query_times = [time for time in result.query_total_time if time is not None]
         
         plt.boxplot(all_query_times, patch_artist=True, boxprops=dict(facecolor="lightblue"))
-        plt.title(f"Query Times for Different Connection Ranges", fontsize=16)
+        plt.title(f"Query Times", fontsize=16)
         plt.ylabel("Query Time (seconds)", fontsize=16)
         plt.grid(True, axis='y', color='gray', linestyle='--', linewidth=0.5)
         plt.tick_params(axis='both', which='major', labelsize=16)
@@ -265,10 +265,8 @@ class Visualizor:
         all_original_retries = [
             retry for sublist in result.all_original_retries for retry in sublist if retry is not None
         ]
-
         plt.boxplot(all_original_retries, patch_artist=True, boxprops=dict(facecolor="lightgreen"))
-        
-        plt.title("Number of peers queried by each node for a sample across connection ranges", fontsize=16)
+        plt.title("Number of peers queried by each node for a sample", fontsize=16)
         plt.ylabel("Count of Queried Peers", fontsize=16)
         plt.grid(True, axis='y', color='gray', linestyle='--', linewidth=0.5)
         plt.tick_params(axis='both', which='major', labelsize=16)

@@ -653,7 +653,7 @@ class Node:
         growth_series = self.generate_growth_series()
 
         for num_peers_to_query in growth_series:
-            if retries >= max_retries:
+            if not peers_with_custody and not peers_with_custody_level_2:
                 break
             
             original_retries += num_peers_to_query
@@ -774,6 +774,12 @@ class Node:
                         len(simulator.validators[p].columnIDs) >= self.shape.nbColsK):
                         peers_with_custody_level_2.update({p})
                 peers_with_custody_level_2 = list(peers_with_custody_level_2)
+
+                if self.ID in peers_with_custody:
+                    peers_with_custody.remove(self.ID)
+
+                if self.ID in peers_with_custody_level_2:
+                    peers_with_custody_level_2.remove(self.ID)
                 
                 result, time_taken, queried_peers_list, original_retries = self.query_peer_with_retries(
                     peers_with_custody, peers_with_custody_level_2, simulator, sample_row, sample_col
