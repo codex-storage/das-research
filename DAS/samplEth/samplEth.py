@@ -1413,6 +1413,8 @@ def query_peer_with_retries(peers_with_custody, peers_with_custody_level_2, peer
     for num_peers_to_query in growth_series:
         if retries >= max_retries:
             break
+        if not peers_with_custody and not peers_with_custody_level_2:
+            break
         
         original_retries += num_peers_to_query
 
