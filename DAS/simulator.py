@@ -395,16 +395,27 @@ class Simulator:
             if not self.validators[i].amIaddedToQueue :
                 malicious_nodes_not_added_count += 1
 
+        valid_rows = set()
+        valid_columns = set()
         for i in range(0,self.shape.numberNodes):
             column_ids = []
             row_ids = []
             for rID in self.validators[i].rowIDs:
                 row_ids.append(rID)
+                if not self.validators[i].amImalicious and not self.validators[i].amIproposer:
+                    valid_rows.add(rID)
             for cID in self.validators[i].columnIDs:
                 column_ids.append(cID)
+                if not self.validators[i].amImalicious and not self.validators[i].amIproposer:
+                    valid_columns.add(cID)
 
             self.logger.debug("List of columnIDs for %d node: %s", i, column_ids, extra=self.format)
             self.logger.debug("List of rowIDs for %d node: %s", i, row_ids, extra=self.format)
+
+        if len(valid_rows) >= self.shape.nbRowsK or len(valid_columns) >= self.shape.nbColsK:
+            self.logger.debug("Block available within the non-malicious nodes.", extra=self.format)
+        else:
+            self.logger.debug("Block not available within the non-malicious nodes.", extra=self.format)
 
         self.logger.debug("Number of malicious nodes not added to the send queue: %d" % malicious_nodes_not_added_count, extra=self.format)
         malicious_nodes_not_added_percentage = (malicious_nodes_not_added_count * 100)/(self.shape.numberNodes)

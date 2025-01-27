@@ -83,8 +83,8 @@ class Node:
         self.received_gossip = defaultdict(list)
 
         # query methods
-        self.exponential_growth = False
-        self.linear_growth = True
+        self.exponential_growth = True
+        self.linear_growth = False
         self.linear_constant_growth = False
         self.hybrid_growth = False
         self.exponential_constant_growth = False
@@ -92,10 +92,10 @@ class Node:
 
         # query results
         self.query_times = []
-        self.query_total_time = 0
+        self.query_total_time = None
         self.all_original_retries = []
-        self.query_results = 'success'
-        self.original_retries_sum = 0
+        self.query_results = None
+        self.original_retries_sum = None
 
         # Cache latency values based on horizon level
         self.latency_cache = {

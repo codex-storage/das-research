@@ -24,11 +24,11 @@ class Result:
         self.restoreColumnCount = [0] * shape.numberNodes
         self.repairedSampleCount = [0] * shape.numberNodes
         
-        self.query_times = [[] for _ in range(shape.numberNodes)]  # List of empty lists
-        self.query_total_time = [None] * shape.numberNodes  # List of None values, or empty lists if needed
-        self.all_original_retries = [[] for _ in range(shape.numberNodes)]  # List of empty lists
-        self.query_results = [''] * shape.numberNodes  # List of empty strings
-        self.original_retries_sum = [None] * shape.numberNodes  # List of None values
+        self.query_times = [[] for _ in range(shape.numberNodes)]
+        self.query_total_time = [None] * shape.numberNodes
+        self.all_original_retries = [[] for _ in range(shape.numberNodes)]
+        self.query_results = [''] * shape.numberNodes
+        self.original_retries_sum = [None] * shape.numberNodes
 
         self.numberNodes = shape.numberNodes
 

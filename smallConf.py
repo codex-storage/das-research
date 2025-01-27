@@ -154,6 +154,29 @@ colsK = range(32, 65, 128)
 rowsK = range(32, 65, 128)
 
 def nextShape():
+    params = {
+        "cols": cols,
+        "colsK": colsK,
+        "rows": rows,
+        "rowsK": rowsK,
+        "runs": runs,
+        "failureModels": failureModels,
+        "failureRates": failureRates,
+        "maliciousNodes": maliciousNodes,
+        "custodyRows": custodyRows,
+        "custodyCols": custodyCols,
+        "minCustodyRows": minCustodyRows,
+        "minCustodyCols": minCustodyCols,
+        "numberNodes": numberNodes,
+        "netDegrees": netDegrees,
+        "bwUplinksProd": bwUplinksProd,
+        "nodeTypesGroup": nodeTypesGroup,
+    }
+    for key, value in params.items():
+        if not value:
+            logging.warning(f"The parameter '{key}' is empty. Please assign a value and start the simulation.")
+            exit(1)
+
     for nbCols, nbColsK, nbRows, nbRowsK, run, fm, fr, mn, chR, chC, minChR, minChC, nn, netDegree, bwUplinkProd, nodeTypes in itertools.product(
         cols, colsK, rows, rowsK, runs, failureModels, failureRates, maliciousNodes,  custodyRows, custodyCols, minCustodyRows, minCustodyCols, numberNodes, netDegrees, bwUplinksProd, nodeTypesGroup):
         # Network Degree has to be an even number

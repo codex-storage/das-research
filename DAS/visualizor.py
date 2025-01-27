@@ -205,7 +205,7 @@ class Visualizor:
         all_query_times = [time for time in result.query_total_time if time is not None]
         
         plt.boxplot(all_query_times, patch_artist=True, boxprops=dict(facecolor="lightblue"))
-        plt.title(f"Query Times", fontsize=16)
+        plt.title(f"Total Query Time for each node", fontsize=16)
         plt.ylabel("Query Time (seconds)", fontsize=16)
         plt.grid(True, axis='y', color='gray', linestyle='--', linewidth=0.5)
         plt.tick_params(axis='both', which='major', labelsize=16)
