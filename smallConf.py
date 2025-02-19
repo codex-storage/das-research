@@ -59,8 +59,17 @@ maliciousNodes = range(40,41,20)
 # If True, the malicious nodes will be assigned randomly; if False, a predefined pattern may be used
 randomizeMaliciousNodes = True
 
+# When set to True, nodes will use the Gossip for communication
+gossip = True
+
+# Heartbeat interval for gossip messages in simulation steps
+heartbeat = 20
+
 # Per-topic mesh neighborhood size
 netDegrees = range(8, 9, 2)
+
+# Number of peers for sampling
+numPeers = [[50, 150]]
 
 # How many copies are sent out by the block producer
 # Note, previously this was set to match netDegree
@@ -76,18 +85,31 @@ proposerPublishToC = "shape.netDegree"
 validatorBasedCustody = False
 custodyRows = range(2, 3, 2)
 custodyCols = range(2, 3, 2)
-
-# ratio of class1 nodes (see below for parameters per class)
-class1ratios = [0.8]
-
-# Number of validators per beacon node
-validatorsPerNode1 = [1]
-validatorsPerNode2 = [5]
+minCustodyRows = range(2, 3, 2)
+minCustodyCols = range(2, 3, 2)
 
 # Set uplink bandwidth in megabits/second
 bwUplinksProd = [200]
-bwUplinks1 = [10]
-bwUplinks2 = [200]
+
+nodeTypesGroup = [
+    {
+        "group": "g1",
+        "classes": {
+            1: {
+                "weight": 70,
+                "def": {'validatorsPerNode': 1, 'bwUplinks': 10}
+            },
+            2: {
+                "weight": 20,
+                "def": {'validatorsPerNode': 5, 'bwUplinks': 200}
+            },
+            3: {
+                "weight": 10,
+                "def": {'validatorsPerNode': 10, 'bwUplinks': 500}
+            }
+        }
+    }
+]
 
 # Step duration in miliseconds (Classic RTT is about 100ms)
 stepDuration = 50
@@ -135,11 +157,47 @@ colsK = range(32, 65, 128)
 rowsK = range(32, 65, 128)
 
 def nextShape():
-    for nbCols, nbColsK, nbRows, nbRowsK, run, fm, fr, mn, class1ratio, chR, chC, vpn1, vpn2, nn, netDegree, bwUplinkProd, bwUplink1, bwUplink2 in itertools.product(
-        cols, colsK, rows, rowsK, runs, failureModels, failureRates, maliciousNodes, class1ratios,  custodyRows, custodyCols, validatorsPerNode1, validatorsPerNode2, numberNodes, netDegrees, bwUplinksProd, bwUplinks1, bwUplinks2):
-        # Network Degree has to be an even number
+    params = {
+        "cols": cols,
+        "colsK": colsK,
+        "rows": rows,
+        "rowsK": rowsK,
+        "runs": runs,
+        "failureModels": failureModels,
+        "failureRates": failureRates,
+        "maliciousNodes": maliciousNodes,
+        "custodyRows": custodyRows,
+        "custodyCols": custodyCols,
+        "minCustodyRows": minCustodyRows,
+        "minCustodyCols": minCustodyCols,
+        "numberNodes": numberNodes,
+        "netDegrees": netDegrees,
+        "numPeers": numPeers,
+        "bwUplinksProd": bwUplinksProd,
+        "nodeTypesGroup": nodeTypesGroup,
+    }
+    
+    for key, value in params.items():
+        if not value:
+            logging.warning(f"The parameter '{key}' is empty. Please assign a value and start the simulation.")
+            exit(1)
+
+    for (
+        nbCols, nbColsK, nbRows, nbRowsK, run, fm, fr, mn, chR, chC, minChR, minChC, 
+        nn, netDegree, numPeersList, bwUplinkProd, nodeTypes
+    ) in itertools.product(
+        cols, colsK, rows, rowsK, runs, failureModels, failureRates, maliciousNodes,  
+        custodyRows, custodyCols, minCustodyRows, minCustodyCols, numberNodes, 
+        netDegrees, numPeers, bwUplinksProd, nodeTypesGroup
+    ):
+        numPeersMin, numPeersMax = numPeersList  # Unpack here
+
+        # Ensure netDegree is even
         if netDegree % 2 == 0:
-            shape = Shape(nbCols, nbColsK, nbRows, nbRowsK, nn, fm, fr, mn, class1ratio, chR, chC, vpn1, vpn2, netDegree, bwUplinkProd, bwUplink1, bwUplink2, run)
+            shape = Shape(
+                nbCols, nbColsK, nbRows, nbRowsK, nn, fm, fr, mn, chR, chC, minChR, 
+                minChC, netDegree, numPeersMin, numPeersMax, bwUplinkProd, run, nodeTypes
+            )
             yield shape
 
 def evalConf(self, param, shape = None):

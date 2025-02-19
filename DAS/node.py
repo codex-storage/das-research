@@ -3,6 +3,8 @@
 import random
 import collections
 import logging
+from collections import defaultdict
+import threading
 from DAS.block import *
 from DAS.tools import shuffled, shuffledDict, unionOfSamples
 from bitarray.util import zeros
@@ -32,11 +34,13 @@ class Neighbor:
 
 
 class Validator:
+    i = 0
     def __init__(self, rowIDs, columnIDs):
         self.rowIDs = rowIDs
         self.columnIDs = columnIDs
 
 def initValidator(nbRows, custodyRows, nbCols, custodyCols):
+        random.seed(10 + Validator.i); Validator.i += 1
         rowIDs = set(random.sample(range(nbRows), custodyRows))
         columnIDs = set(random.sample(range(nbCols), custodyCols))
         return Validator(rowIDs, columnIDs)
@@ -48,7 +52,7 @@ class Node:
         """It returns the node ID."""
         return str(self.ID)
 
-    def __init__(self, ID, amIproposer, amImalicious, logger, shape, config,
+    def __init__(self, ID, amIproposer, nodeClass, amImalicious, logger, shape, config,
                  validators, rows = set(), columns = set()):
         """It initializes the node, and eventual validators, following the simulation configuration in shape and config.
 
@@ -76,13 +80,36 @@ class Node:
         self.repairedSampleCount = 0
         self.logger = logger
         self.validators = validators
+        self.received_gossip = defaultdict(list)
+        self.peer_connections = set()
+
+        # query methods
+        self.exponential_growth = False
+        self.linear_growth = False
+        self.linear_constant_growth = False
+        self.hybrid_growth = False
+        self.exponential_constant_growth = True
+        self.linear_growth_constant = 10
+
+        # query results
+        self.query_times = []
+        self.query_total_time = None
+        self.all_original_retries = []
+        self.query_results = None
+        self.original_retries_sum = None
+
+        # Cache latency values based on horizon level
+        self.latency_cache = {
+            "level_1": [random.uniform(0.1, 0.2) for _ in range(1000)],
+            "level_2": [random.uniform(0.2, 0.3) for _ in range(1000)],
+        }
 
         if amIproposer:
             self.nodeClass = 0
             self.rowIDs = range(shape.nbRows)
             self.columnIDs = range(shape.nbCols)
         else:
-            self.nodeClass = 1 if (self.ID <= shape.numberNodes * shape.class1ratio) else 2
+            self.nodeClass = nodeClass
             self.vpn = len(validators)  #TODO: needed by old code, change to fn
 
             self.rowIDs = set(rows)
@@ -96,13 +123,13 @@ class Node:
                     self.logger.warning("Row custody (*vpn) larger than number of rows!", extra=self.format)
                     self.rowIDs = range(self.shape.nbRows)
                 else:
-                    self.rowIDs = set(random.sample(range(self.shape.nbRows), self.vpn*self.shape.custodyRows))
+                    self.rowIDs = set(random.sample(range(self.shape.nbRows), max(self.vpn*self.shape.custodyRows, self.shape.minCustodyRows)))
 
                 if (self.vpn * self.shape.custodyCols) > self.shape.nbCols:
                     self.logger.warning("Column custody (*vpn) larger than number of columns!", extra=self.format)
                     self.columnIDs = range(self.shape.nbCols)
                 else:
-                    self.columnIDs = set(random.sample(range(self.shape.nbCols), self.vpn*self.shape.custodyCols))
+                    self.columnIDs = set(random.sample(range(self.shape.nbCols), max(self.vpn*self.shape.custodyCols, self.shape.minCustodyCols)))
 
         self.rowNeighbors = collections.defaultdict(dict)
         self.columnNeighbors = collections.defaultdict(dict)
@@ -120,10 +147,8 @@ class Node:
         # 1 Mbps ~= 1e6 mbps * 0.050 s / (560*8) bits ~= 11 segments/timestep
         if self.amIproposer:
             self.bwUplink = shape.bwUplinkProd
-        elif self.nodeClass == 1:
-            self.bwUplink = shape.bwUplink1
         else:
-            self.bwUplink = shape.bwUplink2
+            self.bwUplink = shape.nodeTypes["classes"][self.nodeClass]["def"]['bwUplinks']
         self.bwUplink *= 1e3 / 8 * config.stepDuration / config.segmentSize
 
         self.repairOnTheFly = config.evalConf(self, config.repairOnTheFly, shape)
@@ -503,6 +528,249 @@ class Node:
 
             if self.statsTxInSlot >= self.bwUplink:
                 return
+
+    def sendGossip(self, peer, segments_to_send):
+        """Simulate sending row and column IDs to a peer."""
+        have_info = {'source': self.ID, 'segments': segments_to_send}
+        peer.received_gossip[self.ID].append(have_info)
+        peer.msgRecvCount += 1
+        self.logger.debug(f"Gossip sent to {peer.ID}: {peer.received_gossip}", extra=self.format)
+
+    def processReceivedGossip(self, simulator):
+        """
+        Processes received gossip messages to request and receive data segments.
+        For each segment not already received, it simulates requesting the segment,
+        logs the request and receipt, and updates the segment status and relevant counters.
+        """
+        for sender, have_infos in self.received_gossip.items():
+            for have_info in have_infos:
+                for rowID, columnID in have_info['segments']:
+                    if not self.receivedBlock.getSegment(rowID, columnID) and (rowID in self.rowIDs or columnID in self.columnIDs):
+                        # request for the segment
+                        self.logger.debug(f"Requesting segment ({rowID}, {columnID}) from {have_info['source']}", extra=self.format)
+                        self.msgSentCount += 1
+                        # source sends the segment
+                        self.logger.debug(f"Sending segment ({rowID}, {columnID}) to {self.ID} from {have_info['source']}", extra=self.format)
+                        simulator.validators[have_info['source']].sampleSentCount += 1
+                        simulator.validators[have_info['source']].statsTxInSlot += 1
+                        # receive the segment
+                        self.receivedBlock.setSegment(rowID, columnID)
+                        self.sampleRecvCount += 1
+                        self.logger.debug(f"Received segment ({rowID}, {columnID}) via gossip from {have_info['source']}", extra=self.format)
+        self.received_gossip.clear()
+
+    def gossip(self, simulator):
+        """
+        Periodically sends gossip messages to a random subset of nodes to share information 
+        about data segments. The process involves:
+        1. Selecting a random subset of nodes.
+        2. Sending the node's current state (row and column IDs) to these nodes.
+        3. Process the received gossip and update their state accordingly.
+        
+        This ensures data dissemination across the network, 
+        occurring at intervals defined by the HEARTBEAT timer.
+        """
+        total_nodes = simulator.shape.numberNodes
+        num_peers = random.randint(1, total_nodes - 1)
+        peers = random.sample(range(1, total_nodes), num_peers)
+        segments_to_send = []
+        for rID in range(0, self.shape.nbRows):
+            for cID in range(0, self.shape.nbCols):
+                if self.block.getSegment(rID, cID):
+                    segments_to_send.append((rID, cID))
+        if segments_to_send:
+            for peer in peers:
+                self.sendGossip(simulator.validators[peer], segments_to_send)
+                self.msgSentCount += 1
+                simulator.validators[peer].processReceivedGossip(simulator)
+                if self.statsTxInSlot >= self.bwUplink:
+                    return
+
+    
+
+    def get_latency(self, peer_to_query, original_peers_with_custody, original_peers_with_custody_level_2):
+        if peer_to_query in original_peers_with_custody:
+            return random.choice(self.latency_cache["level_1"])
+        elif peer_to_query in original_peers_with_custody_level_2:
+            return random.choice(self.latency_cache["level_2"])
+        return None
+
+    def generate_random_samples(self, num_queries):
+        return [(random.randint(0, self.shape.nbRows-1), random.randint(0, self.shape.nbCols-1)) for _ in range(num_queries)]
+
+    def query_peer(self, peer_to_query, original_peers_with_custody, original_peers_with_custody_level_2, simulator, sample_row, sample_col):
+        """Query peer with custody, simulate latency, and return the time taken."""
+        if  simulator.validators[peer_to_query].amImalicious:
+            return 'timeout', 0.5
+        
+        elif sample_row in simulator.validators[peer_to_query].rowIDs or sample_col in simulator.validators[peer_to_query].columnIDs:
+            if not simulator.validators[peer_to_query].block.getSegment(sample_row, sample_col):
+                return 'timeout', 0.5
+
+        latency = self.get_latency(peer_to_query, original_peers_with_custody, original_peers_with_custody_level_2)
+        if latency:
+            return 'success', latency
+        return 'invalid', 0.5
+
+
+    def generate_growth_series(self):
+        if self.exponential_growth:
+            return [2**i for i in range(1000)]
+        elif self.linear_growth:
+            linear_part = list(range(10, 201, self.linear_growth_constant)) 
+            return [1] + linear_part
+        elif self.linear_constant_growth:
+            series = [1, 10, 20, 30, 40]
+            series.extend([40] * 1000)
+            return series
+        elif self.hybrid_growth:
+            exponential_part = [2**i for i in range(6)]  # [1, 2, 4, 8, 16, 32]
+            linear_part = list(range(64, 105, 10))  # [64, 74, 84, 94, 104]
+            constant_part = [104] * 1000
+            return exponential_part + linear_part + constant_part
+        elif self.exponential_constant_growth:
+            exponential_part = [2**i for i in range(6)]  # [1, 2, 4, 8, 16, 32]
+            constant_part = [32] * 1000
+            return exponential_part + constant_part
+        else:
+            raise ValueError("No growth method selected!")
+
+
+    def query_peer_with_retries(self, peers_with_custody, peers_with_custody_level_2, simulator, sample_row, sample_col, max_retries=10150):
+        
+        queried_peers = []
+        retries = 0
+        original_retries = 0
+
+        peers_with_custody = list(set(peers_with_custody))
+        peers_with_custody_level_2 = list(set(peers_with_custody_level_2))
+
+        original_peers_with_custody = peers_with_custody[:]
+        original_peers_with_custody_level_2 = peers_with_custody_level_2[:]
+
+        random.shuffle(peers_with_custody)
+        random.shuffle(peers_with_custody_level_2)
+
+        growth_series = self.generate_growth_series()
+
+        for num_peers_to_query in growth_series:
+            if not peers_with_custody and not peers_with_custody_level_2:
+                break
+            
+            original_retries += num_peers_to_query
+
+            # Query Level 1 peers
+            level_1_batch = peers_with_custody[:num_peers_to_query]
+            for peer_to_query in level_1_batch:
+                queried_peers.append(peer_to_query)
+                result, time_taken = self.query_peer(peer_to_query, original_peers_with_custody, original_peers_with_custody_level_2, simulator, sample_row, sample_col)
+
+                if result == 'success':
+                    if retries <= 24:
+                        return 'success', time_taken + 0.5 * retries, queried_peers, original_retries
+                    else:
+                        return 'failure', time_taken + 0.5 * retries, queried_peers, original_retries
+
+                elif result == 'timeout':
+                    if retries >= max_retries:
+                        return 'failure', 0.5 * max_retries, queried_peers, original_retries
+
+            # Remove queried Level 1 peers
+            peers_with_custody = peers_with_custody[num_peers_to_query:]
+
+            # If all Level 1 peers are queried, move to Level 2 peers
+            if not peers_with_custody:
+                level_2_batch = peers_with_custody_level_2[:num_peers_to_query]
+                for peer_to_query in level_2_batch:
+                    queried_peers.append(peer_to_query)
+                    result, time_taken = self.query_peer(peer_to_query, original_peers_with_custody, original_peers_with_custody_level_2, simulator, sample_row, sample_col)
+
+                    if result == 'success':
+                        if retries <= 24:
+                            return 'success', time_taken + 0.5 * retries, queried_peers, original_retries
+                        else:
+                            return 'failure', time_taken + 0.5 * retries, queried_peers, original_retries
+
+                    elif result == 'timeout':
+                        if retries >= max_retries:
+                            return 'failure', 0.5 * max_retries, queried_peers, original_retries
+
+                # Remove queried Level 2 peers
+                peers_with_custody_level_2 = peers_with_custody_level_2[num_peers_to_query:]
+            
+            retries += 1
+
+        return 'failure', 0.5 * retries, queried_peers, original_retries
+
+
+
+    def query_peer_for_samples(self, simulator):
+        if self.amImalicious:
+            return
+        
+        num_queries = 75
+        samples = self.generate_random_samples(num_queries)
+        query_times = []
+        all_original_retries = []
+        results = 'success'
+        original_retries_sum = 0
+
+        for sample_row, sample_col in samples:
+            
+            if (sample_row in self.rowIDs or sample_col in self.columnIDs or 
+                len(self.columnIDs) >= self.shape.nbColsK or 
+                len(self.rowIDs) >= self.shape.nbRowsK):
+                query_times.append(0)
+                all_original_retries.append(0)
+            else:
+
+                peers_with_custody = set()
+                
+                for peer_id in self.peer_connections:
+                    if (sample_row in simulator.validators[peer_id].rowIDs or
+                        sample_col in simulator.validators[peer_id].columnIDs or
+                        len(simulator.validators[peer_id].rowIDs) >= self.shape.nbRowsK or
+                        len(simulator.validators[peer_id].columnIDs) >= self.shape.nbColsK):
+                        peers_with_custody.update({peer_id})
+               
+                peers_with_custody = list(peers_with_custody)
+                
+                peers_with_custody_level_2 = set()
+
+                for p in self.peer_connections:
+                    for peer_l2 in simulator.validators[p].peer_connections:
+                        if (sample_row in simulator.validators[peer_l2].rowIDs or
+                        sample_col in simulator.validators[peer_l2].rowIDs or
+                        len(simulator.validators[peer_l2].rowIDs) >= self.shape.nbRowsK or
+                        len(simulator.validators[peer_l2].columnIDs) >= self.shape.nbColsK):
+                            peers_with_custody_level_2.update({peer_l2})
+
+                peers_with_custody_level_2 = list(peers_with_custody_level_2)
+
+                if self.ID in peers_with_custody:
+                    peers_with_custody.remove(self.ID)
+
+                if self.ID in peers_with_custody_level_2:
+                    peers_with_custody_level_2.remove(self.ID)
+                
+                result, time_taken, queried_peers_list, original_retries = self.query_peer_with_retries(
+                    peers_with_custody, peers_with_custody_level_2, simulator, sample_row, sample_col
+                )
+                query_times.append(time_taken)
+                if result == 'failure':
+                    results = 'failure'
+                original_retries_sum += original_retries
+                all_original_retries.append(original_retries)
+
+        total_time = max(query_times)
+
+        self.query_times = query_times[:]
+        self.query_total_time = total_time
+        self.all_original_retries = all_original_retries[:]
+        self.query_results = results
+        self.original_retries_sum = original_retries_sum
+
+    
 
     def send(self):
         """ Send as much as we can in the timestep, limited by bwUplink."""

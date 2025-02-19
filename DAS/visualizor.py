@@ -14,14 +14,15 @@ def plotData(conf):
     plt.text(1.05, 0.05, conf["textBox"], fontsize=14, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
     if conf["type"] == "plot" or conf["type"] == "plot_with_1line":
         for i in range(len(conf["data"])):
-            plt.plot(conf["xdots"], conf["data"][i], conf["colors"][i], label=conf["labels"][i])
+            # plt.plot(conf["xdots"], conf["data"][i], conf["colors"][i], label=conf["labels"][i])
+            plt.plot(conf["xdots"], conf["data"][i], label=conf["labels"][i])
     elif conf["type"] == "individual_bar" or conf["type"] == "individual_bar_with_2line":
         plt.bar(conf["xdots"], conf["data"])
     elif conf["type"] == "grouped_bar":
         for i in range(len(conf["data"])):
             plt.bar(conf["xdots"], conf["data"][i], label=conf["labels"][i])
     if conf["type"] == "individual_bar_with_2line":
-        plt.axhline(y = conf["expected_value1"], color='r', linestyle='--', label=conf["line_label1"])
+        plt.axhline(y = conf["expected_value1"], color='w', linestyle='--', label=conf["line_label1"])
         plt.axhline(y = conf["expected_value2"], color='g', linestyle='--', label=conf["line_label2"]) 
     if conf["type"] == "plot_with_1line":
         plt.axhline(y = conf["expected_value"], color='g', linestyle='--', label=conf["line_label"])
@@ -63,7 +64,32 @@ class Visualizor:
         for i in range(0, len(text), 2):
             d[text[i]] = text[i + 1]
         return d
-
+    
+    def __getNodeTypes__(self, group):
+        theGroup = dict()
+        for nt in self.config.nodeTypesGroup:
+            if nt['group'] == group:
+                for _k, _v in nt["classes"].items():
+                    theGroup[_k] = {
+                        "vpn": _v["def"]["validatorsPerNode"],
+                        "bw": _v["def"]["bwUplinks"],
+                        "w": _v["weight"]
+                    }
+                break
+        
+        return theGroup
+    
+    def __getNodeRanges(self, shape):
+        nodeClasses, nodeRatios = [], []
+        for _k, _v in shape.nodeTypes["classes"].items():
+            nodeClasses.append(_k)
+            nodeRatios.append(_v['weight'])
+        nodeCounts = [int(shape.numberNodes * ratio / sum(nodeRatios)) for ratio in nodeRatios]
+        commulativeSum = [sum(nodeCounts[:i+1]) for i in range(len(nodeCounts))]
+        commulativeSum[-1] = shape.numberNodes
+        
+        return nodeClasses, commulativeSum
+    
     def plotHeatmaps(self, x, y):
         """Plot the heatmap using the parameters given as x axis and y axis"""
         print("Plotting heatmap "+x+" vs "+y)
@@ -123,6 +149,7 @@ class Visualizor:
             os.makedirs(plotPath, exist_ok=True)
             self.plotMissingSegments(result, plotPath)
             self.plotProgress(result, plotPath)
+            self.plotSamplesReceived(result, plotPath)
             self.plotSentData(result, plotPath)
             self.plotRecvData(result, plotPath)
             self.plotDupData(result, plotPath)
@@ -133,8 +160,8 @@ class Visualizor:
             # self.plotSampleRecv(result, plotPath)
             # self.plotRestoreRowCount(result, plotPath)
             # self.plotRestoreColumnCount(result, plotPath)
-            # if self.config.saveRCdist:
-            #     self.plotRowCol(result, plotPath)
+            if self.config.saveRCdist:
+                self.plotRowCol(result, plotPath)
 
             # self.plotBoxSamplesRepaired(result, plotPath)
             # self.plotBoxMessagesSent(result, plotPath)
@@ -161,18 +188,138 @@ class Visualizor:
             self.plotECDFRestoreRowCount(result, plotPath)
             self.plotECDFRestoreColumnCount(result, plotPath)
             if self.config.saveRCdist:
-                self.plotECDFRowColDist(result, plotPath)        
+                self.plotECDFRowColDist(result, plotPath)  
 
+            # plots for query results
+            self.plot_query_times_boxplot_all(result, plotPath)
+            self.plot_query_results(result, plotPath)
+            self.plot_retries_boxplot(result, plotPath)
+            self.plot_retries_sum_per_node_boxplot(result, plotPath)
+
+
+    def plot_query_times_boxplot_all(self, result, plotPath):
+        """Plot boxplots for query times for all nodes."""
+        attrbs = self.__get_attrbs__(result)
+        plt.figure(figsize=(14, 7))
+        
+        all_query_times = [time for time in result.query_total_time if time is not None]
+        
+        plt.boxplot(all_query_times, patch_artist=True, boxprops=dict(facecolor="lightblue"))
+        plt.title(f"Total Query Time for each node", fontsize=16)
+        plt.ylabel("Query Time (seconds)", fontsize=16)
+        plt.grid(True, axis='y', color='gray', linestyle='--', linewidth=0.5)
+        plt.tick_params(axis='both', which='major', labelsize=16)
+        plt.axhline(y=12, color='red', linestyle='--', linewidth=1)
+        plt.subplots_adjust(top=0.85)
+        plt.figtext(
+            0.3, 0.96,
+            f"Custody Rows: {attrbs['cusr']}, Custody Columns: {attrbs['cusc']} Malicious nodes: {attrbs['mn']}%",
+            fontsize=16,
+            ha='center',
+            bbox=dict(facecolor='white', edgecolor='black', boxstyle='round')
+        )
+        os.makedirs(plotPath, exist_ok=True)
+        plt.savefig(os.path.join(plotPath, 'query_times_all_connections_boxplot.png'))
+        plt.close()
+
+
+
+    def plot_query_results(self, result, plotPath):
+        """Plot a single pie chart for block availability based on query results."""
+        attrbs = self.__get_attrbs__(result)
+        query_results = result.query_results
+       
+        available_count = query_results.count('success')
+        not_available_count = query_results.count('failure')
+
+        sizes = [available_count, not_available_count]
+        colors = ['lightgreen', 'salmon']
+        
+        fig, ax = plt.subplots(figsize=(7, 7))
+        wedges, texts, autotexts = ax.pie(
+            sizes, autopct='%1.1f%%', startangle=140, colors=colors, textprops={'fontsize': 16}
+        )
+        for autotext in autotexts:
+            autotext.set_fontsize(16)
+        
+        ax.set_title("Block Availability", fontsize=16)
+        plt.figtext(
+            0.5, 0.96,
+            f"Custody Rows: {attrbs['cusr']}, Custody Columns: {attrbs['cusc']} Malicious Nodes: {attrbs['mn']}%",
+            fontsize=16,
+            ha='center',
+            bbox=dict(facecolor='white', edgecolor='black', boxstyle='round')
+        )
+        os.makedirs(plotPath, exist_ok=True)
+        output_path = os.path.join(plotPath, 'query_results_pie_chart.png')
+        plt.savefig(output_path)
+        plt.close()
+
+
+
+    def plot_retries_boxplot(self, result, plotPath):
+        """Plot boxplots for original retries for all nodes."""
+        attrbs = self.__get_attrbs__(result)
+        plt.figure(figsize=(14, 7))
+
+        all_original_retries = [
+            retry for sublist in result.all_original_retries for retry in sublist if retry is not None
+        ]
+        plt.boxplot(all_original_retries, patch_artist=True, boxprops=dict(facecolor="lightgreen"))
+        plt.title("Number of peers queried by each node for a sample", fontsize=16)
+        plt.ylabel("Count of Queried Peers", fontsize=16)
+        plt.grid(True, axis='y', color='gray', linestyle='--', linewidth=0.5)
+        plt.tick_params(axis='both', which='major', labelsize=16)
+        plt.figtext(
+            0.3, 0.96,
+            f"Custody Rows: {attrbs['cusr']}, Custody Columns: {attrbs['cusc']} Malicious nodes: {attrbs['mn']}%",
+            fontsize=16,
+            ha='center',
+            bbox=dict(facecolor='white', edgecolor='black', boxstyle='round')
+        )
+        os.makedirs(plotPath, exist_ok=True)
+        plt.savefig(os.path.join(plotPath, 'original_retries_all_connections_boxplot.png'))
+        plt.close()
+
+
+    def plot_retries_sum_per_node_boxplot(self, result, plotPath):
+        attrbs = self.__get_attrbs__(result)
+        plt.figure(figsize=(14, 7))
+
+        all_retries_sum = [retries for retries in result.original_retries_sum if retries is not None]
+    
+        plt.boxplot(all_retries_sum, patch_artist=True, 
+                    boxprops=dict(facecolor="lightgreen"))
+        plt.title("Total Sampling Requests Sent by Each Node", fontsize=16)
+        plt.ylabel("Sum of all sampling requests for each node", fontsize=16)
+        plt.grid(True, axis='y', color='gray', linestyle='--', linewidth=0.5)
+        plt.tick_params(axis='both', which='major', labelsize=16)
+        plt.figtext(
+            0.3, 0.96,
+            f"Custody Rows: {attrbs['cusr']}, Custody Columns: {attrbs['cusc']} Malicious nodes: {attrbs['mn']}%",
+            fontsize=16,
+            ha='center',
+            bbox=dict(facecolor='white', edgecolor='black', boxstyle='round')
+        )
+        output_path = os.path.join(plotPath, 'retries_sum_boxplot_per_node.png')
+        plt.savefig(output_path)
+        plt.close()
+    
 
     def plotBoxRestoreRowCount(self, result, plotPath):
         """Box Plot of restoreRowCount for all nodes"""
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Box Plot of Restore Row Count by Nodes"
         conf["xlabel"] = "Node Type"
@@ -196,10 +343,15 @@ class Visualizor:
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Box Plot of Restore Column Count by Nodes"
         conf["xlabel"] = "Node Type"
@@ -223,18 +375,35 @@ class Visualizor:
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Boxen Plot of Restore Row Count by Nodes"
         conf["xlabel"] = "Restore Row Count"
         conf["ylabel"] = "Nodes"
-        n1 = int(result.numberNodes * result.class1ratio)
-        data = [result.restoreRowCount[1: n1], result.restoreRowCount[n1+1: ]]
+        data = []
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        _start = 1
+        for _range in nodeRanges:
+            data.append(result.restoreRowCount[_start: _range])
+            _start = _range
+        _values, _categories = [], []
+        for _d, _nc in zip(data, nodeClasses):
+            _values += _d
+            _categories += [f'Class {_nc}'] * len(_d)
+        data = pd.DataFrame({
+            'values': _values,
+            'category': _categories
+        })
         plt.figure(figsize=(8, 6))
-        sns.boxenplot(data=data, width=0.8)
+        sns.boxenplot(x='category', y='values', hue='category', data=data, palette="Set2", ax=plt.gca(), width=0.8)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -248,18 +417,35 @@ class Visualizor:
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Boxen Plot of Restore Column Count by Nodes"
         conf["xlabel"] = "Restore Column Count"
         conf["ylabel"] = "Nodes"
-        n1 = int(result.numberNodes * result.class1ratio)
-        data = [result.restoreColumnCount[1: n1], result.restoreColumnCount[n1+1: ]]
+        data = []
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        _start = 1
+        for _range in nodeRanges:
+            data.append(result.restoreColumnCount[_start: _range])
+            _start = _range
+        _values, _categories = [], []
+        for _d, _nc in zip(data, nodeClasses):
+            _values += _d
+            _categories += [f'Class {_nc}'] * len(_d)
+        data = pd.DataFrame({
+            'values': _values,
+            'category': _categories
+        })
         plt.figure(figsize=(8, 6))
-        sns.boxenplot(data=data, width=0.8)
+        sns.boxenplot(x='category', y='values', hue='category', data=data, palette="Set2", ax=plt.gca(), width=0.8)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -273,19 +459,28 @@ class Visualizor:
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Restore Row Count by Nodes"
         conf["xlabel"] = "Restore Row Count"
         conf["ylabel"] = "ECDF"
-        n1 = int(result.numberNodes * result.class1ratio)
-        class1_data = result.restoreRowCount[1: n1]
-        class2_data = result.restoreRowCount[n1+1: ]
-        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
-        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        start = 1
+        labels = []
+        for i, rng in enumerate(nodeRanges):
+            class_data = result.repairedSampleCount[start: rng + 1]
+            label = f"Class {nodeClasses[i]} Nodes"
+            labels.append(label)
+            start = rng + 1
+            sns.ecdfplot(data=class_data, label=label)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -293,7 +488,7 @@ class Visualizor:
         plt.xlim(left=0, right=max_val if max_val > 0 else 1)
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         plt.text(1.05, 0.05, conf["textBox"], fontsize=14, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
-        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'], loc=1)
+        plt.legend(title='Node Class', labels=labels, loc=1)
         plt.savefig(plotPath + "/ecdf_restoreRowCount.png", bbox_inches="tight")
         print("Plot %s created." % (plotPath + "/ecdf_restoreRowCount.png"))
 
@@ -302,19 +497,28 @@ class Visualizor:
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Restore Column Count by Nodes"
         conf["xlabel"] = "Restore Column Count"
         conf["ylabel"] = "ECDF"
-        n1 = int(result.numberNodes * result.class1ratio)
-        class1_data = result.restoreColumnCount[1: n1]
-        class2_data = result.restoreColumnCount[n1+1: ]
-        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
-        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        start = 1
+        labels = []
+        for i, rng in enumerate(nodeRanges):
+            class_data = result.repairedSampleCount[start: rng + 1]
+            label = f"Class {nodeClasses[i]} Nodes"
+            labels.append(label)
+            start = rng + 1
+            sns.ecdfplot(data=class_data, label=label)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -322,7 +526,7 @@ class Visualizor:
         plt.xlim(left=0, right=max_val if max_val > 0 else 1) 
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         plt.text(1.05, 0.05, conf["textBox"], fontsize=14, verticalalignment='bottom', transform=plt.gca().transAxes, bbox=props)
-        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'], loc=1)
+        plt.legend(title='Node Class', labels=labels, loc=1)
         plt.savefig(plotPath + "/ecdf_restoreColumnCount.png", bbox_inches="tight")
         print("Plot %s created." % (plotPath + "/ecdf_restoreColumnCount.png"))
     
@@ -331,20 +535,29 @@ class Visualizor:
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Messages Sent by Nodes"
         conf["xlabel"] = "Number of Messages Sent"
         conf["ylabel"] = "ECDF"
-        n1 = int(result.numberNodes * result.class1ratio)
-        class1_data = result.msgSentCount[1: n1]
-        class2_data = result.msgSentCount[n1+1: ]
-        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
-        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
-        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'], loc=1)
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        start = 1
+        labels = []
+        for i, rng in enumerate(nodeRanges):
+            class_data = result.msgSentCount[start: rng + 1]
+            label = f"Class {nodeClasses[i]} Nodes"
+            labels.append(label)
+            start = rng + 1
+            sns.ecdfplot(data=class_data, label=label)
+        plt.legend(title='Node Class', labels=labels)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -359,20 +572,29 @@ class Visualizor:
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Messages Received by Nodes"
         conf["xlabel"] = "Number of Messages Received"
         conf["ylabel"] = "ECDF"
-        n1 = int(result.numberNodes * result.class1ratio)
-        class1_data = result.msgRecvCount[1: n1]
-        class2_data = result.msgRecvCount[n1+1: ]
-        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
-        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
-        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'], loc=1)
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        start = 1
+        labels = []
+        for i, rng in enumerate(nodeRanges):
+            class_data = result.msgRecvCount[start: rng + 1]
+            label = f"Class {nodeClasses[i]} Nodes"
+            labels.append(label)
+            start = rng + 1
+            sns.ecdfplot(data=class_data, label=label)
+        plt.legend(title='Node Class', labels=labels)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -387,20 +609,29 @@ class Visualizor:
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Samples Received by Nodes"
         conf["xlabel"] = "Number of Samples Received"
         conf["ylabel"] = "ECDF"
-        n1 = int(result.numberNodes * result.class1ratio)
-        class1_data = result.sampleRecvCount[1: n1]
-        class2_data = result.sampleRecvCount[n1+1: ]
-        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
-        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
-        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'], loc=1)
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        start = 1
+        labels = []
+        for i, rng in enumerate(nodeRanges):
+            class_data = result.sampleRecvCount[start: rng + 1]
+            label = f"Class {nodeClasses[i]} Nodes"
+            labels.append(label)
+            start = rng + 1
+            sns.ecdfplot(data=class_data, label=label)
+        plt.legend(title='Node Class', labels=labels)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -415,17 +646,21 @@ class Visualizor:
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Row-Col Distribution by Nodes"
         conf["xlabel"] = "Row-Col Distribution"
         conf["ylabel"] = "ECDF"
         vector1 = result.metrics["rowDist"]
         vector2 = result.metrics["columnDist"]
-        n1 = int(result.numberNodes * result.class1ratio)
         sns.ecdfplot(data=vector1, label='Rows')
         sns.ecdfplot(data=vector2, label='Columns')
         plt.xlabel(conf["xlabel"], fontsize=12)
@@ -443,20 +678,29 @@ class Visualizor:
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "ECDF of Samples Repaired by Nodes"
         conf["xlabel"] = "Number of Samples Repaired"
         conf["ylabel"] = "ECDF"
-        n1 = int(result.numberNodes * result.class1ratio)
-        class1_data = result.repairedSampleCount[1: n1]
-        class2_data = result.repairedSampleCount[n1+1: ]
-        sns.ecdfplot(data=class1_data, label='Class 1 Nodes')
-        sns.ecdfplot(data=class2_data, label='Class 2 Nodes')
-        plt.legend(title='Node Class', labels=['Class 1 Nodes', 'Class 2 Nodes'])
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        start = 1
+        labels = []
+        for i, rng in enumerate(nodeRanges):
+            class_data = result.repairedSampleCount[start: rng + 1]
+            label = f"Class {nodeClasses[i]} Nodes"
+            labels.append(label)
+            start = rng + 1
+            sns.ecdfplot(data=class_data, label=label)
+        plt.legend(title='Node Class', labels=labels)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -471,18 +715,35 @@ class Visualizor:
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Samples Received by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Samples Received"
-        n1 = int(result.numberNodes * result.class1ratio)
-        data = [result.sampleRecvCount[1: n1], result.sampleRecvCount[n1+1: ]]
+        data = []
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        _start = 1
+        for _range in nodeRanges:
+            data.append(result.sampleRecvCount[_start: _range])
+            _start = _range
+        _values, _categories = [], []
+        for _d, _nc in zip(data, nodeClasses):
+            _values += _d
+            _categories += [f'Class {_nc}'] * len(_d)
+        data = pd.DataFrame({
+            'values': _values,
+            'category': _categories
+        })
         plt.figure(figsize=(8, 6))
-        sns.boxenplot(data=data, width=0.8)
+        sns.boxenplot(x='category', y='values', hue='category', data=data, palette="Set2", ax=plt.gca(), width=0.8)
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -498,18 +759,35 @@ class Visualizor:
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Samples Repaired by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Samples Repaired"
-        n1 = int(result.numberNodes * result.class1ratio)
-        data = [result.repairedSampleCount[1: n1], result.repairedSampleCount[n1+1: ]]
+        data = []
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        _start = 1
+        for _range in nodeRanges:
+            data.append(result.repairedSampleCount[_start: _range])
+            _start = _range
+        _values, _categories = [], []
+        for _d, _nc in zip(data, nodeClasses):
+            _values += _d
+            _categories += [f'Class {_nc}'] * len(_d)
+        data = pd.DataFrame({
+            'values': _values,
+            'category': _categories
+        })
         plt.figure(figsize=(8, 6))
-        sns.boxenplot(data=data, width=0.8)
+        sns.boxenplot(x='category', y='values', hue='category', data=data, width=0.8, palette="Set2", ax=plt.gca())
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -525,10 +803,15 @@ class Visualizor:
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Row/Column Distribution"
         conf["xlabel"] = "Row/Column Type"
@@ -557,18 +840,34 @@ class Visualizor:
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Sent by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Messages Sent"
-        n1 = int(result.numberNodes * result.class1ratio)
-        data = [result.msgSentCount[1: n1], result.msgSentCount[n1+1: ]]
-        labels = ["Class 1", "Class 2"]
-        sns.boxenplot(data=data, palette="Set2", ax=plt.gca())
+        data = []
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        _start = 1
+        for _range in nodeRanges:
+            data.append(result.msgSentCount[_start: _range])
+            _start = _range
+        _values, _categories = [], []
+        for _d, _nc in zip(data, nodeClasses):
+            _values += _d
+            _categories += [f'Class {_nc}'] * len(_d)
+        data = pd.DataFrame({
+            'values': _values,
+            'category': _categories
+        })
+        sns.boxenplot(x='category', y='values', hue='category', data=data, width=0.8, palette="Set2", ax=plt.gca())
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -582,18 +881,34 @@ class Visualizor:
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Received by Nodes"
         conf["xlabel"] = "Node Type"
         conf["ylabel"] = "Number of Messages Received"
-        n1 = int(result.numberNodes * result.class1ratio)
-        data = [result.msgRecvCount[1: n1], result.msgRecvCount[n1+1: ]]
-        labels = ["Class 1", "Class 2"]
-        sns.boxenplot(data=data, palette="Set2", ax=plt.gca())
+        data = []
+        nodeClasses, nodeRanges = self.__getNodeRanges(result.shape)
+        _start = 1
+        for _range in nodeRanges:
+            data.append(result.msgRecvCount[_start: _range])
+            _start = _range
+        _values, _categories = [], []
+        for _d, _nc in zip(data, nodeClasses):
+            _values += _d
+            _categories += [f'Class {_nc}'] * len(_d)
+        data = pd.DataFrame({
+            'values': _values,
+            'category': _categories
+        })
+        sns.boxenplot(x='category', y='values', hue='category', data=data, palette="Set2", ax=plt.gca())
         plt.xlabel(conf["xlabel"], fontsize=12)
         plt.ylabel(conf["ylabel"], fontsize=12)
         plt.title(conf["title"], fontsize=14)
@@ -607,10 +922,15 @@ class Visualizor:
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Samples Repaired by Nodes"
         conf["type"] = "individual_bar"
@@ -629,10 +949,15 @@ class Visualizor:
         plt.clf()
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Row/Column Distribution"
         conf["xlabel"] = ""
@@ -653,10 +978,15 @@ class Visualizor:
         """Plots the restoreRowCount for each node"""
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Restore Row Count for Each Node"
         conf["type"] = "individual_bar"
@@ -676,10 +1006,15 @@ class Visualizor:
         """Plots the restoreColumnCount for each node"""
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Restore Column Count for Each Node"
         conf["type"] = "individual_bar"
@@ -699,10 +1034,15 @@ class Visualizor:
         """Plots the percentage sampleRecv for each node"""
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Percentage of Samples Received by Nodes"
         conf["type"] = "individual_bar_with_2line"
@@ -735,10 +1075,15 @@ class Visualizor:
         """Box Plot of the sampleRecv for each node"""
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Samples Received by Nodes"
         conf["type"] = "individual_bar_with_2line"
@@ -757,10 +1102,15 @@ class Visualizor:
         """Plots the missing segments in the network"""
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)+"\nMissing Segment: "+str(round(min(result.missingVector) * 100 / max(result.missingVector), 3))+"%"\
         +"\nMissing Segments: "+str(result.missingVector[-1])
         conf["title"] = "Missing Segments"
@@ -780,7 +1130,7 @@ class Visualizor:
                 maxi = max(v)
         conf["yaxismax"] = maxi
         x = result.shape.nbCols * result.shape.custodyRows + result.shape.nbRows * result.shape.custodyCols
-        conf["expected_value"] = (result.shape.numberNodes - 1) * (result.shape.class1ratio * result.shape.vpn1 * x + (1 - result.shape.class1ratio) * result.shape.vpn2 * x)
+        conf["expected_value"] = (result.shape.numberNodes - 1) * x * sum([(_v['w'] * _v['vpn']) for _v in nodeTypes.values()]) / sum([_v['w'] for _v in nodeTypes.values()])
         conf["line_label"] = "Total segments to deliver"
         plotData(conf)
         print("Plot %s created." % conf["path"])
@@ -792,10 +1142,15 @@ class Visualizor:
         vector3 = [x * 100 for x in result.metrics["progress"]["samples received"]]   
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Nodes/validators ready"
         conf["type"] = "plot"
@@ -808,36 +1163,83 @@ class Visualizor:
         conf["data"] = [vector1, vector2, vector3]
         conf["xdots"] = [x*self.config.stepDuration for x in range(len(vector1))]
         conf["path"] = plotPath+"/nodesReady.png"
-        conf["yaxismax"] = 1
+        conf["yaxismax"] = 100
+        plotData(conf)
+        print("Plot %s created." % conf["path"])
+    
+    def plotSamplesReceived(self, result, plotPath):
+        """Plots the min, max, avg percentage of samples recived by nodes"""
+        samplesReceived = result.metrics["samplesReceived"]
+        expectedSamples = result.metrics["expectedSamples"]
+        vector1, vector2, vector3 = [], [], []
+        for i in range(len(samplesReceived)):
+            percentages = []
+            for j in range(1, result.numberNodes):
+                percentages.append(samplesReceived[i][j - 1] * 100 / expectedSamples[j - 1])
+            vector1.append(max(percentages))
+            vector2.append(min(percentages))
+            vector3.append(sum(percentages) / len(percentages))
+        conf = {}
+        attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
+        conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
+        +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
+        +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
+        +"\nSegment Size: "+str(self.config.segmentSize)
+        conf["title"] = "Percentages of Samples Received"
+        conf["type"] = "plot"
+        conf["legLoc"] = 2
+        conf["desLoc"] = 2
+        conf["colors"] = ["g-", "b-", "r-"]
+        conf["labels"] = ["Max", "Min", "Average"]
+        conf["xlabel"] = "Time (ms)"
+        conf["ylabel"] = "Percentage (%)"
+        conf["data"] = [vector1, vector2, vector3]
+        conf["xdots"] = [x*self.config.stepDuration for x in range(len(vector1))]
+        conf["path"] = plotPath+"/samplesReceivedPercentages.png"
+        conf["yaxismax"] = 100
         plotData(conf)
         print("Plot %s created." % conf["path"])
 
     def plotSentData(self, result, plotPath):
         """Plots the percentage of nodes ready in the network"""
-        vector1 = result.metrics["progress"]["TX builder mean"]
-        vector2 = result.metrics["progress"]["TX class1 mean"]
-        vector3 = result.metrics["progress"]["TX class2 mean"]
-        for i in range(len(vector1)):
-            vector1[i] = (vector1[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
-            vector2[i] = (vector2[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
-            vector3[i] = (vector3[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
+        vectors = { 0: result.metrics["progress"]["TX builder mean"] }
+        for nc in result.shape.nodeClasses:
+            if nc != 0: vectors[nc] = result.metrics["progress"][f"TX class{nc} mean"]
+        for _k in vectors.keys():
+            for i in range(len(list(vectors.values())[0])):
+                vectors[_k][i] = (vectors[_k][i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Sent data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
         conf["desLoc"] = 2
-        conf["colors"] = ["y-", "c-", "m-"]
-        conf["labels"] = ["Block Builder", "Solo stakers", "Staking pools"]
+        # conf["colors"] = ["y-", "c-", "m-"]
+        conf["labels"] = ["Block Builder"]
+        conf["data"] = [vectors[0]]
+        for _k, _v in vectors.items():
+            if _k != 0:
+                conf["labels"].append(f"Node Class: {_k}")
+                conf["data"].append(_v)
         conf["xlabel"] = "Time (ms)"
         conf["ylabel"] = "Bandwidth (MBits/s)"
-        conf["data"] = [vector1, vector2, vector3]
-        conf["xdots"] = [x*self.config.stepDuration for x in range(len(vector1))]
+        conf["xdots"] = [x*self.config.stepDuration for x in range(len(list(vectors.values())[0]))]
         conf["path"] = plotPath+"/sentData.png"
         maxi = 0
         for v in conf["data"]:
@@ -849,28 +1251,37 @@ class Visualizor:
 
     def plotRecvData(self, result, plotPath):
         """Plots the percentage of nodes ready in the network"""
-        vector1 = result.metrics["progress"]["RX class1 mean"]
-        vector2 = result.metrics["progress"]["RX class2 mean"]
-        for i in range(len(vector1)):
-            vector1[i] = (vector1[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
-            vector2[i] = (vector2[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
+        vectors = {}
+        for nc in result.shape.nodeClasses:
+            if nc != 0: vectors[nc] = result.metrics["progress"][f"RX class{nc} mean"]
+        for _k in vectors.keys():
+            for i in range(len(list(vectors.values())[0])):
+                vectors[_k][i] = (vectors[_k][i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Received data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
         conf["desLoc"] = 2
-        conf["colors"] = ["c-", "m-"]
-        conf["labels"] = ["Solo stakers", "Staking pools"]
+        # conf["colors"] = ["c-", "m-"]
+        conf["labels"] = []
+        conf["data"] = []
+        for _k, _v in vectors.items():
+            conf["labels"].append(f"Node Class: {_k}")
+            conf["data"].append(_v)
         conf["xlabel"] = "Time (ms)"
         conf["ylabel"] = "Bandwidth (MBits/s)"
-        conf["data"] = [vector1, vector2]
-        conf["xdots"] = [x*self.config.stepDuration for x in range(len(vector1))]
+        conf["xdots"] = [x*self.config.stepDuration for x in range(len(list(vectors.values())[0]))]
         conf["path"] = plotPath+"/recvData.png"
         maxi = 0
         for v in conf["data"]:
@@ -882,28 +1293,37 @@ class Visualizor:
 
     def plotDupData(self, result, plotPath):
         """Plots the percentage of nodes ready in the network"""
-        vector1 = result.metrics["progress"]["Dup class1 mean"]
-        vector2 = result.metrics["progress"]["Dup class2 mean"]
-        for i in range(len(vector1)):
-            vector1[i] = (vector1[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
-            vector2[i] = (vector2[i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
+        vectors = {}
+        for nc in result.shape.nodeClasses:
+            if nc != 0: vectors[nc] = result.metrics["progress"][f"Dup class{nc} mean"]
+        for _k in vectors.keys():
+            for i in range(len(list(vectors.values())[0])):
+                vectors[_k][i] = (vectors[_k][i] * 8 * (1000/self.config.stepDuration) * self.config.segmentSize) / 1000000
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Duplicated data"
         conf["type"] = "plot"
         conf["legLoc"] = 2
         conf["desLoc"] = 2
-        conf["colors"] = ["c-", "m-"]
-        conf["labels"] = ["Solo stakers", "Staking pools"]
+        # conf["colors"] = ["c-", "m-"]
+        conf["labels"] = []
+        conf["data"] = []
+        for _k, _v in vectors.items():
+            conf["labels"].append(f"Node Class: {_k}")
+            conf["data"].append(_v)
         conf["xlabel"] = "Time (ms)"
         conf["ylabel"] = "Bandwidth (MBits/s)"
-        conf["data"] = [vector1, vector2]
-        conf["xdots"] = [x*self.config.stepDuration for x in range(len(vector1))]
+        conf["xdots"] = [x*self.config.stepDuration for x in range(len(list(vectors.values())[0]))]
         conf["path"] = plotPath+"/dupData.png"
         maxi = 0
         for v in conf["data"]:
@@ -923,10 +1343,15 @@ class Visualizor:
             vector1 += [np.nan] * (len(vector2) - len(vector1))
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Row/Column distribution"
         conf["type"] = "grouped_bar"
@@ -951,10 +1376,15 @@ class Visualizor:
         """Plots the number of messages sent by all nodes"""
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Sent by Nodes"
         conf["type"] = "individual_bar"
@@ -974,10 +1404,15 @@ class Visualizor:
         """Box Plot of the number of messages sent by all nodes"""
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Sent by Nodes"
         conf["xlabel"] = "Node Type"
@@ -992,10 +1427,15 @@ class Visualizor:
         """Plots the number of messages received by all nodes"""
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Received by Nodes"
         conf["type"] = "individual_bar"
@@ -1015,10 +1455,15 @@ class Visualizor:
         """Plots the number of messages received by all nodes"""
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Messages Received by Nodes"
         conf["type"] = "individual_bar"
@@ -1039,10 +1484,15 @@ class Visualizor:
         """Plots the number of samples repaired by all nodes"""
         conf = {}
         attrbs = self.__get_attrbs__(result)
+        nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+        nodeTypesTxt = ""
+        for _k, _v in nodeTypes.items():
+            nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+        if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
         conf["textBox"] = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
         +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
         +"\nNumber of nodes: "+attrbs['nn']+"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"+"\nNetwork degree: "+attrbs['nd']\
-        +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']+"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']\
+        +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"+"\n"+nodeTypesTxt\
         +"\nSegment Size: "+str(self.config.segmentSize)
         conf["title"] = "Number of Samples Repaired by Nodes"
         conf["type"] = "individual_bar"
@@ -1097,11 +1547,16 @@ class Visualizor:
         xyS = dict()
         for result in self.results: 
             attrbs = self.__get_attrbs__(result)
+            nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+            nodeTypesTxt = ""
+            for _k, _v in nodeTypes.items():
+                nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+            if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
             textBox = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
                 +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
                 +"\nFailure rate: "+attrbs['fr']+"%"+"\nMalicious Node: "+attrbs['mn']+"%"\
-                +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']\
-                +"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+                +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"\
+                +"\n"+nodeTypesTxt
             filename = "bsrn_" + attrbs['bsrn'] +\
                 "_bsrk_" + attrbs['bsrk'] +\
                 "_bscn_" + attrbs['bscn' ] +\
@@ -1110,13 +1565,11 @@ class Visualizor:
                 "_mn_" + attrbs['mn'] +\
                 "_cusr_" + attrbs['cusr'] +\
                 "_cusc_" + attrbs['cusc'] +\
-                "_vpn1_" + attrbs['vpn1'] +\
-                "_vpn2_" + attrbs['vpn2']
+                "_ntypes_" + attrbs['ntypes']
             identifier = (
                 attrbs['bsrn'], attrbs['bsrk'], attrbs['bscn'],
                 attrbs['bsck'], attrbs['fr'], attrbs['mn'],
-                attrbs['cusr'], attrbs['cusc'], attrbs['vpn1'],
-                attrbs['vpn2']
+                attrbs['cusr'], attrbs['cusc'], attrbs['ntypes']
             )
             if identifier in xyS.keys():
                 xyS[identifier]['x'].append(result.shape.netDegree)
@@ -1158,11 +1611,16 @@ class Visualizor:
         xyS = dict()
         for result in self.results: 
             attrbs = self.__get_attrbs__(result)
+            nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+            nodeTypesTxt = ""
+            for _k, _v in nodeTypes.items():
+                nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+            if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
             textBox = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
                 +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
                 +"\nFailure rate: "+attrbs['fr']+"%"+"\nNodes: "+attrbs['nn']\
-                +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']\
-                +"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+                +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"\
+                +"\n"+nodeTypesTxt
             filename = "bsrn_" + attrbs['bsrn'] +\
                 "_bsrk_" + attrbs['bsrk'] +\
                 "_bscn_" + attrbs['bscn' ] +\
@@ -1171,13 +1629,11 @@ class Visualizor:
                 "_fr_" + attrbs['fr'] +\
                 "_cusr_" + attrbs['cusr'] +\
                 "_cusc_" + attrbs['cusc'] +\
-                "_vpn1_" + attrbs['vpn1'] +\
-                "_vpn2_" + attrbs['vpn2']
+                "_ntypes_" + attrbs['ntypes']
             identifier = (
                 attrbs['bsrn'], attrbs['bsrk'], attrbs['bscn'],
                 attrbs['bsck'], attrbs['fr'], attrbs['nn'],
-                attrbs['cusr'], attrbs['cusc'], attrbs['vpn1'],
-                attrbs['vpn2']
+                attrbs['cusr'], attrbs['cusc'], attrbs['ntypes']
             )
             if identifier in xyS.keys():
                 xyS[identifier]['x'].append(result.shape.netDegree)
@@ -1219,11 +1675,16 @@ class Visualizor:
         xyS = dict()
         for result in self.results: 
             attrbs = self.__get_attrbs__(result)
+            nodeTypes = self.__getNodeTypes__(attrbs['ntypes'])
+            nodeTypesTxt = ""
+            for _k, _v in nodeTypes.items():
+                nodeTypesTxt += f"Type ({_k}): " + str(_v) + "\n"
+            if nodeTypesTxt != "": nodeTypesTxt = nodeTypesTxt[: -1]
             textBox = "Row Size (N, K): "+attrbs['bsrn']+ ", "+attrbs['bsrk']\
                 +"\nColumn Size: (N, K): "+attrbs['bscn']+ ", "+attrbs['bsck']\
                 +"\nNodes: "+attrbs['nn']+"\nMalicious Node: "+attrbs['mn']+"%"\
-                +"\nCustody Rows: "+attrbs['cusr']+"\nCustody Cols: "+attrbs['cusc']\
-                +"\nCustody 1: "+attrbs['vpn1']+"\nCustody 2: "+attrbs['vpn2']
+                +"\nCustody Rows: "+attrbs['cusr']+" (Min: "+attrbs['mcusr']+")"+"\nCustody Cols: "+attrbs['cusc']+" (Min: "+attrbs['mcusc']+")"\
+                +"\n"+nodeTypesTxt
             filename = "bsrn_" + attrbs['bsrn'] +\
                 "_bsrk_" + attrbs['bsrk'] +\
                 "_bscn_" + attrbs['bscn' ] +\
@@ -1232,13 +1693,11 @@ class Visualizor:
                 "_mn_" + attrbs['mn'] +\
                 "_cusr_" + attrbs['cusr'] +\
                 "_cusc_" + attrbs['cusc'] +\
-                "_vpn1_" + attrbs['vpn1'] +\
-                "_vpn2_" + attrbs['vpn2']
+                "_ntypes_" + attrbs['ntypes']
             identifier = (
                 attrbs['bsrn'], attrbs['bsrk'], attrbs['bscn'],
                 attrbs['bsck'], attrbs['mn'], attrbs['nn'],
-                attrbs['cusr'], attrbs['cusc'], attrbs['vpn1'],
-                attrbs['vpn2']
+                attrbs['cusr'], attrbs['cusc'], attrbs['ntypes']
             )
             if identifier in xyS.keys():
                 xyS[identifier]['x'].append(result.shape.netDegree)

@@ -83,8 +83,8 @@ class Observer:
             sampleProgress = arrived / expected
             nodeProgress = ready / (len(validators)-1)
             validatorCnt = sum([v.vpn for v in validators[1:]])
-            validatorAllProgress = validatedall / validatorCnt
-            validatorProgress = validated / validatorCnt
+            validatorAllProgress = (validatedall / validatorCnt) if validatorCnt != 0 else 1
+            validatorProgress = (validated / validatorCnt) if validatorCnt != 0 else 1
 
             return missingSamples, sampleProgress, nodeProgress, validatorAllProgress, validatorProgress
 
@@ -96,7 +96,7 @@ class Observer:
                 return np.mean(l) if l else np.NaN
 
             trafficStats = {}
-            for cl in range(0,3):
+            for cl in self.config.nodeClasses:
                 Tx = [v.statsTxInSlot for v in validators if v.nodeClass == cl]
                 Rx = [v.statsRxInSlot for v in validators if v.nodeClass == cl]
                 RxDup = [v.statsRxDupInSlot for v in validators if v.nodeClass == cl]
