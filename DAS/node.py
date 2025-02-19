@@ -81,13 +81,14 @@ class Node:
         self.logger = logger
         self.validators = validators
         self.received_gossip = defaultdict(list)
+        self.peer_connections = set()
 
         # query methods
-        self.exponential_growth = True
+        self.exponential_growth = False
         self.linear_growth = False
         self.linear_constant_growth = False
         self.hybrid_growth = False
-        self.exponential_constant_growth = False
+        self.exponential_constant_growth = True
         self.linear_growth_constant = 10
 
         # query results
@@ -722,57 +723,28 @@ class Node:
                 query_times.append(0)
                 all_original_retries.append(0)
             else:
-                row_neighbors_copy = {row: list(neighbors) for row, neighbors in self.rowNeighbors.items()}
-                column_neighbors_copy = {col: list(neighbors) for col, neighbors in self.columnNeighbors.items()}
-                
-                row_peer_ids = list({node_id for neighbors in row_neighbors_copy.values() for node_id in neighbors})
-                col_peer_ids = list({node_id for neighbors in column_neighbors_copy.values() for node_id in neighbors})
-                
+
                 peers_with_custody = set()
                 
-                for peer_id in row_peer_ids:
+                for peer_id in self.peer_connections:
                     if (sample_row in simulator.validators[peer_id].rowIDs or
                         sample_col in simulator.validators[peer_id].columnIDs or
                         len(simulator.validators[peer_id].rowIDs) >= self.shape.nbRowsK or
                         len(simulator.validators[peer_id].columnIDs) >= self.shape.nbColsK):
                         peers_with_custody.update({peer_id})
                
-                for peer_id in col_peer_ids:
-                    if (sample_row in simulator.validators[peer_id].rowIDs or
-                        sample_col in simulator.validators[peer_id].columnIDs or
-                        len(simulator.validators[peer_id].rowIDs) >= self.shape.nbRowsK or
-                        len(simulator.validators[peer_id].columnIDs) >= self.shape.nbColsK):
-                        peers_with_custody.update({peer_id})
-
                 peers_with_custody = list(peers_with_custody)
                 
-                peers_with_custody_level_2 = []
-
-                row_neighbors_l2 = set()
-                col_neighbors_l2 = set()
-
-                for p in row_peer_ids:
-                    for neighbors in simulator.validators[p].rowNeighbors.values():
-                        row_neighbors_l2.update(neighbors)
-                    for neighbors in simulator.validators[p].columnNeighbors.values():
-                        row_neighbors_l2.update(neighbors)
-
-                for p in col_peer_ids:
-                    for neighbors in simulator.validators[p].rowNeighbors.values():
-                        col_neighbors_l2.update(neighbors)
-                    for neighbors in simulator.validators[p].columnNeighbors.values():
-                        col_neighbors_l2.update(neighbors)
-
-                
-                neighbors_level_2 =  list(row_neighbors_l2.union(col_neighbors_l2))
                 peers_with_custody_level_2 = set()
 
-                for p in neighbors_level_2:
-                    if (sample_row in simulator.validators[p].rowIDs or 
-                        sample_col in simulator.validators[p].columnIDs or
-                        len(simulator.validators[p].rowIDs) >= self.shape.nbRowsK or
-                        len(simulator.validators[p].columnIDs) >= self.shape.nbColsK):
-                        peers_with_custody_level_2.update({p})
+                for p in self.peer_connections:
+                    for peer_l2 in simulator.validators[p].peer_connections:
+                        if (sample_row in simulator.validators[peer_l2].rowIDs or
+                        sample_col in simulator.validators[peer_l2].rowIDs or
+                        len(simulator.validators[peer_l2].rowIDs) >= self.shape.nbRowsK or
+                        len(simulator.validators[peer_l2].columnIDs) >= self.shape.nbColsK):
+                            peers_with_custody_level_2.update({peer_l2})
+
                 peers_with_custody_level_2 = list(peers_with_custody_level_2)
 
                 if self.ID in peers_with_custody:

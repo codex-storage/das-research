@@ -43,6 +43,7 @@ def runOnce(config, shape, execID):
     sim.initLogger()
     sim.initValidators()
     sim.initNetwork()
+    sim.connect_peers()
     result = sim.run()
     sim.logger.info("Shape: %s ... Block Available: %d in %d steps" % (str(sim.shape.__dict__), result.blockAvailable, len(result.missingVector)), extra=sim.format)
 

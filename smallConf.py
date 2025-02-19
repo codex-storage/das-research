@@ -68,6 +68,9 @@ heartbeat = 20
 # Per-topic mesh neighborhood size
 netDegrees = range(8, 9, 2)
 
+# Number of peers for sampling
+numPeers = [[50, 150]]
+
 # How many copies are sent out by the block producer
 # Note, previously this was set to match netDegree
 proposerPublishToR = "shape.netDegree"
@@ -169,19 +172,32 @@ def nextShape():
         "minCustodyCols": minCustodyCols,
         "numberNodes": numberNodes,
         "netDegrees": netDegrees,
+        "numPeers": numPeers,
         "bwUplinksProd": bwUplinksProd,
         "nodeTypesGroup": nodeTypesGroup,
     }
+    
     for key, value in params.items():
         if not value:
             logging.warning(f"The parameter '{key}' is empty. Please assign a value and start the simulation.")
             exit(1)
 
-    for nbCols, nbColsK, nbRows, nbRowsK, run, fm, fr, mn, chR, chC, minChR, minChC, nn, netDegree, bwUplinkProd, nodeTypes in itertools.product(
-        cols, colsK, rows, rowsK, runs, failureModels, failureRates, maliciousNodes,  custodyRows, custodyCols, minCustodyRows, minCustodyCols, numberNodes, netDegrees, bwUplinksProd, nodeTypesGroup):
-        # Network Degree has to be an even number
+    for (
+        nbCols, nbColsK, nbRows, nbRowsK, run, fm, fr, mn, chR, chC, minChR, minChC, 
+        nn, netDegree, numPeersList, bwUplinkProd, nodeTypes
+    ) in itertools.product(
+        cols, colsK, rows, rowsK, runs, failureModels, failureRates, maliciousNodes,  
+        custodyRows, custodyCols, minCustodyRows, minCustodyCols, numberNodes, 
+        netDegrees, numPeers, bwUplinksProd, nodeTypesGroup
+    ):
+        numPeersMin, numPeersMax = numPeersList  # Unpack here
+
+        # Ensure netDegree is even
         if netDegree % 2 == 0:
-            shape = Shape(nbCols, nbColsK, nbRows, nbRowsK, nn, fm, fr, mn, chR, chC, minChR, minChC, netDegree, bwUplinkProd, run, nodeTypes)
+            shape = Shape(
+                nbCols, nbColsK, nbRows, nbRowsK, nn, fm, fr, mn, chR, chC, minChR, 
+                minChC, netDegree, numPeersMin, numPeersMax, bwUplinkProd, run, nodeTypes
+            )
             yield shape
 
 def evalConf(self, param, shape = None):

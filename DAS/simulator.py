@@ -236,6 +236,27 @@ class Simulator:
                 self.logger.debug("Val %d : rowN %s", i, self.validators[i].rowNeighbors, extra=self.format)
                 self.logger.debug("Val %d : colN %s", i, self.validators[i].columnNeighbors, extra=self.format)
 
+    def connect_peers(self):
+        connections_range = self.shape.numPeers
+        
+        for peer in self.validators:
+            num_connections = random.randint(connections_range[0], connections_range[1])
+            available_peers = [i for i in range(self.shape.numberNodes)]
+            
+            for neighbor_dict in [peer.rowNeighbors, peer.columnNeighbors]:
+                for inner_dict in neighbor_dict.values():
+                    for peers in inner_dict.values():
+                        peer.peer_connections.add(peers.node.ID)
+            
+            available_peers = list(set(available_peers) - peer.peer_connections)
+            random.shuffle(available_peers)
+
+            while len(peer.peer_connections) < num_connections and available_peers:
+                other_peer = available_peers.pop()
+                if other_peer != peer.ID and len(self.validators[other_peer].peer_connections) < num_connections:
+                    peer.peer_connections.add(other_peer)
+                    self.validators[other_peer].peer_connections.add(peer.ID)
+
     def initLogger(self):
         """It initializes the logger."""
         logging.TRACE = 5
@@ -429,4 +450,5 @@ class Simulator:
             self.result.addMetric("progress", progress.to_dict(orient='list'))
         self.result.populate(self.shape, self.config, missingVector)
         self.result.copyValidators(self.validators)
+        print(self.validators[1].statsTxPerSlot)
         return self.result
