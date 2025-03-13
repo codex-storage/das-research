@@ -31,24 +31,19 @@ export function SimulationList() {
     router.push(`/simulations/${id}`)
   }
 
-  // Función auxiliar para formatear fechas de manera segura
   const formatDate = (dateString: string) => {
     try {
-      // Corregir formato incorrecto con :00Z al final
       if (dateString.includes('T') && dateString.endsWith(':00Z')) {
         dateString = dateString.replace(':00Z', 'Z');
       }
       
-      // Intenta parsear la fecha desde ISO
       const date = parseISO(dateString);
       return format(date, "PPP");
     } catch (error) {
       console.error("Error formatting date:", dateString, error);
       
-      // Si falla, intenta otro enfoque: crear una fecha a partir del ID de simulación
       try {
         if (dateString.includes("_")) {
-          // Si la fecha es parte del ID (como en "2025-02-11_00-11-23_825")
           const parts = dateString.split("_");
           if (parts.length >= 2) {
             const datePart = parts[0];
@@ -57,28 +52,23 @@ export function SimulationList() {
           }
         }
         
-        // Si todo lo anterior falla, intentar crear una fecha simple
         return new Date(dateString).toLocaleDateString();
       } catch (e) {
-        // Si todo falla, devuelve un marcador de posición
         return "Date unavailable";
       }
     }
   };
 
   const filteredSimulations = simulations.filter((sim) => {
-    // Search filter
     if (searchTerm && !sim.id.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false
     }
 
-    // Date filter
     if (dateRange.from) {
       try {
         const simDate = new Date(sim.date);
         if (simDate < dateRange.from) return false;
       } catch (e) {
-        // Si la fecha no se puede parsear, mantenemos el elemento
         console.warn("Could not parse date for filtering:", sim.date);
       }
     }
@@ -87,12 +77,10 @@ export function SimulationList() {
         const simDate = new Date(sim.date);
         if (simDate > dateRange.to) return false;
       } catch (e) {
-        // Si la fecha no se puede parsear, mantenemos el elemento
         console.warn("Could not parse date for filtering:", sim.date);
       }
     }
 
-    // Success rate filter
     if (successFilter === "high" && sim.successRate < 75) {
       return false
     }

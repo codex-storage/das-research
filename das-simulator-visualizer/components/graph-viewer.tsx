@@ -1,4 +1,3 @@
-// graph-viewer.tsx
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { AlertCircle } from "lucide-react";
@@ -25,7 +24,6 @@ export function GraphViewer({ simulation, parameters, graphType, fullscreen = fa
         setLoading(true);
         setError(null);
 
-        // Get the graph URL based on the parameters and graph type
         const url = await getGraphUrl(
           simulation.id,
           parameters.numberNodes,

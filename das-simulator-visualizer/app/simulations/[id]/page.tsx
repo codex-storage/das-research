@@ -16,12 +16,22 @@ import { useSimulation } from "@/components/simulation-provider"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 
+interface SimulationParams {
+  numberNodes: number
+  failureRate: number
+  blockSize: number
+  netDegree: number
+  chi: number
+  maliciousNodes: number
+  run: number
+}
+
 export default function SimulationDetailPage() {
   const params = useParams()
   const router = useRouter()
   const { getSimulationById, loading } = useSimulation()
   const [simulation, setSimulation] = useState<any>(null)
-  const [selectedParams, setSelectedParams] = useState<any>({
+  const [selectedParams, setSelectedParams] = useState<SimulationParams>({
     numberNodes: 128,
     failureRate: 40,
     blockSize: 64,
@@ -41,7 +51,6 @@ export default function SimulationDetailPage() {
         }
       } catch (error) {
         console.error("Error fetching simulation:", error)
-        // Set a default simulation or handle the error appropriately
         setSimulation(null)
       }
     }
@@ -82,7 +91,7 @@ export default function SimulationDetailPage() {
   }
 
   const handleParamChange = (param: string, value: any) => {
-    setSelectedParams((prev) => ({
+    setSelectedParams((prev: SimulationParams) => ({
       ...prev,
       [param]: value,
     }))

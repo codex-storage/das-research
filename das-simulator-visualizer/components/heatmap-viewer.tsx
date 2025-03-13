@@ -1,4 +1,3 @@
-// heatmap-viewer.tsx
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { AlertCircle } from "lucide-react";
@@ -35,7 +34,6 @@ export function HeatmapViewer({ simulation, fullscreen = false }: HeatmapViewerP
         setLoading(true);
         setError(null);
 
-        // Get the heatmap URL based on the heatmap type
         const url = await getHeatmapUrl(simulation.id, heatmapType);
         setHeatmapUrl(url);
       } catch (err) {

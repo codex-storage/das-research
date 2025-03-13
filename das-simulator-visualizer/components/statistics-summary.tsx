@@ -25,8 +25,7 @@ export function StatisticsSummary({ simulation }: StatisticsSummaryProps) {
       try {
         setLoading(true)
         setError(null)
-
-        // Get the statistics for the simulation
+        
         const data = await getSimulationStats(simulation.id)
         setStats(data)
       } catch (err) {

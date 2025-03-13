@@ -34,12 +34,9 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
 
   const getSimulationById = (id: string) => {
     try {
-      // First check if the simulation is in our cached state
       const cachedSimulation = simulations.find((sim) => sim.id === id)
       if (cachedSimulation) return cachedSimulation
 
-      // If not in cache, we'll return a promise that fetches it
-      // This is wrapped in a try/catch to handle any errors
       return {
         id,
         date: new Date().toISOString(),
@@ -57,7 +54,6 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       }
     } catch (err) {
       console.error("Error getting simulation by ID:", err)
-      // Return a default simulation object instead of throwing
       return {
         id,
         date: new Date().toISOString(),

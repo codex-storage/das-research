@@ -6,24 +6,19 @@ interface SimulationMetadataProps {
   simulation: any
 }
 
-// Función auxiliar para formatear fechas de manera segura
 const formatDate = (dateString: string) => {
   try {
-    // Corregir formato incorrecto con :00Z al final
     if (dateString && dateString.includes('T') && dateString.endsWith(':00Z')) {
       dateString = dateString.replace(':00Z', 'Z');
     }
     
-    // Intenta parsear la fecha desde ISO
     const date = parseISO(dateString);
     return format(date, "PPP 'at' p");
   } catch (error) {
     console.error("Error formatting date:", dateString, error);
     
-    // Si falla, intenta otro enfoque: crear una fecha a partir del ID de simulación
     try {
       if (dateString && dateString.includes("_")) {
-        // Si la fecha es parte del ID (como en "2025-02-11_00-11-23_825")
         const parts = dateString.split("_");
         if (parts.length >= 2) {
           const datePart = parts[0];
@@ -32,17 +27,14 @@ const formatDate = (dateString: string) => {
         }
       }
       
-      // Si todo lo anterior falla, usar el ID
       return dateString || "Date unavailable";
     } catch (e) {
-      // Si todo falla, devuelve un marcador de posición
       return "Date unavailable";
     }
   }
 };
 
 export function SimulationMetadata({ simulation }: SimulationMetadataProps) {
-  // Manejar el caso donde simulation podría ser null o undefined
   if (!simulation) {
     return <div>Loading...</div>;
   }
