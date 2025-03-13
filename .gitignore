@@ -4,4 +4,8 @@ results/*
 myenv*/
 doc/_build
 !results/plots.py
-Frontend/
+frontend/node_modules
+frontend/build
+frontend/.next
+.DS_Store
+
