@@ -4,4 +4,8 @@ results/*
 myenv*/
 doc/_build
 !results/plots.py
-Frontend/
+das-simulator-visualizer/node_modules
+das-simulator-visualizer/build
+das-simulator-visualizer/.next
+.DS_Store
+
